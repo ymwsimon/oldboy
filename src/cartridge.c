@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 13:19:30 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/16 16:50:29 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/16 17:10:42 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,21 +68,9 @@ int	read_cartridge_header(t_cart *cart)
 		return (fprintf(stderr, "Empty pointer\n"), NOT_OK);
 	if (cart->file_size < 0x150)
 		return (fprintf(stderr, "File size too small..\n"), NOT_OK);
-	memcpy(&cart->header.entry_point, cart->data + 0x100, 4);
-	memcpy(&cart->header.logo, cart->data + 0x104, 48);
-	memcpy(&cart->header.title, cart->data + 0x134, 16);
+	memcpy(&cart->header, cart->data + 0x100, 0x50);
 	memcpy(&cart->header.mcode, cart->data + 0x13F, 4);
-	memcpy(&cart->header.new_licensee_code, cart->data + 0x144, 2);
 	memcpy(&cart->header.cgb_flag, cart->data + 0x143, 1);
-	memcpy(&cart->header.sgb_flag, cart->data + 0x146, 1);
-	memcpy(&cart->header.cart_type, cart->data + 0x147, 1);
-	memcpy(&cart->header.rom_size, cart->data + 0x148, 1);
-	memcpy(&cart->header.ram_size, cart->data + 0x149, 1);
-	memcpy(&cart->header.dest_code, cart->data + 0x14A, 1);
-	memcpy(&cart->header.old_licensee_code, cart->data + 0x14B, 1);
-	memcpy(&cart->header.rom_ver, cart->data + 0x14C, 1);
-	memcpy(&cart->header.header_checksum, cart->data + 0x14D, 1);
-	memcpy(&cart->header.global_checksum, cart->data + 0x14E, 2);
 	return (OK);
 }
 

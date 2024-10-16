@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/16 16:48:59 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/16 17:07:28 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,11 @@
 
 typedef struct s_cart_header
 {
+	unsigned char	entry_point[4];
+	unsigned char	logo[48];
+	char			title[16];
+	unsigned char	new_licensee_code[2];
+	unsigned char	sgb_flag;
 	unsigned char	cart_type;
 	unsigned char	rom_size;
 	unsigned char	ram_size;
@@ -36,14 +41,8 @@ typedef struct s_cart_header
 	unsigned char	rom_ver;
 	unsigned char	header_checksum;
 	unsigned char	global_checksum[2];
-	char			title[16];
-	unsigned char	logo[48];
 	unsigned char	mcode[4];
-	unsigned char	new_licensee_code[2];
 	unsigned char	cgb_flag;
-	unsigned char	sgb_flag;
-	int				ram_type;
-	unsigned char	entry_point[4];
 }	t_cart_header;
 
 typedef struct s_cart
