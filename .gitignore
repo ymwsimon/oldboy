@@ -1,0 +1,4 @@
+resources/rom/*
+obj/*.o
+emu
+.vscode/settings.json
