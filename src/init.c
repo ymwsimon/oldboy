@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 12:34:41 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/16 13:27:34 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/16 19:33:09 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,5 +24,6 @@ int	init_sdl(t_app *app)
 	app->renderer = SDL_CreateRenderer(app->window, NULL);
 	if (!app->renderer)
 		return (fprintf(stderr, "Can't create renderer\n"), NOT_OK);
+	gettimeofday(&app->emu.last_tick, NULL);
 	return (OK);
 }

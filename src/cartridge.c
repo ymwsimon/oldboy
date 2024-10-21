@@ -6,13 +6,13 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 13:19:30 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/16 17:10:42 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/19 19:17:34 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/emulator.h"
 
-void	print_byte_arr(unsigned char *arr, size_t n, int in_char, int with_nl)
+void	print_byte_arr(t_byte *arr, size_t n, int in_char, int with_nl)
 {
 	size_t	i;
 
@@ -25,7 +25,7 @@ void	print_byte_arr(unsigned char *arr, size_t n, int in_char, int with_nl)
 			printf("%c", arr[i]);
 		else
 			printf("%02x", arr[i]);
-		i++;
+		++i;
 	}
 	if (with_nl)
 		printf("\n");
@@ -76,10 +76,10 @@ int	read_cartridge_header(t_cart *cart)
 
 int	read_cartridge(char *path, t_cart *cart)
 {
-	int				fd;
-	int				read_size;
-	unsigned char	buffer[BUFFER_SIZE];
-	unsigned char	*new_data;
+	int		fd;
+	int		read_size;
+	t_byte	buffer[BUFFER_SIZE];
+	t_byte	*new_data;
 
 	if (!path || !cart)
 		return (fprintf(stderr, "Empty pointer\n"), NOT_OK);
@@ -93,9 +93,9 @@ int	read_cartridge(char *path, t_cart *cart)
 		read_size = read(fd, buffer, BUFFER_SIZE);
 		if (read_size > 0)
 		{
-			new_data = malloc(sizeof(unsigned char) * (cart->file_size + read_size));
+			new_data = malloc(sizeof(t_byte) * (cart->file_size + read_size));
 			if (!new_data)
-				return (fprintf(stderr, "Allocate mem fail\n"), free(cart->data), close(fd), NOT_OK);
+				return (fprintf(stderr, "Allocate memory fail\n"), free(cart->data), close(fd), NOT_OK);
 			memcpy(new_data, cart->data, cart->file_size);
 			memcpy(new_data + cart->file_size, buffer, read_size);
 			free(cart->data);

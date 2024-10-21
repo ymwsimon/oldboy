@@ -6,20 +6,44 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 13:14:12 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/16 13:24:26 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/20 20:16:57 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/emulator.h"
 
+int	tick(t_emu *emu)
+{
+	struct timeval	curr_time;
+	double			time_diff;
+
+	if (!emu)
+		return (fprintf(stderr, "Empty pointer\n"), NOT_OK);
+	gettimeofday(&curr_time, NULL);
+	time_diff = (curr_time.tv_sec - emu->last_tick.tv_sec) * MS_PER_SECOND;
+	time_diff += (curr_time.tv_usec - emu->last_tick.tv_usec);
+	// printf("curr_time_sec:%lu - last_tick_sec:%lu - curr_time_usec:%lu - last_tick_usec:%lu - ", curr_time.tv_sec, app->emu.last_tick.tv_sec, curr_time.tv_usec, app->emu.last_tick.tv_usec);
+	// printf("time_diff:%llu\n", time_diff);
+	if (time_diff > (1.0 / FPS) * MS_PER_SECOND * CLOCK_SCALE)
+	{
+		printf("time to tick cpu %lu - %f\n", curr_time.tv_sec, time_diff);
+		print_cpu_register(&emu->cpu);
+		cpu_step(emu);
+		emu->last_tick = curr_time;
+	}
+	return (OK);
+}
+
 int	run_app(t_app *app)
 {
-	SDL_Event	event;
+	SDL_Event		event;
 
 	if (!app)
 		return (fprintf(stderr, "Empty pointer\n"), NOT_OK);
+	init_emu(&app->emu);
 	while (OK)
 	{
+		tick(&app->emu);
 		if (SDL_PollEvent(&event))
 		{
 			SDL_RenderClear(app->renderer);
