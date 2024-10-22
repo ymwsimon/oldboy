@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 19:26:44 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/22 14:32:41 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/22 15:13:34 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,7 +101,7 @@ void	set_two_byte(t_cpu *cpu, t_word two_byte, t_byte offset)
 	byte_pointer += offset;
 	// printf("f:%x s:%x\n", *byte_pointer, *(byte_pointer + 1));
 	// printf("tb:%x tf:%x ts:%x\n", two_byte, (two_byte >> 8) & 0xFF, two_byte & 0xFF);
-	*byte_pointer = two_byte >> 8 & 0xFF;
+	*byte_pointer = (two_byte >> 8) & 0xFF;
 	if (offset)
 		*(byte_pointer + 1) = two_byte & 0xFF;
 	else
@@ -130,12 +130,14 @@ void	set_hl(t_cpu *cpu, t_word hl)
 
 void	set_sp(t_cpu *cpu, t_word sp)
 {
-	set_two_byte(cpu, sp, 8);
+	if (cpu)
+		cpu->sp = sp;
 }
 
 void	set_pc(t_cpu *cpu, t_word pc)
 {
-	set_two_byte(cpu, pc, 10);
+	if (cpu)
+		cpu->pc = pc;
 }
 
 void	set_a(t_cpu *cpu, t_word a)

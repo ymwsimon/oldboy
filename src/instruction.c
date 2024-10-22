@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:54:16 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/22 14:25:50 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/22 15:19:00 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,7 +95,24 @@ void	test_op(t_emu *emu, t_byte op_code)
 	print_cpu_register(&emu->cpu);
 }
 
-t_word	read_pc_byte_tick(t_emu *emu);
+t_word	read_pc_byte_tick(t_emu *emu)
+{
+	t_word	res;
+
+	res = bus_read(emu, emu->cpu.pc);
+	++(emu->cpu.pc);
+	emu_tick(emu, 4);
+	return (res);
+}
+
+t_word	read_pc_word_tick(t_emu *emu)
+{
+	t_word	res;
+
+	res = read_pc_byte_tick(emu);
+	res += read_pc_byte_tick(emu) << 8;
+	return (res);
+}
 
 void	nop(t_emu *emu, t_byte op_code)
 {
@@ -125,13 +142,8 @@ void	ld_rr_d16(t_emu *emu, t_byte op_code)
 
 	emu_tick(emu, 4);
 	setw = g_setw_fptr[op_code];
-	data = bus_read(emu, emu->cpu.pc) << 8;
-	++(emu->cpu.pc);
-	emu_tick(emu, 4);
-	data += bus_read(emu, emu->cpu.pc);
-	++(emu->cpu.pc);
+	data = read_pc_word_tick(emu);
 	setw(&emu->cpu, data);
-	emu_tick(emu, 4);
 }
 
 void	jp_d16(t_emu *emu, t_byte op_code)
@@ -141,13 +153,8 @@ void	jp_d16(t_emu *emu, t_byte op_code)
 
 	emu_tick(emu, 4);
 	setw = g_setw_fptr[op_code];
-	addr = bus_read(emu, emu->cpu.pc) << 8;
-	++(emu->cpu.pc);
-	emu_tick(emu, 4);
-	addr += bus_read(emu, emu->cpu.pc);
-	++(emu->cpu.pc);
+	addr = read_pc_word_tick(emu);
 	setw(&emu->cpu, addr);
-	emu_tick(emu, 4);
 }
 
 void	inc_dec_rr(t_emu *emu, t_byte op_code, int value)
@@ -204,26 +211,6 @@ void	write_mrr_idhl_tick(t_emu *emu, t_byte op_code, t_byte data)
 	if (op_code == 0x32)
 		set_hl(&emu->cpu, hl_of(emu->cpu) - 1);
 	emu_tick(emu, 4);
-}
-
-t_word	read_pc_byte_tick(t_emu *emu)
-{
-	t_word	res;
-
-	res = bus_read(emu, emu->cpu.pc);
-	++(emu->cpu.pc);
-	emu_tick(emu, 4);
-	return (res);
-}
-
-t_word	read_pc_word_tick(t_emu *emu)
-{
-	t_word	res;
-
-	res = read_pc_byte_tick(emu);
-	res <<= 8;
-	res += read_pc_byte_tick(emu);
-	return (res);
 }
 
 void	inc_dec_r(t_emu *emu, t_byte op_code, int value)
