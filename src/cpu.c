@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 19:26:44 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/20 23:51:25 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/22 14:32:41 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -259,8 +259,10 @@ void	print_cpu_register(t_cpu *cpu)
 {
 	if (!cpu)
 		return ;
-	printf("af:%X bc:%X de:%X HL:%X pc:%X sp:%X halt?:%d\n",
-		af_of(*cpu), bc_of(*cpu), de_of(*cpu),
+	printf("a:%X f:%X b:%X c:%X d:%X e:%X h:%X " \
+	"l:%X af:%X bc:%X de:%X hl:%X pc:%X sp:%X halt?:%d\n",
+		a_of(*cpu), f_of(*cpu), b_of(*cpu), c_of(*cpu), d_of(*cpu), e_of(*cpu),
+		h_of(*cpu), l_of(*cpu), af_of(*cpu), bc_of(*cpu), de_of(*cpu),
 		hl_of(*cpu), cpu->pc, cpu->sp, cpu->halted);
 }
 
