@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/21 16:54:44 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/23 01:13:26 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,6 @@
 typedef unsigned char		t_byte;
 typedef unsigned short		t_word;
 typedef unsigned long long	t_ull;
-
 
 typedef struct s_cart_header
 {
@@ -139,6 +138,10 @@ t_word	e_of(t_cpu cpu);
 t_word	f_of(t_cpu cpu);
 t_word	h_of(t_cpu cpu);
 t_word	l_of(t_cpu cpu);
+int		get_flag_z(t_cpu cpu);
+int		get_flag_n(t_cpu cpu);
+int		get_flag_h(t_cpu cpu);
+int		get_flag_c(t_cpu cpu);
 void	set_af(t_cpu *cpu, t_word af);
 void	set_bc(t_cpu *cpu, t_word bc);
 void	set_de(t_cpu *cpu, t_word de);
@@ -153,6 +156,7 @@ void	set_e(t_cpu *cpu, t_word e);
 void	set_f(t_cpu *cpu, t_word f);
 void	set_h(t_cpu *cpu, t_word h);
 void	set_l(t_cpu *cpu, t_word l);
+void	set_id(t_cpu *cpu, t_word id);
 void	set_flag_z(t_cpu *cpu, int value);
 void	set_flag_n(t_cpu *cpu, int value);
 void	set_flag_h(t_cpu *cpu, int value);

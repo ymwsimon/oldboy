@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:54:16 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/22 15:19:00 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/23 01:16:23 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,22 +29,22 @@ t_setw	*g_setw_fptr[256] = {
 	set_l, set_l, set_l, set_l, set_l, set_l, set_l, set_l,
 	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 	set_a, set_a, set_a, set_a, set_a, set_a, set_a, set_a,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	set_a, set_a, set_a, set_a, set_a, set_a, set_a, set_a,
+	set_a, set_a, set_a, set_a, set_a, set_a, set_a, set_a,
+	set_a, set_a, set_a, set_a, set_a, set_a, set_a, set_a,
+	set_a, set_a, set_a, set_a, set_a, set_a, set_a, set_a,
+	set_a, set_a, set_a, set_a, set_a, set_a, set_a, set_a,
+	set_a, set_a, set_a, set_a, set_a, set_a, set_a, set_a,
+	set_a, set_a, set_a, set_a, set_a, set_a, set_a, set_a,
+	set_id, set_id, set_id, set_id, set_id, set_id, set_id, set_id,
 	NULL, NULL, NULL, set_pc, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+	NULL, NULL, NULL, NULL, NULL, NULL, set_a, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, set_a, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, set_a, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, set_a, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, set_a, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, set_a, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, set_id, NULL
 };
 
 t_getw	*g_getw_fptr[256] = {
@@ -232,7 +232,10 @@ void	inc_dec_r(t_emu *emu, t_byte op_code, int value)
 		set_flag_n(&emu->cpu, 0);
 	else
 		set_flag_n(&emu->cpu, 1);
-	set_flag_h(&emu->cpu, !(result & 0x0F));
+	if ((result & 0xF0) != ((result - value) & 0xF0))
+		set_flag_h(&emu->cpu, 1);
+	else
+		set_flag_h(&emu->cpu, 0);
 	if (op_code == 0x34 || op_code == 0x35)
 		write_mrr_idhl_tick(emu, op_code, result);
 	else
@@ -266,21 +269,133 @@ void	ld_r_r(t_emu *emu, t_byte op_code)
 		res = read_pc_byte_tick(emu);
 	else
 		res = getw(emu->cpu);
-	if (op_code >= 0x70 && op_code <= 0x77)
+	if ((op_code >= 0x70 && op_code <= 0x77)
+		|| (op_code < 0x40 && (op_code & 0x0F) == 0x02) || op_code == 0x36)
 		write_mrr_idhl_tick(emu, op_code, res);
 	else
 		setw(&emu->cpu, res);
 }
 
+t_byte	add_addc(t_cpu *cpu, t_byte op_code, t_byte v)
+{
+	t_byte	res;
+	t_byte	half_byte;
+	t_byte	carry;
+
+	carry = 0;
+	if (op_code > 0x87 && op_code != 0xC6)
+		carry = get_flag_c(*cpu);
+	res = a_of(*cpu) + v + carry;
+	half_byte = res & 0x0F;
+	set_flag_z(cpu, !(res & 0xFF));
+	set_flag_n(cpu, 0);
+	if (half_byte < (v & 0xF) || half_byte < (a_of(*cpu) & 0xF)
+		|| half_byte < carry)
+		set_flag_h(cpu, 1);
+	else
+		set_flag_h(cpu, 0);
+	if (res < v || res < a_of(*cpu) || res < carry)
+		set_flag_c(cpu, 1);
+	else
+		set_flag_c(cpu, 0);
+	return (res);
+}
+
+t_byte	sub_subc_cp(t_cpu *cpu, t_byte op_code, t_byte v)
+{
+	t_byte	res;
+	t_byte	carry;
+
+	carry = 0;
+	if (op_code > 0x97 && op_code <= 0x9F)
+		carry = get_flag_c(*cpu);
+	res = a_of(*cpu) - v - carry;
+	set_flag_z(cpu, !(res & 0xFF));
+	set_flag_n(cpu, 1);
+	if ((a_of(*cpu) & 0xF) < (v & 0xF)
+		|| ((a_of(*cpu) - carry) & 0xF) < (v & 0xF))
+		set_flag_h(cpu, 1);
+	else
+		set_flag_h(cpu, 0);
+	if (a_of(*cpu) < v || (a_of(*cpu) - carry) < v)
+		set_flag_c(cpu, 1);
+	else
+		set_flag_c(cpu, 0);
+	return (res);
+}
+
+t_byte and(t_cpu *cpu, t_byte op_code, t_byte v)
+{
+	t_byte	res;
+
+	res = a_of(*cpu) & v;
+	set_flag_z(cpu, !(res & 0xFF));
+	set_flag_n(cpu, 0);
+	set_flag_h(cpu, 1);
+	set_flag_c(cpu, 0);
+	(void)op_code;
+	return (res);
+}
+
+t_byte xor(t_cpu *cpu, t_byte op_code, t_byte v)
+{
+	t_byte	res;
+
+	res = a_of(*cpu) ^ v;
+	set_flag_z(cpu, !(res & 0xFF));
+	set_flag_n(cpu, 0);
+	set_flag_h(cpu, 0);
+	set_flag_c(cpu, 0);
+	(void)op_code;
+	return (res);
+}
+
+t_byte or(t_cpu *cpu, t_byte op_code, t_byte v)
+{
+	t_byte	res;
+
+	res = a_of(*cpu) | v;
+	set_flag_z(cpu, !(res & 0xFF));
+	set_flag_n(cpu, 0);
+	set_flag_h(cpu, 0);
+	set_flag_c(cpu, 0);
+	(void)op_code;
+	return (res);
+}
+
+t_byte (*g_op_fptr[8])(t_cpu *, t_byte, t_byte) = {
+add_addc, add_addc, sub_subc_cp, sub_subc_cp, and, xor, or, sub_subc_cp};
+
+void	bit_op(t_emu *emu, t_byte op_code)
+{
+	t_getw	*getw;
+	t_setw	*setw;
+	t_word	res;
+	t_byte	idx;
+
+	emu_tick(emu, 4);
+	getw = g_getw_fptr[op_code];
+	setw = g_setw_fptr[op_code];
+	idx = (((op_code - 0x80) / 8) % 8);
+	if (op_code <= 0xBF && ((op_code & 0xF) == 0x6 || (op_code & 0xF) == 0xE))
+		res = read_mrr_idhl_tick(emu, op_code);
+	else if ((op_code & 0xF) == 0x6 || (op_code & 0xF) == 0xE)
+		res = read_pc_byte_tick(emu);
+	else
+		res = getw(emu->cpu);
+	res = g_op_fptr[idx](&emu->cpu, op_code, res);
+	setw(&emu->cpu, res);
+}
+
 t_inst	*g_op_map[256] = {
-	nop, ld_rr_d16, NULL, inc_rr, inc_r, dec_r, NULL, NULL,
-	NULL, NULL, NULL, dec_rr, inc_r, dec_r, NULL, NULL,
-	stop, ld_rr_d16, NULL, inc_rr, inc_r, dec_r, NULL, NULL,
-	NULL, NULL, NULL, dec_rr, inc_r, dec_r, NULL, NULL,
-	NULL, ld_rr_d16, NULL, inc_rr, inc_r, dec_r, NULL, NULL,
-	NULL, NULL, NULL, dec_rr, inc_r, dec_r, NULL, NULL,
-	NULL, ld_rr_d16, NULL, inc_rr, inc_r, dec_r, NULL, NULL,
-	NULL, NULL, NULL, dec_rr, inc_r, dec_r, NULL, NULL,
+	nop, ld_rr_d16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, NULL,
+	NULL, NULL, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
+	stop, ld_rr_d16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, NULL,
+	NULL, NULL, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
+	NULL, ld_rr_d16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, NULL,
+	NULL, NULL, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
+	NULL, ld_rr_d16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, NULL,
+	NULL, NULL, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
 	ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r,
 	ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r,
 	ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r,
@@ -289,20 +404,20 @@ t_inst	*g_op_map[256] = {
 	ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r,
 	ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, halt, ld_r_r,
 	ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, jp_d16, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+	bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op,
+	bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op,
+	bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op,
+	bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op,
+	bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op,
+	bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op,
+	bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op,
+	bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op,
+	NULL, NULL, NULL, jp_d16, NULL, NULL, bit_op, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, bit_op, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, bit_op, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, bit_op, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, bit_op, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, bit_op, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, bit_op, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, bit_op, NULL
 };

@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 19:26:44 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/22 15:13:34 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/23 01:05:11 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -187,6 +187,13 @@ void	set_l(t_cpu *cpu, t_word l)
 		cpu->l = l;
 }
 
+void	set_id(t_cpu *cpu, t_word id)
+{
+	(void)cpu;
+	(void)id;
+	return ;
+}
+
 int	get_flag(t_cpu cpu, t_byte offset)
 {
 	return (cpu.f & (1 << offset) >> offset);
@@ -221,7 +228,8 @@ void	set_flag(t_cpu *cpu, t_byte offset, int value)
 	v = 0;
 	if (value)
 		v = 1;
-	cpu->f &= (0xF0 ^ (1 << offset)) | (v << offset);
+	cpu->f &= ~(1 << offset);
+	cpu->f |= v << offset;
 }
 
 void	set_flag_z(t_cpu *cpu, int value)
@@ -281,6 +289,7 @@ int	cpu_step(t_emu *emu)
 		instruction = g_op_map[op_code];
 		if (instruction)
 		{
+			printf("Current op_code:%2X\n", op_code);
 			++(emu->cpu.pc);
 			instruction(emu, op_code);
 		}

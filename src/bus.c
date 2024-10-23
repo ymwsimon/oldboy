@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 16:19:31 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/22 11:29:06 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/23 01:12:29 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ void	bus_write(t_emu *emu, t_word addr, t_byte data)
 	if (addr < 0xA000)
 		emu->vram[addr - 0x8000] = data;
 	if (addr < 0xE000)
-		emu->wram[addr - 0xA000] = data;
+		emu->wram[addr - 0xC000] = data;
 	if (addr >= 0xE000)
 		printf("Unknow write addr for bus (%4X) data:%2X\n", addr, data);
 }
