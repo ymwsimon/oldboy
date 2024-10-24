@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:54:16 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/24 20:15:24 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/24 20:48:05 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -143,7 +143,7 @@ void	halt(t_emu *emu, t_byte op_code)
 	(void)op_code;
 }
 
-void	set_flag_0xF8(t_cpu *cpu, t_word sp, char offset)
+void	set_flag_0xE8_0xF8(t_cpu *cpu, t_word sp, char offset)
 {
 	set_flag_z(cpu, 0);
 	set_flag_n(cpu, 0);
@@ -176,7 +176,7 @@ void	ld_16(t_emu *emu, t_byte op_code)
 	if ((op_code & 0xF0) == 0xF0)
 		emu_tick(emu, 4);
 	if (op_code == 0xF8)
-		set_flag_0xF8(&emu->cpu, sp_of(emu->cpu), offset);
+		set_flag_0xE8_0xF8(&emu->cpu, sp_of(emu->cpu), offset);
 }
 
 void	jp_d16(t_emu *emu, t_byte op_code)
@@ -545,15 +545,42 @@ void	call(t_emu *emu, t_byte op_code)
 		emu_tick(emu, 4);
 }
 
+void	add_16(t_emu *emu, t_byte op_code)
+{
+	t_word	data;
+	t_word	old_data;
+	char	offset;
+
+	emu_tick(emu, 4);
+	if (op_code == 0xE8)
+		offset = (char)read_pc_byte_tick(emu);
+	else
+		data = g_getw_fptr[op_code](emu->cpu);
+	old_data = hl_of(emu->cpu);
+	if (op_code == 0xE8)
+		old_data = sp_of(emu->cpu);
+	if (op_code == 0xE8)
+		set_sp(&emu->cpu, sp_of(emu->cpu) + offset);
+	else
+		g_setw_fptr[op_code](&emu->cpu, hl_of(emu->cpu) + data);
+	set_flag_n(&emu->cpu, 0);
+	if (hl_of(emu->cpu) < old_data || hl_of(emu->cpu) < data)
+		set_flag_c(&emu->cpu, 1);
+	if ((hl_of(emu->cpu) & 0xF0) != old_data)
+		set_flag_h(&emu->cpu, 1);
+	if (op_code == 0xE8)
+		set_flag_0xE8_0xF8(&emu->cpu, old_data, offset);
+}
+
 t_inst	*g_op_map[256] = {
 	nop, ld_16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, NULL,
-	ld_16, NULL, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
+	ld_16, add_16, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
 	stop, ld_16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, NULL,
-	jp, NULL, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
+	jp, add_16, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
 	jp, ld_16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, NULL,
-	jp, NULL, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
+	jp, add_16, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
 	jp, ld_16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, NULL,
-	jp, NULL, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
+	jp, add_16, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
 	ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r,
 	ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r,
 	ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r,
@@ -575,7 +602,7 @@ t_inst	*g_op_map[256] = {
 	ret_reti, pop, jp, NULL, call, push, bit_op, rst,
 	ret_reti, ret_reti, jp, NULL, call, NULL, bit_op, rst,
 	ld_m, pop, ld_m, NULL, NULL, push, bit_op, rst,
-	NULL, jp, ld_m, NULL, NULL, NULL, bit_op, rst,
+	add_16, jp, ld_m, NULL, NULL, NULL, bit_op, rst,
 	ld_m, pop, ld_m, di, NULL, push, bit_op, rst,
 	ld_16, ld_16, ld_m, ei, NULL, NULL, bit_op, rst
 };
