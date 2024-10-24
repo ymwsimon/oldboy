@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:54:16 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/24 14:13:19 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/24 18:45:23 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,13 +37,13 @@ t_setw	*g_setw_fptr[256] = {
 	set_a, set_a, set_a, set_a, set_a, set_a, set_a, set_a,
 	set_a, set_a, set_a, set_a, set_a, set_a, set_a, set_a,
 	set_id, set_id, set_id, set_id, set_id, set_id, set_id, set_id,
-	NULL, NULL, NULL, set_pc, NULL, NULL, NULL, NULL,
+	NULL, set_bc, NULL, set_pc, NULL, NULL, NULL, NULL,
 	NULL, NULL, NULL, NULL, NULL, NULL, set_a, NULL,
+	NULL, set_de, NULL, NULL, NULL, NULL, set_a, NULL,
 	NULL, NULL, NULL, NULL, NULL, NULL, set_a, NULL,
+	NULL, set_hl, NULL, NULL, NULL, NULL, set_a, NULL,
 	NULL, NULL, NULL, NULL, NULL, NULL, set_a, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, set_a, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, set_a, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, set_a, NULL,
+	NULL, set_af, NULL, NULL, NULL, NULL, set_a, NULL,
 	NULL, NULL, NULL, NULL, NULL, NULL, set_id, NULL
 };
 
@@ -72,14 +72,14 @@ t_getw	*g_getw_fptr[256] = {
 	b_of, c_of, d_of, e_of, h_of, l_of, hl_of, a_of,
 	b_of, c_of, d_of, e_of, h_of, l_of, hl_of, a_of,
 	b_of, c_of, d_of, e_of, h_of, l_of, hl_of, a_of,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+	NULL, NULL, NULL, NULL, NULL, bc_of, NULL, pc_of,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, pc_of,
+	NULL, NULL, NULL, NULL, NULL, de_of, NULL, pc_of,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, pc_of,
+	NULL, NULL, NULL, NULL, NULL, hl_of, NULL, pc_of,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, pc_of,
+	NULL, NULL, NULL, NULL, NULL, af_of, NULL, pc_of,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, pc_of
 };
 
 void	test_op(t_emu *emu, t_byte op_code)
@@ -435,6 +435,83 @@ void	ld_m(t_emu *emu, t_byte op_code)
 		bus_write(emu, read_pc_word_tick(emu), data);
 }
 
+void	push_word(t_emu *emu, t_word data)
+{
+	emu_tick(emu, 4);
+	--(emu->cpu.sp);
+	bus_write(emu, emu->cpu.sp, (data >> 8) & 0xFF);
+	emu_tick(emu, 4);
+	--(emu->cpu.sp);
+	bus_write(emu, emu->cpu.sp, data & 0xFF);
+	emu_tick(emu, 4);
+	emu_tick(emu, 4);
+}
+
+void	push(t_emu *emu, t_byte op_code)
+{
+	t_word	data;
+
+	data = g_getw_fptr[op_code](emu->cpu);
+	push_word(emu, data);
+}
+
+void	pop(t_emu *emu, t_byte op_code)
+{
+	t_word	data;
+
+	emu_tick(emu, 4);
+	data = bus_read(emu, emu->cpu.sp) << 8;
+	++(emu->cpu.sp);
+	emu_tick(emu, 4);
+	data = bus_read(emu, emu->cpu.sp);
+	++(emu->cpu.sp);
+	emu_tick(emu, 4);
+	g_setw_fptr[op_code](&emu->cpu, data);
+}
+
+void	rst(t_emu *emu, t_byte op_code)
+{
+	t_byte			idx;
+	const t_byte	addr[8] = {0x00, 0x08, 0x10, 0x18, 0x20, 0x28, 0x30, 0x38};
+
+	idx = ((op_code - 0xC0) / 8) % 8;
+	push(emu, op_code);
+	emu->cpu.pc = addr[idx];
+}
+
+void	ret_reti(t_emu *emu, t_byte op_code)
+{
+	t_byte		idx;
+	static int	(*cc_arr[4])(t_cpu) = {
+		get_flag_nz, get_flag_z, get_flag_nc, get_flag_c};
+
+	idx = (op_code - 0xC0) / 8 % 8;
+	if (((op_code & 0xF) != 0x0 && (op_code & 0xF) != 0x8)
+		|| (((op_code & 0xF) == 0x0 || (op_code & 0xF) == 0x8)
+			&& cc_arr[idx](emu->cpu)))
+		pop(emu, op_code);
+	if ((op_code & 0xF) == 0x0 || (op_code & 0xF) == 0x8)
+		emu_tick(emu, 4);
+	if (op_code == 0xD9)
+		emu->cpu.ime = TRUE;
+	emu_tick(emu, 4);
+}
+
+void	call(t_emu *emu, t_byte op_code)
+{
+	t_word		addr;
+	t_byte		idx;
+	static int	(*cc_arr[4])(t_cpu) = {
+		get_flag_nz, get_flag_z, get_flag_nc, get_flag_c};
+
+	idx = (op_code - 0xC4) / 8 % 8;
+	addr = read_pc_word_tick(emu);
+	if (op_code == 0xCD || (op_code != 0xCD && cc_arr[idx](emu->cpu)))
+		push_word(emu, addr);
+	else
+		emu_tick(emu, 4);
+}
+
 t_inst	*g_op_map[256] = {
 	nop, ld_rr_d16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, NULL,
 	NULL, NULL, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
@@ -460,12 +537,12 @@ t_inst	*g_op_map[256] = {
 	bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op,
 	bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op,
 	bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op,
-	NULL, NULL, jp, jp, NULL, NULL, bit_op, NULL,
-	NULL, NULL, jp, NULL, NULL, NULL, bit_op, NULL,
-	NULL, NULL, jp, NULL, NULL, NULL, bit_op, NULL,
-	NULL, NULL, jp, NULL, NULL, NULL, bit_op, NULL,
-	ld_m, NULL, ld_m, NULL, NULL, NULL, bit_op, NULL,
-	NULL, jp, ld_m, NULL, NULL, NULL, bit_op, NULL,
-	ld_m, NULL, ld_m, di, NULL, NULL, bit_op, NULL,
-	NULL, NULL, ld_m, ei, NULL, NULL, bit_op, NULL
+	ret_reti, pop, jp, jp, call, push, bit_op, rst,
+	ret_reti, ret_reti, jp, NULL, call, call, bit_op, rst,
+	ret_reti, pop, jp, NULL, call, push, bit_op, rst,
+	ret_reti, ret_reti, jp, NULL, call, NULL, bit_op, rst,
+	ld_m, pop, ld_m, NULL, NULL, push, bit_op, rst,
+	NULL, jp, ld_m, NULL, NULL, NULL, bit_op, rst,
+	ld_m, pop, ld_m, di, NULL, push, bit_op, rst,
+	NULL, NULL, ld_m, ei, NULL, NULL, bit_op, rst
 };
