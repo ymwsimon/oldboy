@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:54:16 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/23 14:39:43 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/24 13:55:22 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -324,47 +324,28 @@ t_byte	sub_subc_cp(t_cpu *cpu, t_byte op_code, t_byte v)
 	return (res);
 }
 
-t_byte and(t_cpu *cpu, t_byte op_code, t_byte v)
+t_byte and_xor_or(t_cpu *cpu, t_byte op_code, t_byte v)
 {
 	t_byte	res;
 
-	res = a_of(*cpu) & v;
-	set_flag_z(cpu, !(res & 0xFF));
-	set_flag_n(cpu, 0);
-	set_flag_h(cpu, 1);
-	set_flag_c(cpu, 0);
-	(void)op_code;
-	return (res);
-}
-
-t_byte xor(t_cpu *cpu, t_byte op_code, t_byte v)
-{
-	t_byte	res;
-
-	res = a_of(*cpu) ^ v;
+	if (op_code <= 0xA7)
+		res = a_of(*cpu) & v;
+	else if (op_code <= 0xAF)
+		res = a_of(*cpu) ^ v;
+	else
+		res = a_of(*cpu) | v;
 	set_flag_z(cpu, !(res & 0xFF));
 	set_flag_n(cpu, 0);
 	set_flag_h(cpu, 0);
+	if (op_code <= 0xA7)
+		set_flag_h(cpu, 1);
 	set_flag_c(cpu, 0);
-	(void)op_code;
-	return (res);
-}
-
-t_byte or(t_cpu *cpu, t_byte op_code, t_byte v)
-{
-	t_byte	res;
-
-	res = a_of(*cpu) | v;
-	set_flag_z(cpu, !(res & 0xFF));
-	set_flag_n(cpu, 0);
-	set_flag_h(cpu, 0);
-	set_flag_c(cpu, 0);
-	(void)op_code;
 	return (res);
 }
 
 t_byte (*g_op_fptr[8])(t_cpu *, t_byte, t_byte) = {
-add_addc, add_addc, sub_subc_cp, sub_subc_cp, and, xor, or, sub_subc_cp};
+add_addc, add_addc, sub_subc_cp, sub_subc_cp,
+and_xor_or, and_xor_or, and_xor_or, sub_subc_cp};
 
 void	bit_op(t_emu *emu, t_byte op_code)
 {
