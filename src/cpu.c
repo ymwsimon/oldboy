@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 19:26:44 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/23 01:05:11 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/23 14:02:31 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -196,12 +196,17 @@ void	set_id(t_cpu *cpu, t_word id)
 
 int	get_flag(t_cpu cpu, t_byte offset)
 {
-	return (cpu.f & (1 << offset) >> offset);
+	return (cpu.f & (1 << offset));
 }
 
 int	get_flag_z(t_cpu cpu)
 {
 	return (get_flag(cpu, 7));
+}
+
+int	get_flag_nz(t_cpu cpu)
+{
+	return (!get_flag(cpu, 7));
 }
 
 int	get_flag_n(t_cpu cpu)
@@ -217,6 +222,17 @@ int	get_flag_h(t_cpu cpu)
 int	get_flag_c(t_cpu cpu)
 {
 	return (get_flag(cpu, 4));
+}
+
+int	get_flag_nc(t_cpu cpu)
+{
+	return (!get_flag(cpu, 4));
+}
+
+int	get_flag_true(t_cpu cpu)
+{
+	(void)cpu;
+	return (TRUE);
 }
 
 void	set_flag(t_cpu *cpu, t_byte offset, int value)
@@ -269,10 +285,8 @@ void	print_cpu_register(t_cpu *cpu)
 {
 	if (!cpu)
 		return ;
-	printf("a:%X f:%X b:%X c:%X d:%X e:%X h:%X " \
-	"l:%X af:%X bc:%X de:%X hl:%X pc:%X sp:%X halt?:%d\n",
-		a_of(*cpu), f_of(*cpu), b_of(*cpu), c_of(*cpu), d_of(*cpu), e_of(*cpu),
-		h_of(*cpu), l_of(*cpu), af_of(*cpu), bc_of(*cpu), de_of(*cpu),
+	printf("af:%04X bc:%04X de:%04X hl:%04X pc:%04X sp:%04X halt?:%d\n",
+		af_of(*cpu), bc_of(*cpu), de_of(*cpu),
 		hl_of(*cpu), cpu->pc, cpu->sp, cpu->halted);
 }
 
@@ -289,13 +303,15 @@ int	cpu_step(t_emu *emu)
 		instruction = g_op_map[op_code];
 		if (instruction)
 		{
-			printf("Current op_code:%2X\n", op_code);
+			printf("Current op_code:%02X ", op_code);
+			print_cpu_register(&emu->cpu);
 			++(emu->cpu.pc);
 			instruction(emu, op_code);
 		}
 		else
 		{
-			printf("unknown op code:%2X\n", op_code);
+			printf("unknown op code:%02X ", op_code);
+			print_cpu_register(&emu->cpu);
 			emu->cpu.halted = TRUE;
 		}
 	}

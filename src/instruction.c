@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:54:16 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/23 01:16:23 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/23 14:39:43 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,7 +123,7 @@ void	nop(t_emu *emu, t_byte op_code)
 void	stop(t_emu *emu, t_byte op_code)
 {
 	emu_tick(emu, 4);
-	read_pc_byte_tick(emu);
+	++(emu->cpu.pc);
 	emu->paused = TRUE;
 	(void)op_code;
 }
@@ -387,15 +387,80 @@ void	bit_op(t_emu *emu, t_byte op_code)
 	setw(&emu->cpu, res);
 }
 
+void	jp(t_emu *emu, t_byte op_code)
+{
+	t_word			addr;
+
+	emu_tick(emu, 4);
+	if ((op_code & 0xF) == 0x0 || (op_code & 0xF) == 0x8)
+	{
+		addr = read_pc_byte_tick(emu);
+		addr = emu->cpu.pc + (char)addr;
+	}
+	else if (op_code == 0xE9)
+		emu->cpu.pc = hl_of(emu->cpu);
+	else
+		addr = read_pc_word_tick(emu);
+	if (op_code == 0x18 || op_code == 0xC3
+		|| (op_code == 0x20 && get_flag_nz(emu->cpu))
+		|| (op_code == 0x30 && get_flag_nc(emu->cpu))
+		|| (op_code == 0x28 && get_flag_z(emu->cpu))
+		|| (op_code == 0x38 && get_flag_c(emu->cpu))
+		|| (op_code == 0xC2 && get_flag_nz(emu->cpu))
+		|| (op_code == 0xD2 && get_flag_nc(emu->cpu))
+		|| (op_code == 0xCA && get_flag_z(emu->cpu))
+		|| (op_code == 0xDA && get_flag_c(emu->cpu)))
+	{
+		emu->cpu.pc = addr;
+		emu_tick(emu, 4);
+	}
+}
+
+void	di(t_emu *emu, t_byte op_code)
+{
+	emu_tick(emu, 4);
+	(void)op_code;
+	emu->cpu.ime = FALSE;
+}
+void	ei(t_emu *emu, t_byte op_code)
+{
+	emu_tick(emu, 4);
+	(void)op_code;
+	emu->cpu.ime = TRUE;
+}
+
+void	ld_m(t_emu *emu, t_byte op_code)
+{
+	t_word	data;
+
+	emu_tick(emu, 4);
+	if ((op_code & 0xF0) == 0xE0)
+		data = a_of(emu->cpu);
+	else if (op_code == 0xF0)
+		data = bus_read(emu, read_pc_byte_tick(emu) + 0xFF00);
+	else if (op_code == 0xF2)
+		data = bus_read(emu, c_of(emu->cpu) + 0xFF00);
+	else if (op_code == 0xFA)
+		data = bus_read(emu, read_pc_word_tick(emu));
+	if ((op_code & 0xF0) == 0xF0)
+		set_a(&emu->cpu, data);
+	else if (op_code == 0xE0)
+		bus_write(emu, read_pc_byte_tick(emu) + 0xFF00, data);
+	else if (op_code == 0xE2)
+		bus_write(emu, c_of(emu->cpu) + 0xFF00, data);
+	else if (op_code == 0xEA)
+		bus_write(emu, read_pc_word_tick(emu), data);
+}
+
 t_inst	*g_op_map[256] = {
 	nop, ld_rr_d16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, NULL,
 	NULL, NULL, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
 	stop, ld_rr_d16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, NULL,
-	NULL, NULL, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
-	NULL, ld_rr_d16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, NULL,
-	NULL, NULL, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
-	NULL, ld_rr_d16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, NULL,
-	NULL, NULL, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
+	jp, NULL, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
+	jp, ld_rr_d16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, NULL,
+	jp, NULL, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
+	jp, ld_rr_d16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, NULL,
+	jp, NULL, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
 	ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r,
 	ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r,
 	ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r,
@@ -412,12 +477,12 @@ t_inst	*g_op_map[256] = {
 	bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op,
 	bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op,
 	bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op,
-	NULL, NULL, NULL, jp_d16, NULL, NULL, bit_op, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, bit_op, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, bit_op, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, bit_op, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, bit_op, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, bit_op, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, bit_op, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, bit_op, NULL
+	NULL, NULL, jp, jp, NULL, NULL, bit_op, NULL,
+	NULL, NULL, jp, NULL, NULL, NULL, bit_op, NULL,
+	NULL, NULL, jp, NULL, NULL, NULL, bit_op, NULL,
+	NULL, NULL, jp, NULL, NULL, NULL, bit_op, NULL,
+	ld_m, NULL, ld_m, NULL, NULL, NULL, bit_op, NULL,
+	NULL, jp, ld_m, NULL, NULL, NULL, bit_op, NULL,
+	ld_m, NULL, ld_m, di, NULL, NULL, bit_op, NULL,
+	NULL, NULL, ld_m, ei, NULL, NULL, bit_op, NULL
 };

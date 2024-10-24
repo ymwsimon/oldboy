@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/23 01:13:26 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/24 13:48:25 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,6 +75,7 @@ typedef struct s_cpu
 	t_word	sp;
 	t_word	pc;
 	int		halted;
+	int		ime;
 }	t_cpu;
 
 typedef struct s_emu
@@ -139,9 +140,12 @@ t_word	f_of(t_cpu cpu);
 t_word	h_of(t_cpu cpu);
 t_word	l_of(t_cpu cpu);
 int		get_flag_z(t_cpu cpu);
+int		get_flag_nz(t_cpu cpu);
 int		get_flag_n(t_cpu cpu);
 int		get_flag_h(t_cpu cpu);
 int		get_flag_c(t_cpu cpu);
+int		get_flag_nc(t_cpu cpu);
+int		get_flag_true(t_cpu cpu);
 void	set_af(t_cpu *cpu, t_word af);
 void	set_bc(t_cpu *cpu, t_word bc);
 void	set_de(t_cpu *cpu, t_word de);

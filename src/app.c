@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 13:14:12 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/20 20:16:57 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/23 14:51:06 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,10 +24,9 @@ int	tick(t_emu *emu)
 	time_diff += (curr_time.tv_usec - emu->last_tick.tv_usec);
 	// printf("curr_time_sec:%lu - last_tick_sec:%lu - curr_time_usec:%lu - last_tick_usec:%lu - ", curr_time.tv_sec, app->emu.last_tick.tv_sec, curr_time.tv_usec, app->emu.last_tick.tv_usec);
 	// printf("time_diff:%llu\n", time_diff);
-	if (time_diff > (1.0 / FPS) * MS_PER_SECOND * CLOCK_SCALE)
+	if (time_diff > (1.0 / FPS) * MS_PER_SECOND * 0.05)// * CLOCK_SCALE)
 	{
-		printf("time to tick cpu %lu - %f\n", curr_time.tv_sec, time_diff);
-		print_cpu_register(&emu->cpu);
+		// printf("time to tick cpu %lu - %f\n", curr_time.tv_sec, time_diff);
 		cpu_step(emu);
 		emu->last_tick = curr_time;
 	}
