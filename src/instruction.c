@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:54:16 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/24 13:55:22 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/24 14:13:19 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -313,11 +313,13 @@ t_byte	sub_subc_cp(t_cpu *cpu, t_byte op_code, t_byte v)
 	set_flag_z(cpu, !(res & 0xFF));
 	set_flag_n(cpu, 1);
 	if ((a_of(*cpu) & 0xF) < (v & 0xF)
+		|| (a_of(*cpu) & 0xF) < carry
 		|| ((a_of(*cpu) - carry) & 0xF) < (v & 0xF))
 		set_flag_h(cpu, 1);
 	else
 		set_flag_h(cpu, 0);
-	if (a_of(*cpu) < v || (a_of(*cpu) - carry) < v)
+	if (a_of(*cpu) < v || a_of(*cpu) < carry
+		|| a_of(*cpu) - carry < v)
 		set_flag_c(cpu, 1);
 	else
 		set_flag_c(cpu, 0);
