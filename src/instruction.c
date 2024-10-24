@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:54:16 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/24 18:45:23 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/24 20:15:24 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,12 +44,12 @@ t_setw	*g_setw_fptr[256] = {
 	NULL, set_hl, NULL, NULL, NULL, NULL, set_a, NULL,
 	NULL, NULL, NULL, NULL, NULL, NULL, set_a, NULL,
 	NULL, set_af, NULL, NULL, NULL, NULL, set_a, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, set_id, NULL
+	set_hl, set_sp, NULL, NULL, NULL, NULL, set_id, NULL
 };
 
 t_getw	*g_getw_fptr[256] = {
 	NULL, NULL, a_of, bc_of, b_of, b_of, NULL, NULL,
-	NULL, NULL, bc_of, bc_of, c_of, c_of, NULL, NULL,
+	sp_of, NULL, bc_of, bc_of, c_of, c_of, NULL, NULL,
 	NULL, NULL, a_of, de_of, d_of, d_of, NULL, NULL,
 	NULL, NULL, de_of, de_of, e_of, e_of, NULL, NULL,
 	NULL, NULL, a_of, hl_of, h_of, h_of, NULL, NULL,
@@ -79,7 +79,7 @@ t_getw	*g_getw_fptr[256] = {
 	NULL, NULL, NULL, NULL, NULL, hl_of, NULL, pc_of,
 	NULL, NULL, NULL, NULL, NULL, NULL, NULL, pc_of,
 	NULL, NULL, NULL, NULL, NULL, af_of, NULL, pc_of,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, pc_of
+	sp_of, hl_of, NULL, NULL, NULL, NULL, NULL, pc_of
 };
 
 void	test_op(t_emu *emu, t_byte op_code)
@@ -114,6 +114,14 @@ t_word	read_pc_word_tick(t_emu *emu)
 	return (res);
 }
 
+void	write_word(t_emu *emu, t_word addr, t_word data)
+{
+	bus_write(emu, addr, data & 0xFF);
+	emu_tick(emu, 4);
+	bus_write(emu, addr + 1, data >> 8);
+	emu_tick(emu, 4);
+}
+
 void	nop(t_emu *emu, t_byte op_code)
 {
 	emu_tick(emu, 4);
@@ -135,15 +143,40 @@ void	halt(t_emu *emu, t_byte op_code)
 	(void)op_code;
 }
 
-void	ld_rr_d16(t_emu *emu, t_byte op_code)
+void	set_flag_0xF8(t_cpu *cpu, t_word sp, char offset)
+{
+	set_flag_z(cpu, 0);
+	set_flag_n(cpu, 0);
+	if (offset >= 0 && sp > (sp + offset))
+		set_flag_c(cpu, 1);
+	if (offset < 0 && (sp + offset) > sp)
+		set_flag_c(cpu, 1);
+	if ((sp & 0xF0) != ((sp + offset) & 0xF0))
+		set_flag_h(cpu, 1);
+}
+
+void	ld_16(t_emu *emu, t_byte op_code)
 {
 	t_word	data;
-	t_setw	*setw;
+	char	offset;
 
 	emu_tick(emu, 4);
-	setw = g_setw_fptr[op_code];
-	data = read_pc_word_tick(emu);
-	setw(&emu->cpu, data);
+	if ((op_code & 0xF) == 0x1)
+		data = read_pc_word_tick(emu);
+	else if (op_code == 0xF8)
+		offset = (char)read_pc_byte_tick(emu);
+	else
+		data = g_getw_fptr[op_code](emu->cpu);
+	if (op_code == 0x8)
+		write_word(emu, read_pc_word_tick(emu), data);
+	else if (op_code == 0xF8)
+		set_hl(&emu->cpu, sp_of(emu->cpu) + offset);
+	else
+		g_setw_fptr[op_code](&emu->cpu, data);
+	if ((op_code & 0xF0) == 0xF0)
+		emu_tick(emu, 4);
+	if (op_code == 0xF8)
+		set_flag_0xF8(&emu->cpu, sp_of(emu->cpu), offset);
 }
 
 void	jp_d16(t_emu *emu, t_byte op_code)
@@ -513,13 +546,13 @@ void	call(t_emu *emu, t_byte op_code)
 }
 
 t_inst	*g_op_map[256] = {
-	nop, ld_rr_d16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, NULL,
-	NULL, NULL, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
-	stop, ld_rr_d16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, NULL,
+	nop, ld_16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, NULL,
+	ld_16, NULL, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
+	stop, ld_16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, NULL,
 	jp, NULL, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
-	jp, ld_rr_d16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, NULL,
+	jp, ld_16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, NULL,
 	jp, NULL, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
-	jp, ld_rr_d16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, NULL,
+	jp, ld_16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, NULL,
 	jp, NULL, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
 	ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r,
 	ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r,
@@ -544,5 +577,5 @@ t_inst	*g_op_map[256] = {
 	ld_m, pop, ld_m, NULL, NULL, push, bit_op, rst,
 	NULL, jp, ld_m, NULL, NULL, NULL, bit_op, rst,
 	ld_m, pop, ld_m, di, NULL, push, bit_op, rst,
-	NULL, NULL, ld_m, ei, NULL, NULL, bit_op, rst
+	ld_16, ld_16, ld_m, ei, NULL, NULL, bit_op, rst
 };
