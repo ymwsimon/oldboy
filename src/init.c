@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 12:34:41 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/16 19:33:09 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/24 14:49:25 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,6 @@
 
 int	init_sdl(t_app *app)
 {
-	if (!app)
-		return (fprintf(stderr, "Empty pointer\n"), NOT_OK);
 	if (!SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS))
 		return (fprintf(stderr, "Can't init sdl\n"), NOT_OK);
 	app->window = SDL_CreateWindow(WINDOW_NAME, WINDOW_W, WINDOW_H, 0);

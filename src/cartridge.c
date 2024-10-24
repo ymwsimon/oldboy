@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 13:19:30 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/19 19:17:34 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/24 14:50:16 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,8 +64,6 @@ void	print_cart_header(t_cart cart)
 
 int	read_cartridge_header(t_cart *cart)
 {
-	if (!cart)
-		return (fprintf(stderr, "Empty pointer\n"), NOT_OK);
 	if (cart->file_size < 0x150)
 		return (fprintf(stderr, "File size too small..\n"), NOT_OK);
 	memcpy(&cart->header, cart->data + 0x100, 0x50);
@@ -81,8 +79,6 @@ int	read_cartridge(char *path, t_cart *cart)
 	t_byte	buffer[BUFFER_SIZE];
 	t_byte	*new_data;
 
-	if (!path || !cart)
-		return (fprintf(stderr, "Empty pointer\n"), NOT_OK);
 	fd = open(path, O_RDONLY);
 	if (fd < 0)
 		return (fprintf(stderr, "Can't open file\n"), NOT_OK);

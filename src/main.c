@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:18:37 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/16 16:51:05 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/24 14:32:53 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ int	main(int arc, char **arv)
 	if (init_sdl(&app) == NOT_OK)
 		return (1);
 	read_cartridge_header(&app.emu.cart);
-	print_cart_header(app.emu.cart);
+	// print_cart_header(app.emu.cart);
 	run_app(&app);
 	free(app.emu.cart.data);
 	return (0);

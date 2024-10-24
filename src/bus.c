@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 16:19:31 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/23 01:12:29 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/24 14:48:22 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,8 +26,6 @@ t_byte	bus_read(t_emu *emu, t_word addr)
 
 void	bus_write(t_emu *emu, t_word addr, t_byte data)
 {
-	if (!emu)
-		return ;
 	if (addr < 0x8000)
 		return ;
 	if (addr < 0xA000)

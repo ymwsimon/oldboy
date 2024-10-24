@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 19:26:44 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/23 14:02:31 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/24 14:47:57 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,12 +95,8 @@ void	set_two_byte(t_cpu *cpu, t_word two_byte, t_byte offset)
 {
 	t_byte	*byte_pointer;
 
-	if (!cpu)
-		return ;
 	byte_pointer = (t_byte *)cpu;
 	byte_pointer += offset;
-	// printf("f:%x s:%x\n", *byte_pointer, *(byte_pointer + 1));
-	// printf("tb:%x tf:%x ts:%x\n", two_byte, (two_byte >> 8) & 0xFF, two_byte & 0xFF);
 	*byte_pointer = (two_byte >> 8) & 0xFF;
 	if (offset)
 		*(byte_pointer + 1) = two_byte & 0xFF;
@@ -130,61 +126,51 @@ void	set_hl(t_cpu *cpu, t_word hl)
 
 void	set_sp(t_cpu *cpu, t_word sp)
 {
-	if (cpu)
-		cpu->sp = sp;
+	cpu->sp = sp;
 }
 
 void	set_pc(t_cpu *cpu, t_word pc)
 {
-	if (cpu)
-		cpu->pc = pc;
+	cpu->pc = pc;
 }
 
 void	set_a(t_cpu *cpu, t_word a)
 {
-	if (cpu)
-		cpu->a = a;
+	cpu->a = a;
 }
 
 void	set_b(t_cpu *cpu, t_word b)
 {
-	if (cpu)
-		cpu->b = b;
+	cpu->b = b;
 }
 void	set_c(t_cpu *cpu, t_word c)
 {
-	if (cpu)
-		cpu->c = c;
+	cpu->c = c;
 }
 
 void	set_d(t_cpu *cpu, t_word d)
 {
-	if (cpu)
-		cpu->d = d;
+	cpu->d = d;
 }
 
 void	set_e(t_cpu *cpu, t_word e)
 {
-	if (cpu)
-		cpu->e = e;
+	cpu->e = e;
 }
 
 void	set_f(t_cpu *cpu, t_word f)
 {
-	if (cpu)
-		cpu->f = f & 0xF0;
+	cpu->f = f & 0xF0;
 }
 
 void	set_h(t_cpu *cpu, t_word h)
 {
-	if (cpu)
-		cpu->h = h;
+	cpu->h = h;
 }
 
 void	set_l(t_cpu *cpu, t_word l)
 {
-	if (cpu)
-		cpu->l = l;
+	cpu->l = l;
 }
 
 void	set_id(t_cpu *cpu, t_word id)
@@ -239,8 +225,6 @@ void	set_flag(t_cpu *cpu, t_byte offset, int value)
 {
 	t_byte	v;
 
-	if (!cpu)
-		return ;
 	v = 0;
 	if (value)
 		v = 1;
@@ -270,8 +254,6 @@ void	set_flag_c(t_cpu *cpu, int value)
 
 void	init_cpu(t_cpu *cpu)
 {
-	if (!cpu)
-		return ;
 	set_af(cpu, 0x01B0);
 	set_bc(cpu, 0x0013);
 	set_de(cpu, 0x00D8);
@@ -281,13 +263,27 @@ void	init_cpu(t_cpu *cpu)
 	cpu->halted = FALSE;
 }
 
+static char	g_f_flag_str[5];
+
+char	*f_flag_str(t_cpu cpu)
+{
+	strcpy(g_f_flag_str, "----");
+	if (get_flag_z(cpu))
+		g_f_flag_str[0] = 'Z';
+	if (get_flag_n(cpu))
+		g_f_flag_str[1] = 'N';
+	if (get_flag_h(cpu))
+		g_f_flag_str[2] = 'H';
+	if (get_flag_c(cpu))
+		g_f_flag_str[3] = 'C';
+	return (g_f_flag_str);
+}
+
 void	print_cpu_register(t_cpu *cpu)
 {
-	if (!cpu)
-		return ;
-	printf("af:%04X bc:%04X de:%04X hl:%04X pc:%04X sp:%04X halt?:%d\n",
-		af_of(*cpu), bc_of(*cpu), de_of(*cpu),
-		hl_of(*cpu), cpu->pc, cpu->sp, cpu->halted);
+	printf("A: %02X F: %s BC: %04X DE: %04X HL: %04X PC: %04X SP: %04X\n",
+		a_of(*cpu), f_flag_str(*cpu), bc_of(*cpu), de_of(*cpu),
+		hl_of(*cpu), cpu->pc, cpu->sp);
 }
 
 int	cpu_step(t_emu *emu)
@@ -295,15 +291,14 @@ int	cpu_step(t_emu *emu)
 	t_byte	op_code;
 	t_inst	*instruction;
 
-	if (!emu)
-		return (0);
 	if (!emu->cpu.halted)
 	{
 		op_code = bus_read(emu, emu->cpu.pc);
 		instruction = g_op_map[op_code];
 		if (instruction)
 		{
-			printf("Current op_code:%02X ", op_code);
+			printf("%02X %02X %02X ", op_code, bus_read(emu, emu->cpu.pc + 1),
+				bus_read(emu, emu->cpu.pc + 2));
 			print_cpu_register(&emu->cpu);
 			++(emu->cpu.pc);
 			instruction(emu, op_code);

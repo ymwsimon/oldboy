@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 13:14:12 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/23 14:51:06 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/24 14:48:58 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,8 +17,6 @@ int	tick(t_emu *emu)
 	struct timeval	curr_time;
 	double			time_diff;
 
-	if (!emu)
-		return (fprintf(stderr, "Empty pointer\n"), NOT_OK);
 	gettimeofday(&curr_time, NULL);
 	time_diff = (curr_time.tv_sec - emu->last_tick.tv_sec) * MS_PER_SECOND;
 	time_diff += (curr_time.tv_usec - emu->last_tick.tv_usec);
@@ -37,8 +35,6 @@ int	run_app(t_app *app)
 {
 	SDL_Event		event;
 
-	if (!app)
-		return (fprintf(stderr, "Empty pointer\n"), NOT_OK);
 	init_emu(&app->emu);
 	while (OK)
 	{
