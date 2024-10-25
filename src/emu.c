@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 15:45:49 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/24 14:48:16 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/25 20:42:58 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,6 @@ int	init_emu(t_emu *emu)
 	init_cpu(&emu->cpu);
 	bzero(&emu->vram, 0x2000);
 	bzero(&emu->wram, 0x2000);
-	bzero(&emu->hram, 0x80);
+	bzero(&emu->hram, 0x7F);
 	return (OK);
 }

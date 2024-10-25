@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/24 13:48:25 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/25 20:42:47 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,7 @@ typedef struct s_emu
 	t_cpu			cpu;
 	t_byte			vram[0x2000];
 	t_byte			wram[0x2000];
-	t_byte			hram[0x80];
+	t_byte			hram[0x7F];
 	t_ull			clock_cycle;
 	double			clock_scale;
 	struct timeval	last_tick;

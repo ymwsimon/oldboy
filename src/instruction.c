@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:54:16 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/24 20:48:05 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/25 20:46:00 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,10 +37,10 @@ t_setw	*g_setw_fptr[256] = {
 	set_a, set_a, set_a, set_a, set_a, set_a, set_a, set_a,
 	set_a, set_a, set_a, set_a, set_a, set_a, set_a, set_a,
 	set_id, set_id, set_id, set_id, set_id, set_id, set_id, set_id,
-	NULL, set_bc, NULL, set_pc, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, set_a, NULL,
-	NULL, set_de, NULL, NULL, NULL, NULL, set_a, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, set_a, NULL,
+	set_pc, set_bc, NULL, set_pc, NULL, NULL, NULL, NULL,
+	set_pc, set_pc, NULL, NULL, NULL, NULL, set_a, NULL,
+	set_pc, set_de, NULL, NULL, NULL, NULL, set_a, NULL,
+	set_pc, set_pc, NULL, NULL, NULL, NULL, set_a, NULL,
 	NULL, set_hl, NULL, NULL, NULL, NULL, set_a, NULL,
 	NULL, NULL, NULL, NULL, NULL, NULL, set_a, NULL,
 	NULL, set_af, NULL, NULL, NULL, NULL, set_a, NULL,
@@ -493,10 +493,10 @@ void	pop(t_emu *emu, t_byte op_code)
 	t_word	data;
 
 	emu_tick(emu, 4);
-	data = bus_read(emu, emu->cpu.sp) << 8;
+	data = bus_read(emu, emu->cpu.sp);
 	++(emu->cpu.sp);
 	emu_tick(emu, 4);
-	data = bus_read(emu, emu->cpu.sp);
+	data += bus_read(emu, emu->cpu.sp) << 8;
 	++(emu->cpu.sp);
 	emu_tick(emu, 4);
 	g_setw_fptr[op_code](&emu->cpu, data);
@@ -540,7 +540,10 @@ void	call(t_emu *emu, t_byte op_code)
 	idx = (op_code - 0xC4) / 8 % 8;
 	addr = read_pc_word_tick(emu);
 	if (op_code == 0xCD || (op_code != 0xCD && cc_arr[idx](emu->cpu)))
-		push_word(emu, addr);
+	{
+		push_word(emu, pc_of(emu->cpu));
+		emu->cpu.pc = addr;
+	}
 	else
 		emu_tick(emu, 4);
 }
@@ -572,15 +575,76 @@ void	add_16(t_emu *emu, t_byte op_code)
 		set_flag_0xE8_0xF8(&emu->cpu, old_data, offset);
 }
 
+void	daa(t_emu *emu, t_byte op_code)
+{
+	t_byte	a;
+
+	emu_tick(emu, 4);
+	(void)op_code;
+	a = a_of(emu->cpu);
+	if (!get_flag_n(emu->cpu))
+	{
+		if ((a & 0xF) > 9 || get_flag_h(emu->cpu))
+			a += 0x6 + ((a & 0xF) / 0xA) * 0x10;
+		if ((a & 0xF0) > 0x90 || get_flag_c(emu->cpu))
+		{
+			a += 0x60;
+			set_flag_c(&emu->cpu, 1);
+		}
+	}
+	else
+	{
+		if (get_flag_h(emu->cpu))
+			a -= 0x6;
+		if (get_flag_c(emu->cpu))
+			a -= 0x60;
+	}
+	set_a(&emu->cpu, a);
+	set_flag_z(&emu->cpu, !a_of(emu->cpu));
+	set_flag_h(&emu->cpu, 0);
+}
+
+void	cpl(t_emu *emu, t_byte op_code)
+{
+	emu_tick(emu, 4);
+	(void)op_code;
+	emu->cpu.a = ~emu->cpu.a;
+	set_flag_n(&emu->cpu, 1);
+	set_flag_h(&emu->cpu, 1);
+}
+
+void	scf(t_emu *emu, t_byte op_code)
+{
+	emu_tick(emu, 4);
+	(void)op_code;
+	set_flag_n(&emu->cpu, 0);
+	set_flag_h(&emu->cpu, 0);
+	set_flag_c(&emu->cpu, 1);
+}
+
+void	ccf(t_emu *emu, t_byte op_code)
+{
+	emu_tick(emu, 4);
+	(void)op_code;
+	set_flag_n(&emu->cpu, 0);
+	set_flag_h(&emu->cpu, 0);
+	set_flag_c(&emu->cpu, ~get_flag_c(emu->cpu) & 0x1);
+}
+
+// void	rotate_a(t_emu *emu, t_byte op_code)
+// {
+	// 
+// }
+
 t_inst	*g_op_map[256] = {
 	nop, ld_16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, NULL,
 	ld_16, add_16, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
 	stop, ld_16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, NULL,
 	jp, add_16, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
-	jp, ld_16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, NULL,
-	jp, add_16, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
-	jp, ld_16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, NULL,
-	jp, add_16, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
+	jp, ld_16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, daa,
+	jp, add_16, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, cpl,
+	jp, ld_16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, scf,
+	jp, add_16, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, ccf,
 	ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r,
 	ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r,
 	ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r, ld_r_r,
