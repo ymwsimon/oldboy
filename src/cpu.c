@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 19:26:44 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/24 14:47:57 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/26 16:51:54 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -221,7 +221,7 @@ int	get_flag_true(t_cpu cpu)
 	return (TRUE);
 }
 
-void	set_flag(t_cpu *cpu, t_byte offset, int value)
+void	set_flag(t_cpu *cpu, t_byte offset, t_word value)
 {
 	t_byte	v;
 
@@ -232,22 +232,22 @@ void	set_flag(t_cpu *cpu, t_byte offset, int value)
 	cpu->f |= v << offset;
 }
 
-void	set_flag_z(t_cpu *cpu, int value)
+void	set_flag_z(t_cpu *cpu, t_word value)
 {
 	set_flag(cpu, 7, value);
 }
 
-void	set_flag_n(t_cpu *cpu, int value)
+void	set_flag_n(t_cpu *cpu, t_word value)
 {
 	set_flag(cpu, 6, value);
 }
 
-void	set_flag_h(t_cpu *cpu, int value)
+void	set_flag_h(t_cpu *cpu, t_word value)
 {
 	set_flag(cpu, 5, value);
 }
 
-void	set_flag_c(t_cpu *cpu, int value)
+void	set_flag_c(t_cpu *cpu, t_word value)
 {
 	set_flag(cpu, 4, value);
 }

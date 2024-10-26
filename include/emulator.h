@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/25 20:42:47 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/26 16:52:11 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -161,10 +161,10 @@ void	set_f(t_cpu *cpu, t_word f);
 void	set_h(t_cpu *cpu, t_word h);
 void	set_l(t_cpu *cpu, t_word l);
 void	set_id(t_cpu *cpu, t_word id);
-void	set_flag_z(t_cpu *cpu, int value);
-void	set_flag_n(t_cpu *cpu, int value);
-void	set_flag_h(t_cpu *cpu, int value);
-void	set_flag_c(t_cpu *cpu, int value);
+void	set_flag_z(t_cpu *cpu, t_word value);
+void	set_flag_n(t_cpu *cpu, t_word value);
+void	set_flag_h(t_cpu *cpu, t_word value);
+void	set_flag_c(t_cpu *cpu, t_word value);
 void	init_cpu(t_cpu *cpu);
 void	print_cpu_register(t_cpu *cpu);
 int		cpu_step(t_emu *emu);

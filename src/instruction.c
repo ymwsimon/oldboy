@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:54:16 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/25 20:46:00 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/26 23:09:29 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -378,16 +378,15 @@ t_byte and_xor_or(t_cpu *cpu, t_byte op_code, t_byte v)
 	return (res);
 }
 
-t_byte (*g_op_fptr[8])(t_cpu *, t_byte, t_byte) = {
-add_addc, add_addc, sub_subc_cp, sub_subc_cp,
-and_xor_or, and_xor_or, and_xor_or, sub_subc_cp};
-
 void	bit_op(t_emu *emu, t_byte op_code)
 {
-	t_getw	*getw;
-	t_setw	*setw;
-	t_word	res;
-	t_byte	idx;
+	t_getw			*getw;
+	t_setw			*setw;
+	t_word			res;
+	t_byte			idx;
+	static t_byte	(*op_fptr[8])(t_cpu *, t_byte, t_byte) = {
+		add_addc, add_addc, sub_subc_cp, sub_subc_cp,
+		and_xor_or, and_xor_or, and_xor_or, sub_subc_cp};
 
 	emu_tick(emu, 4);
 	getw = g_getw_fptr[op_code];
@@ -399,7 +398,7 @@ void	bit_op(t_emu *emu, t_byte op_code)
 		res = read_pc_byte_tick(emu);
 	else
 		res = getw(emu->cpu);
-	res = g_op_fptr[idx](&emu->cpu, op_code, res);
+	res = op_fptr[idx](&emu->cpu, op_code, res);
 	setw(&emu->cpu, res);
 }
 
@@ -631,16 +630,141 @@ void	ccf(t_emu *emu, t_byte op_code)
 	set_flag_c(&emu->cpu, ~get_flag_c(emu->cpu) & 0x1);
 }
 
-// void	rotate_a(t_emu *emu, t_byte op_code)
-// {
-	// 
-// }
+t_byte	rlc(t_emu *emu, t_byte data)
+{
+	data = data >> 7 | data << 1;
+	set_flag_c(&emu->cpu, data & 0x1);
+	return (data);
+}
+
+t_byte	rrc(t_emu *emu, t_byte data)
+{
+	data = data >> 1 | data << 7;
+	set_flag_c(&emu->cpu, data & 0x80);
+	return (data);
+}
+
+t_byte	rl(t_emu *emu, t_byte data)
+{
+	t_byte	left_most;
+
+	left_most = data & 0x80;
+	data <<= 1;
+	if (get_flag_c(emu->cpu))
+		data |= 0x1;
+	set_flag_c(&emu->cpu, left_most);
+	return (data);
+}
+
+t_byte	rr(t_emu *emu, t_byte data)
+{
+	t_byte	right_most;
+
+	right_most = data & 0x1;
+	data >>= 1;
+	if (get_flag_c(emu->cpu))
+		data |= 0x80;
+	set_flag_c(&emu->cpu, right_most);
+	return (data);
+}
+
+t_byte	sla(t_emu *emu, t_byte data)
+{
+	set_flag_c(&emu->cpu, data & 0x8);
+	return (data << 1);
+}
+
+t_byte	sra(t_emu *emu, t_byte data)
+{
+	set_flag_c(&emu->cpu, data & 0x1);
+	return ((data & 0x80) | (data >> 1));
+}
+
+t_byte	swap(t_emu *emu, t_byte data)
+{
+	(void)emu;
+	return (data >> 8 | data << 8);
+}
+
+t_byte	srl(t_emu *emu, t_byte data)
+{
+	set_flag_c(&emu->cpu, data & 0x1);
+	return (data >> 1);
+}
+
+t_byte	bit_res_set(t_byte op_code, t_byte data)
+{
+	t_byte	pos;
+
+	pos = ((op_code - 0x40) % 0x40) / 8;
+	if (op_code <= 0x7F)
+		data &= 1 << pos;
+	else if (op_code <= 0xBF)
+		data &= ~(1 << pos);
+	else
+		data |= 1 << pos;
+	return (data);
+}
+
+t_getw	*g_rotate_getw_fptr[8] = {
+	b_of, c_of, d_of, e_of, h_of, l_of, hl_of, a_of
+};
+
+t_setw	*g_rotate_setw_fptr[8] = {
+	set_b, set_c, set_d, set_e, set_h, set_l, NULL, set_a
+};
+t_byte	(*g_rotate_fptr[8])(t_emu *, t_byte) = {
+rlc, rrc, rl, rr, sla, sra, swap, srl
+};
+
+void	prefix_cb(t_emu *emu, t_byte op_code)
+{
+	t_byte	idx;
+	t_byte	data;
+
+	emu_tick(emu, 4);
+	if (op_code == 0xCB)
+		op_code = read_pc_byte_tick(emu);
+	idx = op_code % 8;
+	if (op_code >= 0x40)
+		idx = ((op_code - 0x40) / 0x40) / 8;
+	data = g_rotate_getw_fptr[idx](emu->cpu);
+	if ((op_code & 0xF) == 0x6 || (op_code & 0xF) == 0xE)
+	{
+		data = bus_read(emu, data);
+		emu_tick(emu, 4);
+	}
+	if (op_code >= 0x40)
+		data = bit_res_set(op_code, data);
+	else
+		data = g_rotate_fptr[op_code / 8](emu, data);
+	if (op_code <= 0x7F)
+	{
+		set_flag_z(&emu->cpu, !data);
+		set_flag_n(&emu->cpu, 0);
+	}
+	if (op_code >= 0x40 && op_code <= 0x7F)
+		set_flag_h(&emu->cpu, 1);
+	if ((op_code & 0xF) == 0x6 || (op_code & 0xF) == 0xE)
+	{
+		bus_write(emu, hl_of(emu->cpu), data);
+		emu_tick(emu, 4);
+	}
+	else
+		g_rotate_setw_fptr[op_code % 8](&emu->cpu, data);
+}
+
+void	rotate_a(t_emu *emu, t_byte op_code)
+{
+	prefix_cb(emu, op_code);
+	set_flag_z(&emu->cpu, 0);
+}
 
 t_inst	*g_op_map[256] = {
-	nop, ld_16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, NULL,
-	ld_16, add_16, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
-	stop, ld_16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, NULL,
-	jp, add_16, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, NULL,
+	nop, ld_16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, rotate_a,
+	ld_16, add_16, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, rotate_a,
+	stop, ld_16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, rotate_a,
+	jp, add_16, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, rotate_a,
 	jp, ld_16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, daa,
 	jp, add_16, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, cpl,
 	jp, ld_16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, scf,
@@ -662,7 +786,7 @@ t_inst	*g_op_map[256] = {
 	bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op,
 	bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op, bit_op,
 	ret_reti, pop, jp, jp, call, push, bit_op, rst,
-	ret_reti, ret_reti, jp, NULL, call, call, bit_op, rst,
+	ret_reti, ret_reti, jp, prefix_cb, call, call, bit_op, rst,
 	ret_reti, pop, jp, NULL, call, push, bit_op, rst,
 	ret_reti, ret_reti, jp, NULL, call, NULL, bit_op, rst,
 	ld_m, pop, ld_m, NULL, NULL, push, bit_op, rst,
