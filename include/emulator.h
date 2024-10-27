@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/26 16:52:11 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/27 14:56:36 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,6 +88,8 @@ typedef struct s_emu
 	t_byte			hram[0x7F];
 	t_ull			clock_cycle;
 	double			clock_scale;
+	t_byte			interrupt_flag;
+	t_byte			interrupt_enable;
 	struct timeval	last_tick;
 }	t_emu;
 

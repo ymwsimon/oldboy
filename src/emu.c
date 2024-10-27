@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 15:45:49 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/25 20:42:58 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/27 14:53:19 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,8 @@ int	init_emu(t_emu *emu)
 	emu->clock_scale = CLOCK_SCALE;
 	gettimeofday(&emu->last_tick, NULL);
 	emu->paused = FALSE;
+	emu->interrupt_enable = 0;
+	emu->interrupt_flag = 0;
 	init_cpu(&emu->cpu);
 	bzero(&emu->vram, 0x2000);
 	bzero(&emu->wram, 0x2000);
