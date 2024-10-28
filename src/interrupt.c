@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/27 15:16:41 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/28 12:20:07 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/28 15:03:12 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,5 +14,5 @@
 
 void	process_interrupt(t_emu *emu)
 {
-	
+	(void)emu;
 }

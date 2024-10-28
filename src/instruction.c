@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:54:16 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/28 14:45:55 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/28 15:01:32 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -124,13 +124,12 @@ void	write_word(t_emu *emu, t_word addr, t_word data)
 
 void	nop(t_emu *emu, t_byte op_code)
 {
-	emu_tick(emu, 4);
+	(void)emu;
 	(void)op_code;
 }
 
 void	stop(t_emu *emu, t_byte op_code)
 {
-	emu_tick(emu, 4);
 	++(emu->cpu.pc);
 	emu->paused = TRUE;
 	(void)op_code;
@@ -138,7 +137,6 @@ void	stop(t_emu *emu, t_byte op_code)
 
 void	halt(t_emu *emu, t_byte op_code)
 {
-	emu_tick(emu, 4);
 	emu->cpu.halted = TRUE;
 	(void)op_code;
 }
@@ -160,7 +158,6 @@ void	ld_16(t_emu *emu, t_byte op_code)
 	t_word	data;
 	char	offset;
 
-	emu_tick(emu, 4);
 	if ((op_code & 0xF) == 0x1)
 		data = read_pc_word_tick(emu);
 	else if (op_code == 0xF8)
@@ -179,23 +176,11 @@ void	ld_16(t_emu *emu, t_byte op_code)
 		set_flag_0xE8_0xF8(&emu->cpu, sp_of(emu->cpu), offset);
 }
 
-void	jp_d16(t_emu *emu, t_byte op_code)
-{
-	t_word	addr;
-	t_setw	*setw;
-
-	emu_tick(emu, 4);
-	setw = g_setw_fptr[op_code];
-	addr = read_pc_word_tick(emu);
-	setw(&emu->cpu, addr);
-}
-
 void	inc_dec_rr(t_emu *emu, t_byte op_code, int value)
 {
 	t_getw	*getw;
 	t_setw	*setw;
 
-	emu_tick(emu, 4);
 	getw = g_getw_fptr[op_code];
 	setw = g_setw_fptr[op_code];
 	setw(&emu->cpu, getw(emu->cpu) + value);
@@ -252,7 +237,6 @@ void	inc_dec_r(t_emu *emu, t_byte op_code, int value)
 	t_setw	*setw;
 	t_word	result;
 
-	emu_tick(emu, 4);
 	getw = g_getw_fptr[op_code];
 	setw = g_setw_fptr[op_code];
 	if (op_code == 0x34 || op_code == 0x35)
@@ -291,7 +275,6 @@ void	ld_r_r(t_emu *emu, t_byte op_code)
 	t_setw	*setw;
 	t_word	res;
 
-	emu_tick(emu, 4);
 	getw = g_getw_fptr[op_code];
 	setw = g_setw_fptr[op_code];
 	if ((op_code >= 0x40
@@ -388,7 +371,6 @@ void	bit_op(t_emu *emu, t_byte op_code)
 		add_addc, add_addc, sub_subc_cp, sub_subc_cp,
 		and_xor_or, and_xor_or, and_xor_or, sub_subc_cp};
 
-	emu_tick(emu, 4);
 	getw = g_getw_fptr[op_code];
 	setw = g_setw_fptr[op_code];
 	idx = (((op_code - 0x80) / 8) % 8);
@@ -406,7 +388,6 @@ void	jp(t_emu *emu, t_byte op_code)
 {
 	t_word			addr;
 
-	emu_tick(emu, 4);
 	if ((op_code & 0xF) == 0x0 || (op_code & 0xF) == 0x8)
 	{
 		addr = read_pc_byte_tick(emu);
@@ -431,36 +412,23 @@ void	jp(t_emu *emu, t_byte op_code)
 	}
 }
 
-void	disable_ime(t_cpu *cpu)
-{
-	cpu->ime = FALSE;
-	cpu->ime_countdown = 0;
-}
-
 void	di(t_emu *emu, t_byte op_code)
 {
-	emu_tick(emu, 4);
 	(void)op_code;
-	disable_ime(&emu->cpu);
-}
-
-void	enable_ime(t_cpu *cpu)
-{
-	cpu->ime_countdown = 2;
+	emu->cpu.ime = FALSE;
+	emu->cpu.ime_countdown = 0;
 }
 
 void	ei(t_emu *emu, t_byte op_code)
 {
-	emu_tick(emu, 4);
 	(void)op_code;
-	enable_ime(&emu->cpu);
+	emu->cpu.ime_countdown = 2;
 }
 
 void	ld_m(t_emu *emu, t_byte op_code)
 {
 	t_word	data;
 
-	emu_tick(emu, 4);
 	if ((op_code & 0xF0) == 0xE0)
 		data = a_of(emu->cpu);
 	else if (op_code == 0xF0)
@@ -481,7 +449,6 @@ void	ld_m(t_emu *emu, t_byte op_code)
 
 void	push_word(t_emu *emu, t_word data)
 {
-	emu_tick(emu, 4);
 	--(emu->cpu.sp);
 	bus_write(emu, emu->cpu.sp, (data >> 8) & 0xFF);
 	emu_tick(emu, 4);
@@ -503,7 +470,6 @@ void	pop(t_emu *emu, t_byte op_code)
 {
 	t_word	data;
 
-	emu_tick(emu, 4);
 	data = bus_read(emu, emu->cpu.sp);
 	++(emu->cpu.sp);
 	emu_tick(emu, 4);
@@ -555,8 +521,6 @@ void	call(t_emu *emu, t_byte op_code)
 		push_word(emu, pc_of(emu->cpu));
 		emu->cpu.pc = addr;
 	}
-	else
-		emu_tick(emu, 4);
 }
 
 void	add_16(t_emu *emu, t_byte op_code)
@@ -565,7 +529,6 @@ void	add_16(t_emu *emu, t_byte op_code)
 	t_word	old_data;
 	char	offset;
 
-	emu_tick(emu, 4);
 	if (op_code == 0xE8)
 		offset = (char)read_pc_byte_tick(emu);
 	else
@@ -590,7 +553,6 @@ void	daa(t_emu *emu, t_byte op_code)
 {
 	t_byte	a;
 
-	emu_tick(emu, 4);
 	(void)op_code;
 	a = a_of(emu->cpu);
 	if (!get_flag_n(emu->cpu))
@@ -617,7 +579,6 @@ void	daa(t_emu *emu, t_byte op_code)
 
 void	cpl(t_emu *emu, t_byte op_code)
 {
-	emu_tick(emu, 4);
 	(void)op_code;
 	emu->cpu.a = ~emu->cpu.a;
 	set_flag_n(&emu->cpu, 1);
@@ -626,7 +587,6 @@ void	cpl(t_emu *emu, t_byte op_code)
 
 void	scf(t_emu *emu, t_byte op_code)
 {
-	emu_tick(emu, 4);
 	(void)op_code;
 	set_flag_n(&emu->cpu, 0);
 	set_flag_h(&emu->cpu, 0);
@@ -635,7 +595,6 @@ void	scf(t_emu *emu, t_byte op_code)
 
 void	ccf(t_emu *emu, t_byte op_code)
 {
-	emu_tick(emu, 4);
 	(void)op_code;
 	set_flag_n(&emu->cpu, 0);
 	set_flag_h(&emu->cpu, 0);
@@ -734,7 +693,6 @@ void	prefix_cb(t_emu *emu, t_byte op_code)
 	t_byte	idx;
 	t_byte	data;
 
-	emu_tick(emu, 4);
 	if (op_code == 0xCB)
 		op_code = read_pc_byte_tick(emu);
 	idx = op_code % 8;

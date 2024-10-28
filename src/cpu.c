@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 19:26:44 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/28 12:30:15 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/28 14:51:18 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -307,6 +307,7 @@ int	cpu_step(t_emu *emu)
 					bus_read(emu, emu->cpu.pc + 2));
 				print_cpu_register(&emu->cpu);
 				++(emu->cpu.pc);
+				emu_tick(emu, 4);
 				instruction(emu, op_code);
 			}
 			else
