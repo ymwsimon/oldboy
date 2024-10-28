@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 19:26:44 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/28 14:51:18 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/28 15:05:39 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -316,12 +316,6 @@ int	cpu_step(t_emu *emu)
 				print_cpu_register(&emu->cpu);
 				emu->cpu.halted = TRUE;
 			}
-			if (emu->cpu.ime_countdown)
-			{
-				--(emu->cpu.ime_countdown);
-				if (!emu->cpu.ime_countdown)
-					emu->cpu.ime = TRUE;
-			}
 		}
 	}
 	else
@@ -329,6 +323,12 @@ int	cpu_step(t_emu *emu)
 		emu_tick(emu, 4);
 		if (emu->interrupt_enable & emu->interrupt_flag)
 			emu->cpu.halted = FALSE;
+	}
+	if (emu->cpu.ime_countdown)
+	{
+		--(emu->cpu.ime_countdown);
+		if (!emu->cpu.ime_countdown)
+			emu->cpu.ime = TRUE;
 	}
 	return (1);
 }

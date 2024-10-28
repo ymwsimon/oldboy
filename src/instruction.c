@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:54:16 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/28 15:01:32 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/28 15:45:19 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -503,7 +503,7 @@ void	ret_reti(t_emu *emu, t_byte op_code)
 	if ((op_code & 0xF) == 0x0 || (op_code & 0xF) == 0x8)
 		emu_tick(emu, 4);
 	if (op_code == 0xD9)
-		emu->cpu.ime = TRUE;
+		ei(emu, 0);
 	emu_tick(emu, 4);
 }
 

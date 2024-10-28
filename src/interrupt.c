@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/27 15:16:41 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/28 15:03:12 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/28 20:14:35 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,5 +14,15 @@
 
 void	process_interrupt(t_emu *emu)
 {
-	(void)emu;
+	static t_word	iaddr[5] = {0x40, 0x48, 0x50, 0x58, 0x60};
+	t_byte			idx;
+
+	idx = 0;
+	while (!(emu->interrupt_enable & emu->interrupt_flag & (1 << idx)))
+		++idx;
+	di(emu, 0);
+	emu->interrupt_flag &= ~(1 << idx);
+	emu_tick(emu, 8);
+	push_word(emu, emu->cpu.pc);
+	emu->cpu.pc = iaddr[idx];
 }

@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/28 12:28:09 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/28 22:53:24 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,6 +79,14 @@ typedef struct s_cpu
 	t_byte	ime_countdown;
 }	t_cpu;
 
+typedef struct s_timer
+{
+	t_word	div;
+	t_byte	tima;
+	t_byte	tma;
+	t_byte	tac;
+}	t_timer;
+
 typedef struct s_emu
 {
 	t_cart			cart;
@@ -91,6 +99,8 @@ typedef struct s_emu
 	double			clock_scale;
 	t_byte			interrupt_flag;
 	t_byte			interrupt_enable;
+	t_timer			timer;
+	t_byte			serial_out_buf[1000];
 	struct timeval	last_tick;
 }	t_emu;
 
@@ -171,8 +181,17 @@ void	set_flag_c(t_cpu *cpu, t_word value);
 void	init_cpu(t_cpu *cpu);
 void	print_cpu_register(t_cpu *cpu);
 int		cpu_step(t_emu *emu);
+//instruction
+void	di(t_emu *emu, t_byte op_code);
+void	ei(t_emu *emu, t_byte op_code);
+void	push_word(t_emu *emu, t_word data);
 //bus
 t_byte	bus_read(t_emu *emu, t_word addr);
 void	bus_write(t_emu *emu, t_word addr, t_byte data);
 //interrupt
 void	process_interrupt(t_emu *emu);
+//timer
+t_byte	timer_read(t_emu *emu, t_word addr);
+void	timer_write(t_emu *emu, t_word addr, t_byte data);
+void	timer_tick(t_emu *emu);
+void	init_timer(t_emu *emu);
