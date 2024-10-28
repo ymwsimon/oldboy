@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 19:26:44 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/26 16:51:54 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/28 12:30:15 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -261,6 +261,8 @@ void	init_cpu(t_cpu *cpu)
 	cpu->pc = 0x100;
 	cpu->sp = 0xFFFE;
 	cpu->halted = FALSE;
+	cpu->ime = FALSE;
+	cpu->ime_countdown = 0;
 }
 
 static char	g_f_flag_str[5];
@@ -293,24 +295,39 @@ int	cpu_step(t_emu *emu)
 
 	if (!emu->cpu.halted)
 	{
-		op_code = bus_read(emu, emu->cpu.pc);
-		instruction = g_op_map[op_code];
-		if (instruction)
-		{
-			printf("%02X %02X %02X ", op_code, bus_read(emu, emu->cpu.pc + 1),
-				bus_read(emu, emu->cpu.pc + 2));
-			print_cpu_register(&emu->cpu);
-			++(emu->cpu.pc);
-			instruction(emu, op_code);
-		}
+		if (emu->cpu.ime && (emu->interrupt_enable & emu->interrupt_flag))
+			process_interrupt(emu);
 		else
 		{
-			printf("unknown op code:%02X ", op_code);
-			print_cpu_register(&emu->cpu);
-			emu->cpu.halted = TRUE;
+			op_code = bus_read(emu, emu->cpu.pc);
+			instruction = g_op_map[op_code];
+			if (instruction)
+			{
+				printf("%02X %02X %02X ", op_code, bus_read(emu, emu->cpu.pc + 1),
+					bus_read(emu, emu->cpu.pc + 2));
+				print_cpu_register(&emu->cpu);
+				++(emu->cpu.pc);
+				instruction(emu, op_code);
+			}
+			else
+			{
+				printf("unknown op code:%02X ", op_code);
+				print_cpu_register(&emu->cpu);
+				emu->cpu.halted = TRUE;
+			}
+			if (emu->cpu.ime_countdown)
+			{
+				--(emu->cpu.ime_countdown);
+				if (!emu->cpu.ime_countdown)
+					emu->cpu.ime = TRUE;
+			}
 		}
 	}
 	else
+	{
 		emu_tick(emu, 4);
+		if (emu->interrupt_enable & emu->interrupt_flag)
+			emu->cpu.halted = FALSE;
+	}
 	return (1);
 }

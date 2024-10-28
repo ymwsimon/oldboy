@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/27 14:56:36 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/28 12:28:09 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,6 +76,7 @@ typedef struct s_cpu
 	t_word	pc;
 	int		halted;
 	int		ime;
+	t_byte	ime_countdown;
 }	t_cpu;
 
 typedef struct s_emu
@@ -173,3 +174,5 @@ int		cpu_step(t_emu *emu);
 //bus
 t_byte	bus_read(t_emu *emu, t_word addr);
 void	bus_write(t_emu *emu, t_word addr, t_byte data);
+//interrupt
+void	process_interrupt(t_emu *emu);

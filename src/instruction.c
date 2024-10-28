@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:54:16 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/26 23:09:29 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/28 14:45:55 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -431,17 +431,29 @@ void	jp(t_emu *emu, t_byte op_code)
 	}
 }
 
+void	disable_ime(t_cpu *cpu)
+{
+	cpu->ime = FALSE;
+	cpu->ime_countdown = 0;
+}
+
 void	di(t_emu *emu, t_byte op_code)
 {
 	emu_tick(emu, 4);
 	(void)op_code;
-	emu->cpu.ime = FALSE;
+	disable_ime(&emu->cpu);
 }
+
+void	enable_ime(t_cpu *cpu)
+{
+	cpu->ime_countdown = 2;
+}
+
 void	ei(t_emu *emu, t_byte op_code)
 {
 	emu_tick(emu, 4);
 	(void)op_code;
-	emu->cpu.ime = TRUE;
+	enable_ime(&emu->cpu);
 }
 
 void	ld_m(t_emu *emu, t_byte op_code)
