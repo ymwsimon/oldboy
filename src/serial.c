@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/28 23:02:06 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/28 23:35:53 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/29 12:57:11 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,19 +20,36 @@ void	init_serial(t_emu *emu)
 	bzero(&emu->serial.serial_out_buf, 1000);
 }
 
+void	serial_write_byte_file(t_emu *emu)
+{
+	int	fd;
+	int	flag;
+
+	flag = O_WRONLY | O_CREAT | O_APPEND;
+	if (emu->serial.idx_out_buf == 1)
+		flag = O_WRONLY | O_CREAT | O_TRUNC;
+	fd = open("out_buf", flag, 0755);
+	if (fd >= 0)
+	{
+		write(fd, emu->serial.serial_out_buf + emu->serial.idx_out_buf - 1, 1);
+		close(fd);
+	}
+}
+
 void	serial_write(t_emu *emu, t_word addr, t_byte data)
 {
 	if (addr == 0xFF01)
 	{
 		emu->serial.sb = data;
 		emu->serial.serial_out_buf[emu->serial.idx_out_buf++] = data;
+		serial_write_byte_file(emu);
 	}
 	if (addr == 0xFF02)
 		emu->serial.sc = data;
 	if ((emu->serial.sc & 0x81) == 0x81)
 	{
 		emu->serial.io_byte = emu->serial.sb;
-		emu->serial.idx_out_buf = 0;
+		emu->serial.io_byte_bit_idx = 0;
 		emu->serial.transferring = TRUE;
 	}
 }
