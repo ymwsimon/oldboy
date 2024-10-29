@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:54:16 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/29 02:03:47 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/29 11:50:36 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -556,15 +556,15 @@ void	add_16(t_emu *emu, t_byte op_code)
 
 void	daa(t_emu *emu, t_byte op_code)
 {
-	t_byte	a;
+	t_word	a;
 
 	(void)op_code;
 	a = a_of(emu->cpu);
 	if (!get_flag_n(emu->cpu))
 	{
 		if ((a & 0xF) > 9 || get_flag_h(emu->cpu))
-			a += 0x6 + ((a & 0xF) / 0xA) * 0x10;
-		if ((a & 0xF0) > 0x90 || get_flag_c(emu->cpu))
+			a += 0x6;// + ((a & 0xF) / 0xA) * 0x10;
+		if (a > 0x9F || get_flag_c(emu->cpu))
 		{
 			a += 0x60;
 			set_flag_c(&emu->cpu, 1);

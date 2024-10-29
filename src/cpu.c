@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 19:26:44 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/28 15:05:39 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/29 11:20:18 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -182,7 +182,7 @@ void	set_id(t_cpu *cpu, t_word id)
 
 int	get_flag(t_cpu cpu, t_byte offset)
 {
-	return (cpu.f & (1 << offset));
+	return ((cpu.f & (1 << offset)) >> offset);
 }
 
 int	get_flag_z(t_cpu cpu)
