@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/28 22:53:24 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/28 23:36:52 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,6 +87,17 @@ typedef struct s_timer
 	t_byte	tac;
 }	t_timer;
 
+typedef struct s_serial
+{
+	t_byte	serial_out_buf[1000];
+	t_word	idx_out_buf;
+	t_byte	sb;
+	t_byte	sc;
+	t_byte	transferring;
+	t_byte	io_byte;
+	t_byte	io_byte_bit_idx;
+}	t_serial;
+
 typedef struct s_emu
 {
 	t_cart			cart;
@@ -100,7 +111,7 @@ typedef struct s_emu
 	t_byte			interrupt_flag;
 	t_byte			interrupt_enable;
 	t_timer			timer;
-	t_byte			serial_out_buf[1000];
+	t_serial		serial;
 	struct timeval	last_tick;
 }	t_emu;
 
@@ -195,3 +206,8 @@ t_byte	timer_read(t_emu *emu, t_word addr);
 void	timer_write(t_emu *emu, t_word addr, t_byte data);
 void	timer_tick(t_emu *emu);
 void	init_timer(t_emu *emu);
+//serial
+void	init_serial(t_emu *emu);
+void	serial_write(t_emu *emu, t_word addr, t_byte data);
+t_byte	serial_read(t_emu *emu, t_word addr);
+void	serial_tick(t_emu *emu);

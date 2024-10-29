@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:54:16 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/28 15:45:19 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/29 02:03:47 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,13 +14,13 @@
 
 t_setw	*g_setw_fptr[256] = {
 	NULL, set_bc, NULL, set_bc, set_b, set_b, set_b, NULL,
-	NULL, NULL, set_a, set_bc, set_c, set_c, set_c, NULL,
+	NULL, set_hl, set_a, set_bc, set_c, set_c, set_c, NULL,
 	NULL, set_de, NULL, set_de, set_d, set_d, set_d, NULL,
-	NULL, NULL, set_a, set_de, set_e, set_e, set_e, NULL,
+	NULL, set_hl, set_a, set_de, set_e, set_e, set_e, NULL,
 	NULL, set_hl, NULL, set_hl, set_h, set_h, set_h, NULL,
-	NULL, NULL, set_a, set_hl, set_l, set_l, set_l, NULL,
+	NULL, set_hl, set_a, set_hl, set_l, set_l, set_l, NULL,
 	NULL, set_sp, NULL, set_sp, NULL, NULL, NULL, NULL,
-	NULL, NULL, set_a, set_sp, set_a, set_a, set_a, NULL,
+	NULL, set_hl, set_a, set_sp, set_a, set_a, set_a, NULL,
 	set_b, set_b, set_b, set_b, set_b, set_b, set_b, set_b,
 	set_c, set_c, set_c, set_c, set_c, set_c, set_c, set_c,
 	set_d, set_d, set_d, set_d, set_d, set_d, set_d, set_d,
@@ -37,25 +37,25 @@ t_setw	*g_setw_fptr[256] = {
 	set_a, set_a, set_a, set_a, set_a, set_a, set_a, set_a,
 	set_a, set_a, set_a, set_a, set_a, set_a, set_a, set_a,
 	set_id, set_id, set_id, set_id, set_id, set_id, set_id, set_id,
-	set_pc, set_bc, NULL, set_pc, NULL, NULL, NULL, NULL,
+	set_pc, set_bc, NULL, set_pc, NULL, NULL, set_a, NULL,
 	set_pc, set_pc, NULL, NULL, NULL, NULL, set_a, NULL,
 	set_pc, set_de, NULL, NULL, NULL, NULL, set_a, NULL,
 	set_pc, set_pc, NULL, NULL, NULL, NULL, set_a, NULL,
 	NULL, set_hl, NULL, NULL, NULL, NULL, set_a, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, set_a, NULL,
+	set_sp, NULL, NULL, NULL, NULL, NULL, set_a, NULL,
 	NULL, set_af, NULL, NULL, NULL, NULL, set_a, NULL,
 	set_hl, set_sp, NULL, NULL, NULL, NULL, set_id, NULL
 };
 
 t_getw	*g_getw_fptr[256] = {
 	NULL, NULL, a_of, bc_of, b_of, b_of, NULL, NULL,
-	sp_of, NULL, bc_of, bc_of, c_of, c_of, NULL, NULL,
+	sp_of, bc_of, bc_of, bc_of, c_of, c_of, NULL, NULL,
 	NULL, NULL, a_of, de_of, d_of, d_of, NULL, NULL,
-	NULL, NULL, de_of, de_of, e_of, e_of, NULL, NULL,
+	NULL, de_of, de_of, de_of, e_of, e_of, NULL, NULL,
 	NULL, NULL, a_of, hl_of, h_of, h_of, NULL, NULL,
-	NULL, NULL, hl_of, hl_of, l_of, l_of, NULL, NULL,
+	NULL, hl_of, hl_of, hl_of, l_of, l_of, NULL, NULL,
 	NULL, NULL, a_of, sp_of, hl_of, hl_of, NULL, NULL,
-	NULL, NULL, hl_of, sp_of, a_of, a_of, NULL, NULL,
+	NULL, sp_of, hl_of, sp_of, a_of, a_of, NULL, NULL,
 	b_of, c_of, d_of, e_of, h_of, l_of, hl_of, a_of,
 	b_of, c_of, d_of, e_of, h_of, l_of, hl_of, a_of,
 	b_of, c_of, d_of, e_of, h_of, l_of, hl_of, a_of,
@@ -346,16 +346,16 @@ t_byte and_xor_or(t_cpu *cpu, t_byte op_code, t_byte v)
 {
 	t_byte	res;
 
-	if (op_code <= 0xA7)
+	if (op_code <= 0xA7 || op_code == 0xE6)
 		res = a_of(*cpu) & v;
-	else if (op_code <= 0xAF)
+	else if (op_code <= 0xAF || op_code == 0xEE)
 		res = a_of(*cpu) ^ v;
 	else
 		res = a_of(*cpu) | v;
 	set_flag_z(cpu, !(res & 0xFF));
 	set_flag_n(cpu, 0);
 	set_flag_h(cpu, 0);
-	if (op_code <= 0xA7)
+	if (op_code <= 0xA7 || op_code == 0xE6)
 		set_flag_h(cpu, 1);
 	set_flag_c(cpu, 0);
 	return (res);
@@ -537,14 +537,19 @@ void	add_16(t_emu *emu, t_byte op_code)
 	if (op_code == 0xE8)
 		old_data = sp_of(emu->cpu);
 	if (op_code == 0xE8)
+		// data = sp_of(emu->cpu) + offset;
 		set_sp(&emu->cpu, sp_of(emu->cpu) + offset);
 	else
+		// data = hl_of(emu->cpu) + data;
 		g_setw_fptr[op_code](&emu->cpu, hl_of(emu->cpu) + data);
+	// g_setw_fptr[op_code](&emu->cpu, data);
 	set_flag_n(&emu->cpu, 0);
 	if (hl_of(emu->cpu) < old_data || hl_of(emu->cpu) < data)
 		set_flag_c(&emu->cpu, 1);
-	if ((hl_of(emu->cpu) & 0xF0) != old_data)
+	if (((data & 0xFFF) + (old_data & 0xFFF)) & 0xF000)
 		set_flag_h(&emu->cpu, 1);
+	else
+		set_flag_h(&emu->cpu, 0);
 	if (op_code == 0xE8)
 		set_flag_0xE8_0xF8(&emu->cpu, old_data, offset);
 }
@@ -713,6 +718,8 @@ void	prefix_cb(t_emu *emu, t_byte op_code)
 		set_flag_z(&emu->cpu, !data);
 		set_flag_n(&emu->cpu, 0);
 	}
+	if (op_code < 0x40)
+		set_flag_h(&emu->cpu, 0);
 	if (op_code >= 0x40 && op_code <= 0x7F)
 		set_flag_h(&emu->cpu, 1);
 	if ((op_code & 0xF) == 0x6 || (op_code & 0xF) == 0xE)

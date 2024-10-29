@@ -1,6 +1,6 @@
 NAME = emu
 
-SRC = main cartridge app cpu bus emu instruction interrupt timer
+SRC = main cartridge app cpu bus emu instruction interrupt timer serial
 
 SRC_DIR = src
 

@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 13:14:12 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/27 14:52:27 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/29 00:20:11 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,13 +22,25 @@ int	tick(t_emu *emu)
 	time_diff += (curr_time.tv_usec - emu->last_tick.tv_usec);
 	// printf("curr_time_sec:%lu - last_tick_sec:%lu - curr_time_usec:%lu - last_tick_usec:%lu - ", curr_time.tv_sec, app->emu.last_tick.tv_sec, curr_time.tv_usec, app->emu.last_tick.tv_usec);
 	// printf("time_diff:%llu\n", time_diff);
-	if (time_diff > (1.0 / FPS) * MS_PER_SECOND * 0.05)// * CLOCK_SCALE)
+	if (time_diff > (1.0 / FPS) * MS_PER_SECOND * 0.01)// * CLOCK_SCALE)
 	{
 		// printf("time to tick cpu %lu - %f\n", curr_time.tv_sec, time_diff);
 		cpu_step(emu);
 		emu->last_tick = curr_time;
 	}
 	return (OK);
+}
+
+void	write_serial_buf_file(t_emu *emu)
+{
+	int	fd;
+
+	fd = open("out_buf", O_WRONLY | O_CREAT | O_TRUNC, 0755);
+	if (fd >= 0)
+	{
+		write(fd, emu->serial.serial_out_buf, emu->serial.idx_out_buf);
+		close(fd);
+	}
 }
 
 int	run_app(t_app *app)
@@ -56,6 +68,8 @@ int	run_app(t_app *app)
 			SDL_RenderPresent(app->renderer);
 		}
 	}
+	if (app->emu.serial.idx_out_buf)
+		write_serial_buf_file(&app->emu);
 	SDL_DestroyWindow(app->window);
 	SDL_DestroyRenderer(app->renderer);
 	SDL_Quit();
