@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/28 21:44:44 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/28 22:55:01 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/30 19:16:05 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,12 +47,13 @@ void	timer_write(t_emu *emu, t_word addr, t_byte data)
 
 void	timer_tick(t_emu *emu)
 {
-	static t_word	n_cycle[4] = {256 * 4, 4 * 4, 16 * 4, 64 * 4};
+	static t_word	n_cycle[4] = {10, 4, 6, 8};
 
 	++(emu->timer.div);
 	if (emu->timer.tac & 0x4)
 	{
-		if (!(emu->timer.div % n_cycle[emu->timer.tac & 0x3]))
+		if (!(emu->timer.div & (emu->timer.div - 1)
+				& (1 << n_cycle[emu->timer.tac & 0x3])))
 			++(emu->timer.tima);
 		if (!emu->timer.tima)
 		{
