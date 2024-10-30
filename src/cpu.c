@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 19:26:44 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/29 12:49:04 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/30 12:34:07 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -303,9 +303,9 @@ int	cpu_step(t_emu *emu)
 			instruction = g_op_map[op_code];
 			if (instruction)
 			{
-				// printf("%02X %02X %02X ", op_code, bus_read(emu, emu->cpu.pc + 1),
-				// 	bus_read(emu, emu->cpu.pc + 2));
-				// print_cpu_register(&emu->cpu);
+				printf("%02X %02X %02X ", op_code, bus_read(emu, emu->cpu.pc + 1),
+					bus_read(emu, emu->cpu.pc + 2));
+				print_cpu_register(&emu->cpu);
 				++(emu->cpu.pc);
 				emu_tick(emu, 4);
 				instruction(emu, op_code);
