@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:54:16 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/30 15:31:10 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/30 18:42:19 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -141,7 +141,7 @@ void	halt(t_emu *emu, t_byte op_code)
 	(void)op_code;
 }
 
-void	set_flag_0xE8_0xF8(t_cpu *cpu, t_word sp, char offset)
+void	set_flag_0xe8_0xf8(t_cpu *cpu, t_word sp, char offset)
 {
 	set_flag_z(cpu, 0);
 	set_flag_n(cpu, 0);
@@ -173,7 +173,7 @@ void	ld_16(t_emu *emu, t_byte op_code)
 	if ((op_code & 0xF0) == 0xF0)
 		emu_tick(emu, 4);
 	if (op_code == 0xF8)
-		set_flag_0xE8_0xF8(&emu->cpu, sp_of(emu->cpu), offset);
+		set_flag_0xe8_0xf8(&emu->cpu, sp_of(emu->cpu), offset);
 }
 
 void	inc_dec_rr(t_emu *emu, t_byte op_code, int value)
@@ -299,21 +299,20 @@ t_byte	add_addc(t_cpu *cpu, t_byte op_code, t_byte v)
 	t_byte	carry;
 
 	carry = 0;
-	if (op_code > 0x87 && op_code != 0xC6)
+	if ((op_code > 0x87 && op_code != 0xC6) || op_code == 0xCE)
 		carry = get_flag_c(*cpu);
 	res = a_of(*cpu) + v + carry;
 	half_byte = res & 0x0F;
 	set_flag_z(cpu, !(res & 0xFF));
 	set_flag_n(cpu, 0);
-	if (half_byte < (v & 0xF) || half_byte < (a_of(*cpu) & 0xF)
-		|| half_byte < carry)
+	set_flag_h(cpu, 0);
+	set_flag_c(cpu, 0);
+	(void)half_byte;
+	(void)res;
+	if ((((a_of(*cpu)) & 0xF) + (v & 0xF) + carry) & 0xF0)
 		set_flag_h(cpu, 1);
-	else
-		set_flag_h(cpu, 0);
-	if (res < v || res < a_of(*cpu) || res < carry)
+	if ((a_of(*cpu) + v + carry) & 0xF00)
 		set_flag_c(cpu, 1);
-	else
-		set_flag_c(cpu, 0);
 	return (res);
 }
 
@@ -323,7 +322,7 @@ t_byte	sub_subc_cp(t_cpu *cpu, t_byte op_code, t_byte v)
 	t_byte	carry;
 
 	carry = 0;
-	if (op_code > 0x97 && op_code <= 0x9F)
+	if ((op_code > 0x97 && op_code <= 0x9F) || op_code == 0xDE)
 		carry = get_flag_c(*cpu);
 	res = a_of(*cpu) - v - carry;
 	set_flag_z(cpu, !(res & 0xFF));
@@ -342,7 +341,7 @@ t_byte	sub_subc_cp(t_cpu *cpu, t_byte op_code, t_byte v)
 	return (res);
 }
 
-t_byte and_xor_or(t_cpu *cpu, t_byte op_code, t_byte v)
+t_byte	and_xor_or(t_cpu *cpu, t_byte op_code, t_byte v)
 {
 	t_byte	res;
 
@@ -537,12 +536,9 @@ void	add_16(t_emu *emu, t_byte op_code)
 	if (op_code == 0xE8)
 		old_data = sp_of(emu->cpu);
 	if (op_code == 0xE8)
-		// data = sp_of(emu->cpu) + offset;
 		set_sp(&emu->cpu, sp_of(emu->cpu) + offset);
 	else
-		// data = hl_of(emu->cpu) + data;
 		g_setw_fptr[op_code](&emu->cpu, hl_of(emu->cpu) + data);
-	// g_setw_fptr[op_code](&emu->cpu, data);
 	set_flag_n(&emu->cpu, 0);
 	set_flag_h(&emu->cpu, 0);
 	set_flag_c(&emu->cpu, 0);
@@ -551,7 +547,7 @@ void	add_16(t_emu *emu, t_byte op_code)
 	if (((data & 0xFFF) + (old_data & 0xFFF)) & 0xF000)
 		set_flag_h(&emu->cpu, 1);
 	if (op_code == 0xE8)
-		set_flag_0xE8_0xF8(&emu->cpu, old_data, offset);
+		set_flag_0xe8_0xf8(&emu->cpu, old_data, offset);
 }
 
 void	daa(t_emu *emu, t_byte op_code)
@@ -563,7 +559,7 @@ void	daa(t_emu *emu, t_byte op_code)
 	if (!get_flag_n(emu->cpu))
 	{
 		if ((a & 0xF) > 9 || get_flag_h(emu->cpu))
-			a += 0x6;// + ((a & 0xF) / 0xA) * 0x10;
+			a += 0x6;
 		if (a > 0x9F || get_flag_c(emu->cpu))
 		{
 			a += 0x60;
@@ -646,7 +642,7 @@ t_byte	rr(t_emu *emu, t_byte data)
 
 t_byte	sla(t_emu *emu, t_byte data)
 {
-	set_flag_c(&emu->cpu, data & 0x8);
+	set_flag_c(&emu->cpu, data & 0x80);
 	return (data << 1);
 }
 
@@ -659,7 +655,8 @@ t_byte	sra(t_emu *emu, t_byte data)
 t_byte	swap(t_emu *emu, t_byte data)
 {
 	(void)emu;
-	return (data >> 8 | data << 8);
+	set_flag_c(&emu->cpu, 0);
+	return (data >> 4 | data << 4);
 }
 
 t_byte	srl(t_emu *emu, t_byte data)
@@ -694,13 +691,11 @@ rlc, rrc, rl, rr, sla, sra, swap, srl};
 
 void	prefix_cb(t_emu *emu, t_byte op_code)
 {
-	t_byte	idx;
-	t_byte	data;
+	t_word	data;
 
 	if (op_code == 0xCB)
 		op_code = read_pc_byte_tick(emu);
-	idx = op_code % 8;
-	data = g_rotate_getw_fptr[idx](emu->cpu);
+	data = g_rotate_getw_fptr[op_code % 8](emu->cpu);
 	if ((op_code & 0xF) == 0x6 || (op_code & 0xF) == 0xE)
 	{
 		data = bus_read(emu, data);
@@ -719,7 +714,8 @@ void	prefix_cb(t_emu *emu, t_byte op_code)
 		set_flag_h(&emu->cpu, 0);
 	if (op_code >= 0x40 && op_code <= 0x7F)
 		set_flag_h(&emu->cpu, 1);
-	if ((op_code < 0x40 || op_code > 0x7F) && ((op_code & 0xF) == 0x6 || (op_code & 0xF) == 0xE))
+	if ((op_code < 0x40 || op_code > 0x7F)
+		&& ((op_code & 0xF) == 0x6 || (op_code & 0xF) == 0xE))
 	{
 		bus_write(emu, hl_of(emu->cpu), data);
 		emu_tick(emu, 4);
