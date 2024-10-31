@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:54:16 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/30 18:42:19 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/31 14:47:50 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -294,24 +294,20 @@ void	ld_r_r(t_emu *emu, t_byte op_code)
 
 t_byte	add_addc(t_cpu *cpu, t_byte op_code, t_byte v)
 {
-	t_byte	res;
-	t_byte	half_byte;
+	t_word	res;
 	t_byte	carry;
 
 	carry = 0;
 	if ((op_code > 0x87 && op_code != 0xC6) || op_code == 0xCE)
 		carry = get_flag_c(*cpu);
 	res = a_of(*cpu) + v + carry;
-	half_byte = res & 0x0F;
 	set_flag_z(cpu, !(res & 0xFF));
 	set_flag_n(cpu, 0);
 	set_flag_h(cpu, 0);
 	set_flag_c(cpu, 0);
-	(void)half_byte;
-	(void)res;
 	if ((((a_of(*cpu)) & 0xF) + (v & 0xF) + carry) & 0xF0)
 		set_flag_h(cpu, 1);
-	if ((a_of(*cpu) + v + carry) & 0xF00)
+	if (res & 0xF00)
 		set_flag_c(cpu, 1);
 	return (res);
 }
@@ -494,7 +490,7 @@ void	ret_reti(t_emu *emu, t_byte op_code)
 	static int	(*cc_arr[4])(t_cpu) = {
 		get_flag_nz, get_flag_z, get_flag_nc, get_flag_c};
 
-	idx = (op_code - 0xC0) / 8 % 8;
+	idx = ((op_code - 0xC0) / 8) % 8;
 	if (((op_code & 0xF) != 0x0 && (op_code & 0xF) != 0x8)
 		|| (((op_code & 0xF) == 0x0 || (op_code & 0xF) == 0x8)
 			&& cc_arr[idx](emu->cpu)))
@@ -513,7 +509,7 @@ void	call(t_emu *emu, t_byte op_code)
 	static int	(*cc_arr[4])(t_cpu) = {
 		get_flag_nz, get_flag_z, get_flag_nc, get_flag_c};
 
-	idx = (op_code - 0xC4) / 8 % 8;
+	idx = ((op_code - 0xC4) / 8) % 8;
 	addr = read_pc_word_tick(emu);
 	if (op_code == 0xCD || (op_code != 0xCD && cc_arr[idx](emu->cpu)))
 	{
@@ -654,7 +650,6 @@ t_byte	sra(t_emu *emu, t_byte data)
 
 t_byte	swap(t_emu *emu, t_byte data)
 {
-	(void)emu;
 	set_flag_c(&emu->cpu, 0);
 	return (data >> 4 | data << 4);
 }

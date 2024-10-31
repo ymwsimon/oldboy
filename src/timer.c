@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/28 21:44:44 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/31 12:11:29 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/31 14:27:09 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ void	timer_tick(t_emu *emu)
 	++(emu->timer.div);
 	if (emu->timer.tac & 0x4)
 	{
-		if (!(emu->timer.div % n_cycle[emu->timer.tac & 0x3]))
+		if (!((emu->timer.div - 1) % n_cycle[emu->timer.tac & 0x3]))
 			++(emu->timer.tima);
 		if (!emu->timer.tima)
 		{
