@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/28 21:44:44 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/31 14:27:09 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/10/31 22:53:41 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 void	init_timer(t_emu *emu)
 {
-	emu->timer.div = 0;
+	emu->timer.div = 0xABCC;
 	emu->timer.tima = 0;
 	emu->timer.tma = 0;
 	emu->timer.tac = 0;
