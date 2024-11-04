@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/04 01:42:02 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/04 16:47:10 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -245,3 +245,6 @@ t_byte	serial_read(t_emu *emu, t_word addr);
 void	serial_tick(t_emu *emu);
 //log serial bus output
 void	write_serial_buf_file(t_emu *emu);
+//ppu
+void	init_ppu(t_emu *emu);
+void	ppu_tick(t_emu *emu);

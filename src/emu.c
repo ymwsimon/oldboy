@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 15:45:49 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/29 00:19:27 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/04 16:46:31 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,7 @@ void	emu_tick(t_emu *emu, t_ull clock_cycle)
 		++(emu->clock_cycle);
 		timer_tick(emu);
 		serial_tick(emu);
+		ppu_tick(emu);
 		++i;
 	}
 }

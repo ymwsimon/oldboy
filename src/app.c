@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 13:14:12 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/04 13:22:49 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/04 17:24:28 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ int	tick(t_app *app)
 	time_diff += (curr_time.tv_usec - app->emu.last_tick.tv_usec);
 	// printf("curr_time_sec:%lu - last_tick_sec:%lu - curr_time_usec:%lu - last_tick_usec:%lu - ", curr_time.tv_sec, app->emu.last_tick.tv_sec, curr_time.tv_usec, app->emu.last_tick.tv_usec);
 	// printf("time_diff:%llu\n", time_diff);
-	// if (time_diff > (1.0 / FPS))// * CLOCK_SCALE)
+	if (time_diff > (1.0 / FPS))// * CLOCK_SCALE)
 	{
 		// printf("time to tick cpu %lu - %f\n", curr_time.tv_sec, time_diff);
 		app->emu.clock_cycle++;
@@ -30,7 +30,7 @@ int	tick(t_app *app)
 		app->emu.last_tick = curr_time;
 	}
 	// if (time_diff > (1.0 / FPS))
-	if (app->emu.clock_cycle > 400000)
+	if (!(app->emu.clock_cycle % (FREQUENCY / FPS)))
 		print_vram_tile(app);
 	return (OK);
 }
