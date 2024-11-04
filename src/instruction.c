@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:54:16 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/04 01:43:34 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/04 15:39:39 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -524,6 +524,7 @@ void	add_16(t_emu *emu, t_byte op_code)
 	t_word	old_data;
 	char	offset;
 
+	data = 0;
 	if (op_code == 0xE8)
 		offset = (char)read_pc_byte_tick(emu);
 	else

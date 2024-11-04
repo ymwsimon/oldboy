@@ -14,6 +14,10 @@ FLAGS = -Wall -Werror -Wextra -g
 
 LIB = -lSDL3
 
+INCLUDE_PATH = -I/home/$(USER)/SDL/include
+
+LD_PATH = -L/home/$(USER)/SDL/build
+
 HEADER = include/emulator.h
 
 CC = cc
@@ -21,11 +25,11 @@ CC = cc
 all : $(NAME)
 
 $(NAME) : $(OBJ) $(HEADER)
-	$(CC) $(FLAGS) $(OBJ) -o $(NAME) $(LIB)
+	$(CC) $(FLAGS) $(OBJ) -o $(NAME) $(LD_PATH)  $(LIB)
 
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.c $(HEADER)
 	mkdir -p $(OBJ_DIR)
-	$(CC) $(FLAGS) -c $< -o $@
+	$(CC) $(FLAGS) $(INCLUDE_PATH) -c $< -o $@
 
 clean :
 	rm -rf $(OBJ_DIR)/*
