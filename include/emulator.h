@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/29 12:47:10 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/04 01:42:02 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,12 +16,16 @@
 #define CLOCK_SCALE 20
 #define FPS 60
 #define WINDOW_NAME "Old Boy"
-#define WINDOW_H 500
-#define WINDOW_W 500
+#define WINDOW_H 700
+#define WINDOW_W 700
 #define TRUE 1
 #define FALSE 0
 #define OK 1
 #define NOT_OK 0
+#define BLACK 0x081820
+#define DARK_GREEN 0x346856
+#define LIGHT_GREEN 0x88C070
+#define WHITE 0xE0F8D0
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_keycode.h>
 #include <unistd.h>
@@ -98,6 +102,32 @@ typedef struct s_serial
 	t_byte	io_byte_bit_idx;
 }	t_serial;
 
+typedef enum e_mode
+{
+	HBLANK,
+	VBLANK,
+	OAM_SCAN,
+	DRAWING
+}	t_mode;
+
+typedef struct s_ppu
+{
+	t_byte	oam[0x100];
+	t_byte	dma;
+	t_byte	lcdc;
+	t_byte	ly;
+	t_byte	lyc;
+	t_byte	stat;
+	t_byte	scy;
+	t_byte	scx;
+	t_byte	wy;
+	t_byte	wx;
+	t_byte	bgp;
+	t_byte	obp0;
+	t_byte	obp1;
+	t_mode	ppu_mode;
+}	t_ppu;
+
 typedef struct s_emu
 {
 	t_cart			cart;
@@ -112,6 +142,7 @@ typedef struct s_emu
 	t_byte			interrupt_enable;
 	t_timer			timer;
 	t_serial		serial;
+	t_ppu			ppu;
 	struct timeval	last_tick;
 }	t_emu;
 
@@ -144,6 +175,7 @@ int		read_cartridge(char *path, t_cart *cart);
 //app
 int		init_sdl(t_app *app);
 int		run_app(t_app *app);
+void	print_vram_tile(t_app *app);
 //emu
 int		init_emu(t_emu *emu);
 int		update_frame(t_emu *emu, double delta_time);
@@ -190,7 +222,7 @@ void	set_flag_n(t_cpu *cpu, t_word value);
 void	set_flag_h(t_cpu *cpu, t_word value);
 void	set_flag_c(t_cpu *cpu, t_word value);
 void	init_cpu(t_cpu *cpu);
-void	print_cpu_register(t_cpu *cpu);
+void	print_cpu_register(t_emu *emu);
 int		cpu_step(t_emu *emu);
 //instruction
 void	di(t_emu *emu, t_byte op_code);

@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 19:26:44 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/30 19:07:51 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/04 12:46:22 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -282,11 +282,14 @@ char	*f_flag_str(t_cpu cpu)
 	return (g_f_flag_str);
 }
 
-void	print_cpu_register(t_cpu *cpu)
+void	print_cpu_register(t_emu *emu)
 {
+	printf("%02X %02X %02X ", bus_read(emu, emu->cpu.pc - 1),
+		bus_read(emu, emu->cpu.pc),
+		bus_read(emu, emu->cpu.pc + 1));
 	printf("A: %02X F: %s BC: %04X DE: %04X HL: %04X PC: %04X SP: %04X\n",
-		a_of(*cpu), f_flag_str(*cpu), bc_of(*cpu), de_of(*cpu),
-		hl_of(*cpu), cpu->pc, cpu->sp);
+		a_of(emu->cpu), f_flag_str(emu->cpu), bc_of(emu->cpu), de_of(emu->cpu),
+		hl_of(emu->cpu), emu->cpu.pc, emu->cpu.sp);
 }
 
 int	cpu_step(t_emu *emu)
@@ -304,10 +307,7 @@ int	cpu_step(t_emu *emu)
 			instruction = g_op_map[op_code];
 			if (instruction)
 			{
-				// printf("%02X %02X %02X ", op_code,
-				// 	bus_read(emu, emu->cpu.pc + 1),
-				// 	bus_read(emu, emu->cpu.pc + 2));
-				// print_cpu_register(&emu->cpu);
+				// print_cpu_register(emu);
 				++(emu->cpu.pc);
 				emu_tick(emu, 4);
 				instruction(emu, op_code);
@@ -315,7 +315,7 @@ int	cpu_step(t_emu *emu)
 			else
 			{
 				printf("unknown op code:%02X ", op_code);
-				print_cpu_register(&emu->cpu);
+				print_cpu_register(emu);
 				emu->cpu.halted = TRUE;
 			}
 		}

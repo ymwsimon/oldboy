@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:54:16 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/31 14:47:50 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/04 01:43:34 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,10 +89,10 @@ void	test_op(t_emu *emu, t_byte op_code)
 	setw = g_setw_fptr[op_code];
 	printf("tf:%p setw:%p\n", g_setw_fptr[op_code], set_bc);
 	printf("before:");
-	print_cpu_register(&emu->cpu);
+	print_cpu_register(emu);
 	setw(&emu->cpu, bus_read(emu, emu->cpu.pc));
 	printf("after:");
-	print_cpu_register(&emu->cpu);
+	print_cpu_register(emu);
 }
 
 t_word	read_pc_byte_tick(t_emu *emu)
