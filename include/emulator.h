@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/04 16:47:10 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/10 13:45:25 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,8 +16,10 @@
 #define CLOCK_SCALE 20
 #define FPS 60
 #define WINDOW_NAME "Old Boy"
-#define WINDOW_H 700
-#define WINDOW_W 700
+#define WINDOW_H 768
+#define WINDOW_W 512
+#define NUM_TILE_PER_ROW 16
+#define NUM_ROW_TILE_DATA 24
 #define TRUE 1
 #define FALSE 0
 #define OK 1
@@ -138,6 +140,7 @@ typedef struct s_emu
 	t_byte			hram[0x7F];
 	t_ull			clock_cycle;
 	double			clock_scale;
+	double			last_render_time;
 	t_byte			interrupt_flag;
 	t_byte			interrupt_enable;
 	t_timer			timer;
@@ -248,3 +251,5 @@ void	write_serial_buf_file(t_emu *emu);
 //ppu
 void	init_ppu(t_emu *emu);
 void	ppu_tick(t_emu *emu);
+void	ppu_write(t_emu *emu, t_word addr, t_byte data);
+t_byte	ppu_read(t_emu *emu, t_word addr);

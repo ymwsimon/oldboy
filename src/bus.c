@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 16:19:31 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/04 16:43:46 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/10 14:03:54 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,8 +30,8 @@ t_byte	bus_read(t_emu *emu, t_word addr)
 		return (serial_read(emu, addr));
 	if (addr >= 0xFF04 && addr <= 0xFF07)
 		return (timer_read(emu, addr));
-	if (addr == 0xFF44)
-		return (emu->ppu.ly);
+	if (addr >= 0xFF40 && addr <= 0xFF4B)
+		return (ppu_read(emu, addr));
 	// printf("Unknown read addr for bus (%4X)\n", addr);
 	return (0xFF);
 }
@@ -54,6 +54,8 @@ void	bus_write(t_emu *emu, t_word addr, t_byte data)
 		serial_write(emu, addr, data);
 	else if (addr >= 0xFF04 && addr <= 0xFF07)
 		timer_write(emu, addr, data);
+	else if (addr >= 0xFF40 && addr <= 0xFF4B)
+		ppu_write(emu, addr, data);
 	// else if (addr >= 0xE000 && addr < 0xFF80)
 		// printf("Unknow write addr for bus (%4X) data:%2X\n", addr, data);
 }

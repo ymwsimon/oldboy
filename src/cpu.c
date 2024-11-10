@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 19:26:44 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/04 16:34:45 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/10 14:07:41 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -307,7 +307,7 @@ int	cpu_step(t_emu *emu)
 			instruction = g_op_map[op_code];
 			if (instruction)
 			{
-				print_cpu_register(emu);
+				// print_cpu_register(emu);
 				++(emu->cpu.pc);
 				emu_tick(emu, 4);
 				instruction(emu, op_code);
