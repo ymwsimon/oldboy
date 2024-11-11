@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 13:14:12 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/10 23:52:33 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/11 13:28:37 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ int	tick(t_app *app)
 		// app->emu.clock_cycle++;
 		// cpu_step(&app->emu);
 		update_frame(&app->emu, time_diff);
-		print_vram_tile(app);
+		// print_vram_tile(app);
 		app->emu.last_render_time = calculate_time_diff(app->emu.last_tick) - time_diff;
 		gettimeofday(&app->emu.last_tick, NULL);
 		// app->emu.last_tick = curr_time;
@@ -196,5 +196,6 @@ int	init_sdl(t_app *app)
 	if (!app->renderer)
 		return (fprintf(stderr, "Can't create renderer\n"), NOT_OK);
 	gettimeofday(&app->emu.last_tick, NULL);
+	app->emu.window = app->window;
 	return (OK);
 }

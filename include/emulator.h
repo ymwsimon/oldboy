@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/10 22:29:36 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/11 13:24:34 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,9 +17,11 @@
 #define FPS 59.72750056960583
 #define WINDOW_NAME "Old Boy"
 #define WINDOW_H 768
-#define WINDOW_W 512
+#define WINDOW_W 576
 #define NUM_TILE_PER_ROW 16
 #define NUM_ROW_TILE_DATA 24
+#define SCREEN_NUM_TILE_PER_ROW 20
+#define SCREEN_NUM_TILE_ROW 18
 #define TRUE 1
 #define FALSE 0
 #define OK 1
@@ -147,6 +149,7 @@ typedef struct s_emu
 	t_timer			timer;
 	t_serial		serial;
 	t_ppu			ppu;
+	SDL_Window		*window;
 	struct timeval	last_tick;
 }	t_emu;
 
@@ -254,3 +257,4 @@ void	init_ppu(t_emu *emu);
 void	ppu_tick(t_emu *emu);
 void	ppu_write(t_emu *emu, t_word addr, t_byte data);
 t_byte	ppu_read(t_emu *emu, t_word addr);
+void	print_pixel(SDL_Surface *s, t_byte cid, t_word ti, t_word tj, t_word pi, t_word pj);

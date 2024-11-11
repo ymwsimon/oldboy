@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 17:42:59 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/10 23:46:14 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/11 13:28:51 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,6 +71,34 @@ t_byte	ppu_read(t_emu *emu, t_word addr)
 	return (0xFF);
 }
 
+// void	ppu_draw_pix_n_time(t_emu *emu, t_byte n)
+// {
+
+// }
+
+void	ppu_draw_pix(t_emu *emu)
+{
+	t_byte		cid;
+	t_byte		tid;
+	t_byte		pi;
+	t_word		offset;
+	SDL_Surface	*s;
+
+	tid = emu->ppu.ly / 8 * SCREEN_NUM_TILE_PER_ROW + emu->ppu.lx / 8;
+	offset = tid * 16 + emu->ppu.ly % 8 * 2;
+			// 	cid = (app->emu.vram[offset]
+			// 		& (1 << (7 - pi))) >> (7 - pi);
+			// cid += ((app->emu.vram[offset + 1]
+			// 			& (1 << (7 - pi))) >> (7 - pi)) << 1;
+	pi = emu->ppu.lx % 8;
+	cid = (emu->vram[offset] & (1 << (7 - pi))) >> (7 - pi);
+	cid += ((emu->vram[offset + 1] & (1 << (7 - pi))) >> (7 - pi)) << 1;
+	s = SDL_GetWindowSurface(emu->window);
+	SDL_LockSurface(s);
+	print_pixel(s, cid, emu->ppu.lx / 8, emu->ppu.ly / 8, emu->ppu.lx % 8, emu->ppu.ly % 8);
+	SDL_UnlockSurface(s);
+}
+
 void	ppu_tick(t_emu *emu)
 {
 	++(emu->ppu.lx);
@@ -113,4 +141,6 @@ void	ppu_tick(t_emu *emu)
 		emu->interrupt_flag |= 2;
 	if (emu->ppu.ly == 144 && emu->ppu.lx == 0)
 		emu->interrupt_flag |= 1;
+	if (emu->ppu.ppu_mode == DRAWING)
+		ppu_draw_pix(emu);
 }
