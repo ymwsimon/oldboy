@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 17:42:59 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/11 13:28:51 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/11 13:52:14 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,18 +84,18 @@ void	ppu_draw_pix(t_emu *emu)
 	t_word		offset;
 	SDL_Surface	*s;
 
-	tid = emu->ppu.ly / 8 * SCREEN_NUM_TILE_PER_ROW + emu->ppu.lx / 8;
-	offset = tid * 16 + emu->ppu.ly % 8 * 2;
+	tid = emu->ppu.ly / 8 * SCREEN_NUM_TILE_PER_ROW + (emu->ppu.lx - 80) / 8;
+	offset = tid * 16 + (emu->ppu.ly % 8) * 2;
 			// 	cid = (app->emu.vram[offset]
 			// 		& (1 << (7 - pi))) >> (7 - pi);
 			// cid += ((app->emu.vram[offset + 1]
 			// 			& (1 << (7 - pi))) >> (7 - pi)) << 1;
-	pi = emu->ppu.lx % 8;
+	pi = (emu->ppu.lx - 80) % 8;
 	cid = (emu->vram[offset] & (1 << (7 - pi))) >> (7 - pi);
 	cid += ((emu->vram[offset + 1] & (1 << (7 - pi))) >> (7 - pi)) << 1;
 	s = SDL_GetWindowSurface(emu->window);
 	SDL_LockSurface(s);
-	print_pixel(s, cid, emu->ppu.lx / 8, emu->ppu.ly / 8, emu->ppu.lx % 8, emu->ppu.ly % 8);
+	print_pixel(s, cid, (emu->ppu.lx - 80) / 8, emu->ppu.ly / 8, pi, emu->ppu.ly % 8);
 	SDL_UnlockSurface(s);
 }
 
