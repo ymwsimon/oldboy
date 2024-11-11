@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/10 13:45:25 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/10 22:29:36 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 #define FREQUENCY 4194304
 #define MS_PER_SECOND 1000000
 #define CLOCK_SCALE 20
-#define FPS 60
+#define FPS 59.72750056960583
 #define WINDOW_NAME "Old Boy"
 #define WINDOW_H 768
 #define WINDOW_W 512
@@ -118,6 +118,7 @@ typedef struct s_ppu
 	t_byte	dma;
 	t_byte	lcdc;
 	t_byte	ly;
+	t_word	lx;
 	t_byte	lyc;
 	t_byte	stat;
 	t_byte	scy;
