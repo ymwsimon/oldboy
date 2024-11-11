@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/11 13:24:34 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/11 18:23:30 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,10 +17,10 @@
 #define FPS 59.72750056960583
 #define WINDOW_NAME "Old Boy"
 #define WINDOW_H 768
-#define WINDOW_W 576
+#define WINDOW_W 640
 #define NUM_TILE_PER_ROW 16
 #define NUM_ROW_TILE_DATA 24
-#define SCREEN_NUM_TILE_PER_ROW 20
+#define SCREEN_NUM_TILE_PER_ROW 32
 #define SCREEN_NUM_TILE_ROW 18
 #define TRUE 1
 #define FALSE 0

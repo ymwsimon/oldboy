@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 17:42:59 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/11 13:52:14 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/11 18:23:38 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,30 +71,51 @@ t_byte	ppu_read(t_emu *emu, t_word addr)
 	return (0xFF);
 }
 
-// void	ppu_draw_pix_n_time(t_emu *emu, t_byte n)
-// {
+void	ppu_draw_pix_n_time(SDL_Surface *s, t_emu *emu, t_word tid, t_byte cid, t_byte n)
+{
+	t_byte				i;
+	t_byte				j;
+	unsigned int		colour;
+	static unsigned int	colour_map[4] = {WHITE, LIGHT_GREEN, DARK_GREEN, BLACK};
 
-// }
+	j = 0;
+	colour = colour_map[cid];
+	(void)tid;
+	while (j < n)
+	{
+		i = 0;
+		while (i < n)
+		{
+			SDL_WriteSurfacePixel(s,
+				(emu->ppu.lx - 80) / 8 * 8 * n + (emu->ppu.lx - 80) % 8 * n + i,
+				emu->ppu.ly / 8 * 8 * n + emu->ppu.ly % 8 * n + j,
+				colour >> 16, (colour & 0xFF00) >> 8, colour & 0xFF, 255);
+			++i;
+		}
+		++j;
+	}
+
+}
 
 void	ppu_draw_pix(t_emu *emu)
 {
 	t_byte		cid;
-	t_byte		tid;
-	t_byte		pi;
+	t_word		tid;
+	t_word		pi;
 	t_word		offset;
 	SDL_Surface	*s;
 
 	tid = emu->ppu.ly / 8 * SCREEN_NUM_TILE_PER_ROW + (emu->ppu.lx - 80) / 8;
+	// printf("ly:%d lx:%d mapid:%d", emu->ppu.ly, emu->ppu.lx, tid);
+	tid = emu->vram[0x1800 + tid];
 	offset = tid * 16 + (emu->ppu.ly % 8) * 2;
-			// 	cid = (app->emu.vram[offset]
-			// 		& (1 << (7 - pi))) >> (7 - pi);
-			// cid += ((app->emu.vram[offset + 1]
-			// 			& (1 << (7 - pi))) >> (7 - pi)) << 1;
+	// printf("  tid:%X offset:%d\n", tid, offset);
 	pi = (emu->ppu.lx - 80) % 8;
 	cid = (emu->vram[offset] & (1 << (7 - pi))) >> (7 - pi);
 	cid += ((emu->vram[offset + 1] & (1 << (7 - pi))) >> (7 - pi)) << 1;
 	s = SDL_GetWindowSurface(emu->window);
 	SDL_LockSurface(s);
+	// ppu_draw_pix_n_time(s, emu, tid, cid, 4);
 	print_pixel(s, cid, (emu->ppu.lx - 80) / 8, emu->ppu.ly / 8, pi, emu->ppu.ly % 8);
 	SDL_UnlockSurface(s);
 }
@@ -110,7 +131,7 @@ void	ppu_tick(t_emu *emu)
 			emu->ppu.ppu_mode = OAM_SCAN;
 			++(emu->ppu.ly);
 		}
-		else if (emu->ppu.lx == 252)
+		else if (emu->ppu.lx == 240)
 		{
 			emu->ppu.ppu_mode = HBLANK;
 			emu->ppu.stat = 1;
@@ -126,16 +147,20 @@ void	ppu_tick(t_emu *emu)
 	if (emu->ppu.ly == 154)
 	{
 		emu->ppu.ly = 0;
+		emu->ppu.lx = 0;
 		emu->ppu.ppu_mode = OAM_SCAN;
 	}
-	else if (emu->ppu.ly == 144)
+	else if (emu->ppu.ly == 144 && emu->ppu.lx == 0)
+	{
 		emu->ppu.ppu_mode = VBLANK;
+		SDL_UpdateWindowSurface(emu->window);
+	}
 	emu->ppu.stat &= ~3;
 	emu->ppu.stat |= emu->ppu.ppu_mode;
 	emu->ppu.stat &= ~4;
 	emu->ppu.stat |= (emu->ppu.ly == emu->ppu.lyc) * 4;
 	if ((emu->ppu.ly < 144 && ((emu->ppu.lx == 0 && (emu->ppu.stat & 32))
-				|| (emu->ppu.lx == 252 && (emu->ppu.stat & 8))))
+				|| (emu->ppu.lx == 240 && (emu->ppu.stat & 8))))
 		|| (emu->ppu.ly == 144 && emu->ppu.lx == 0 && (emu->ppu.stat & 16))
 		|| ((emu->ppu.stat & 4) && (emu->ppu.stat & 64)))
 		emu->interrupt_flag |= 2;
@@ -143,4 +168,5 @@ void	ppu_tick(t_emu *emu)
 		emu->interrupt_flag |= 1;
 	if (emu->ppu.ppu_mode == DRAWING)
 		ppu_draw_pix(emu);
+	// SDL_UpdateWindowSurface(emu->window);
 }
