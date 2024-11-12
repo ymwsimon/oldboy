@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 15:45:49 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/10 23:58:53 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/12 19:18:10 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,7 @@ void	emu_tick(t_emu *emu, t_ull clock_cycle)
 		timer_tick(emu);
 		serial_tick(emu);
 		ppu_tick(emu);
+		input_tick_state(emu);
 		++i;
 	}
 }
@@ -56,6 +57,7 @@ int	init_emu(t_emu *emu)
 	init_cpu(&emu->cpu);
 	init_timer(emu);
 	init_serial(emu);
+	init_input(emu);
 	bzero(&emu->vram, 0x2000);
 	bzero(&emu->wram, 0x2000);
 	bzero(&emu->hram, 0x7F);

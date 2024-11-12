@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 13:14:12 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/11 18:15:11 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/12 15:44:13 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -173,6 +173,18 @@ int	run_app(t_app *app)
 				SDL_SetRenderDrawColor(app->renderer, 80, 60, 0, 50);
 			else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_RIGHT)
 				SDL_SetRenderDrawColor(app->renderer, 80, 100, 60, 50);
+			else if (event.type == SDL_EVENT_KEY_DOWN
+				&& (event.key.key == SDLK_W || event.key.key == SDLK_S
+					|| event.key.key == SDLK_A || event.key.key == SDLK_D
+					|| event.key.key == SDLK_J || event.key.key == SDLK_K
+					|| event.key.key == SDLK_Z || event.key.key == SDLK_X))
+				handle_input_down(&app->emu, event);
+			else if (event.type == SDL_EVENT_KEY_UP
+				&& (event.key.key == SDLK_W || event.key.key == SDLK_S
+					|| event.key.key == SDLK_A || event.key.key == SDLK_D
+					|| event.key.key == SDLK_J || event.key.key == SDLK_K
+					|| event.key.key == SDLK_Z || event.key.key == SDLK_X))
+				handle_input_up(&app->emu, event);
 			else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_P)
 				print_tile_map(&app->emu);
 		}

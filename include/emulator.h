@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/11 18:23:30 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/12 19:00:42 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 #define CLOCK_SCALE 20
 #define FPS 59.72750056960583
 #define WINDOW_NAME "Old Boy"
-#define WINDOW_H 768
+#define WINDOW_H 576
 #define WINDOW_W 640
 #define NUM_TILE_PER_ROW 16
 #define NUM_ROW_TILE_DATA 24
@@ -133,6 +133,19 @@ typedef struct s_ppu
 	t_mode	ppu_mode;
 }	t_ppu;
 
+typedef struct s_joypad
+{
+	t_byte	up;
+	t_byte	down;
+	t_byte	left;
+	t_byte	right;
+	t_byte	a;
+	t_byte	b;
+	t_byte	select;
+	t_byte	start;
+	t_byte	joyp;
+}	t_joypad;
+
 typedef struct s_emu
 {
 	t_cart			cart;
@@ -146,6 +159,7 @@ typedef struct s_emu
 	double			last_render_time;
 	t_byte			interrupt_flag;
 	t_byte			interrupt_enable;
+	t_joypad		joypad;
 	t_timer			timer;
 	t_serial		serial;
 	t_ppu			ppu;
@@ -258,3 +272,10 @@ void	ppu_tick(t_emu *emu);
 void	ppu_write(t_emu *emu, t_word addr, t_byte data);
 t_byte	ppu_read(t_emu *emu, t_word addr);
 void	print_pixel(SDL_Surface *s, t_byte cid, t_word ti, t_word tj, t_word pi, t_word pj);
+//input
+void	handle_input_down(t_emu *emu, SDL_Event event);
+void	handle_input_up(t_emu *emu, SDL_Event event);
+void	input_write(t_emu *emu, t_byte data);
+t_byte	input_read(t_emu *emu);
+void	init_input(t_emu *emu);
+void	input_tick_state(t_emu *emu);
