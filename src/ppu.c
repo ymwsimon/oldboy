@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 17:42:59 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/11 22:26:36 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/12 23:53:17 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,26 +107,22 @@ void	ppu_draw_pix(t_emu *emu)
 
 	tid = emu->ppu.ly / 8 * SCREEN_NUM_TILE_PER_ROW + (emu->ppu.lx - 80) / 8;
 	// printf("ly:%d lx:%d mapid:%d", emu->ppu.ly, emu->ppu.lx, tid);
-	tid = emu->vram[0x1800 + tid];
+	if (!(emu->ppu.lcdc & 8))
+		tid = emu->vram[0x1800 + tid];
+	else
+		tid = emu->vram[0x1C00 + tid];
 	offset = (char)tid * 16 + (emu->ppu.ly % 8) * 2;
 	if (emu->ppu.lcdc & 16)
 		offset = tid * 16 + (emu->ppu.ly % 8) * 2;
 	// printf("lcdc:%X  tid:%X offset:%d\n", emu->ppu.lcdc, tid, offset);
 	pi = (emu->ppu.lx - 80) % 8;
 	cid = 0;
-	if (emu->ppu.lcdc & 16)
-	{
-		cid = (emu->vram[offset] & (1 << (7 - pi))) >> (7 - pi);
-		cid += ((emu->vram[offset + 1] & (1 << (7 - pi))) >> (7 - pi)) << 1;
-	}
-	else
-	{
-		cid = (emu->vram[0x1000 + offset] & (1 << (7 - pi))) >> (7 - pi);
-		cid += ((emu->vram[0x1000 + offset + 1] & (1 << (7 - pi))) >> (7 - pi)) << 1;
-	}
+	if (!(emu->ppu.lcdc & 16))
+		offset += 0x1000;
+	cid = (emu->vram[offset] & (1 << (7 - pi))) >> (7 - pi);
+	cid += ((emu->vram[offset + 1] & (1 << (7 - pi))) >> (7 - pi)) << 1;
 	s = SDL_GetWindowSurface(emu->window);
 	SDL_LockSurface(s);
-	// ppu_draw_pix_n_time(s, emu, tid, cid, 4);
 	print_pixel(s, cid, (emu->ppu.lx - 80) / 8, emu->ppu.ly / 8, pi, emu->ppu.ly % 8);
 	SDL_UnlockSurface(s);
 }
