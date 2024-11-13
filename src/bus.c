@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 16:19:31 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/12 16:42:07 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/13 18:43:36 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,8 @@ t_byte	bus_read(t_emu *emu, t_word addr)
 		return (serial_read(emu, addr));
 	if (addr >= 0xFF04 && addr <= 0xFF07)
 		return (timer_read(emu, addr));
-	if (addr >= 0xFF40 && addr <= 0xFF4B)
+	if ((addr >= 0xFE00 && addr <= 0xFE9F)
+		|| (addr >= 0xFF40 && addr <= 0xFF4B))
 		return (ppu_read(emu, addr));
 	if (addr == 0xFF00)
 		return (input_read(emu));
@@ -56,7 +57,8 @@ void	bus_write(t_emu *emu, t_word addr, t_byte data)
 		serial_write(emu, addr, data);
 	else if (addr >= 0xFF04 && addr <= 0xFF07)
 		timer_write(emu, addr, data);
-	else if (addr >= 0xFF40 && addr <= 0xFF4B)
+	else if ((addr >= 0xFE00 && addr <= 0xFE9F)
+		|| (addr >= 0xFF40 && addr <= 0xFF4B))
 		ppu_write(emu, addr, data);
 	else if (addr == 0xFF00)
 		input_write(emu, data);
