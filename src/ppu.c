@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 17:42:59 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/14 22:42:33 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/14 22:51:54 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -179,11 +179,8 @@ void	ppu_draw_pix(t_emu *emu)
 		offset = tid * 16 + (emu->ppu.ly % 8) * 2;
 	// printf("lcdc:%X  tid:%X offset:%d\n", emu->ppu.lcdc, tid, offset);
 	pi = (emu->ppu.lx - 80) % 8;
-	cid = 0;
 	if (!(emu->ppu.lcdc & 16))
 		offset += 0x1000;
-	cid = (emu->vram[offset] & (1 << (7 - pi))) >> (7 - pi);
-	cid += ((emu->vram[offset + 1] & (1 << (7 - pi))) >> (7 - pi)) << 1;
 	cid = get_cid(emu, offset);
 	s = SDL_GetWindowSurface(emu->window);
 	SDL_LockSurface(s);
