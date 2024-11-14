@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/12 19:00:42 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/13 22:31:59 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,7 +116,10 @@ typedef enum e_mode
 
 typedef struct s_ppu
 {
-	t_byte	oam[0x100];
+	t_byte	oam[0xA0];
+	t_byte	object_queue[10];
+	t_byte	num_obj_scanline;
+	t_word	dma_write_counter;
 	t_byte	dma;
 	t_byte	lcdc;
 	t_byte	ly;
