@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 17:42:59 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/14 12:44:57 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/14 13:56:03 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -188,6 +188,25 @@ void	ppu_draw_pix(t_emu *emu)
 	SDL_LockSurface(s);
 	print_pixel(s, cid, (emu->ppu.lx - 80) / 8, emu->ppu.ly / 8, pi, emu->ppu.ly % 8);
 	SDL_UnlockSurface(s);
+}
+
+void	scan_obj(t_emu *emu)
+{
+	t_byte	idx;
+
+	emu->ppu.num_obj_scanline = 0;
+	idx = 0;
+	while (idx < 40 && emu->ppu.num_obj_scanline < 10)// && (emu->ppu.lcdc & 2))
+	{
+		if ((emu->ppu.ly + 16 >= emu->ppu.oam[idx * 4] && emu->ppu.ly + 16 < emu->ppu.oam[idx * 4] + 8)
+			&& (emu->ppu.lx + 8 >= emu->ppu.oam[idx * 4 + 1] && emu->ppu.lx + 8 < emu->ppu.oam[idx * 4 + 1] + 8))
+		{
+			printf("ly:%d tileid:%d\n", emu->ppu.ly, emu->ppu.oam[idx * 4 + 2]);
+			emu->ppu.object_queue[emu->ppu.num_obj_scanline] = emu->ppu.oam[idx * 4 + 2];
+			++emu->ppu.num_obj_scanline;
+		}
+		++idx;
+	}
 }
 
 void	ppu_tick(t_emu *emu)
