@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 17:42:59 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/14 22:51:54 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/15 00:12:46 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -150,6 +150,8 @@ t_byte	get_cid(t_emu *emu, int offset)
 		{
 			// printf("tid:%X\n", emu->ppu.oam[oid + 2]);
 			pi = (emu->ppu.lx - 80 - (emu->ppu.oam[oid + 1] - 8)) % 8;
+			if (emu->ppu.oam[oid + 3] & 32)
+				pi = 7 - pi;
 			new_cid = (emu->vram[emu->ppu.oam[oid + 2] * 16 + ((emu->ppu.ly - (emu->ppu.oam[oid] - 16)) % 8) * 2] & (1 << (7 - pi))) >> (7 - pi);
 			new_cid += ((emu->vram[emu->ppu.oam[oid + 2] * 16 + ((emu->ppu.ly - (emu->ppu.oam[oid] - 16)) % 8) * 2 + 1] & (1 << (7 - pi))) >> (7 - pi)) << 1;
 			if (new_cid)
