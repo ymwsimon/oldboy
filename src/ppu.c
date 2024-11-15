@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 17:42:59 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/15 00:33:15 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/15 14:21:29 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,13 +91,9 @@ void	scan_obj(t_emu *emu)
 	idx = 0;
 	while (idx < 40 && emu->ppu.num_obj_scanline < 10 && (emu->ppu.lcdc & 2))
 	{
-		// if (emu->ppu.oam[idx * 4 + 2])
-			// printf("y:%d x:%d tileid:%X\n", emu->ppu.oam[idx * 4], emu->ppu.oam[idx * 4 + 1], emu->ppu.oam[idx * 4 + 2]);
-			// printf("ly:%d y:%d x:%d tileid:%2X\n", emu->ppu.ly, emu->ppu.oam[idx * 4], emu->ppu.oam[idx * 4 + 1], emu->ppu.oam[idx * 4 + 2]);
-		if ((emu->ppu.ly + 16 >= emu->ppu.oam[idx * 4] && emu->ppu.ly + 16 < emu->ppu.oam[idx * 4] + 8))
-			// && (emu->ppu.lx + 8 >= emu->ppu.oam[idx * 4 + 1] && emu->ppu.lx + 8 < emu->ppu.oam[idx * 4 + 1] + 8))
+		if ((emu->ppu.ly + 16 >= emu->ppu.oam[idx * 4]
+				&& emu->ppu.ly + 16 < emu->ppu.oam[idx * 4] + 8))
 		{
-			// printf("y:%d x:%d tileid:%X\n", emu->ppu.oam[idx * 4], emu->ppu.oam[idx * 4 + 1], emu->ppu.oam[idx * 4 + 2]);
 			emu->ppu.object_queue[emu->ppu.num_obj_scanline] = idx;
 			++emu->ppu.num_obj_scanline;
 		}
@@ -131,7 +127,16 @@ void	ppu_draw_pix_n_time(SDL_Surface *s, t_emu *emu, t_word tid, t_byte cid, t_b
 
 }
 
-t_byte	get_cid(t_emu *emu, int offset)
+t_byte	get_cid_from(t_emu *emu, int offset, t_word pi)
+{
+	t_byte	cid;
+
+	cid = (emu->vram[offset] & (1 << pi)) >> pi;
+	cid += ((emu->vram[offset + 1] & (1 << pi)) >> pi) << 1;
+	return (cid);
+}
+
+t_byte	get_final_cid(t_emu *emu, int offset)
 {
 	t_byte	cid;
 	t_byte	new_cid;
@@ -139,22 +144,19 @@ t_byte	get_cid(t_emu *emu, int offset)
 	t_byte	idx;
 	t_byte	oid;
 
-	pi = (emu->ppu.lx - 80) % 8;
-	cid = (emu->vram[offset] & (1 << (7 - pi))) >> (7 - pi);
-	cid += ((emu->vram[offset + 1] & (1 << (7 - pi))) >> (7 - pi)) << 1;
+	pi = 7 - (emu->ppu.lx - 80) % 8;
+	cid = get_cid_from(emu, offset, pi);
 	idx = 0;
 	while ((emu->ppu.lcdc & 2) && idx < emu->ppu.num_obj_scanline)
 	{
 		oid = emu->ppu.object_queue[idx] * 4;
 		if (emu->ppu.lx - 80 + 8 >= emu->ppu.oam[oid + 1] && emu->ppu.lx - 80 + 8 < emu->ppu.oam[oid + 1] + 8)
 		{
-			// printf("tid:%X\n", emu->ppu.oam[oid + 2]);
 			pi = (emu->ppu.lx - 80 - (emu->ppu.oam[oid + 1] - 8)) % 8;
 			if (!(emu->ppu.oam[oid + 3] & 32))
 				pi = 7 - pi;
 			offset = emu->ppu.oam[oid + 2] * 16 + ((emu->ppu.ly - (emu->ppu.oam[oid] - 16)) % 8) * 2;
-			new_cid = (emu->vram[offset] & (1 << pi)) >> pi;
-			new_cid += (emu->vram[offset + 1] & (1 << pi)) >> pi << 1;
+			new_cid = get_cid_from(emu, offset, pi);
 			if (new_cid)
 				cid = new_cid;
 		}
@@ -172,7 +174,6 @@ void	ppu_draw_pix(t_emu *emu)
 	SDL_Surface	*s;
 
 	tid = emu->ppu.ly / 8 * SCREEN_NUM_TILE_PER_ROW + (emu->ppu.lx - 80) / 8;
-	// printf("ly:%d lx:%d mapid:%d", emu->ppu.ly, emu->ppu.lx, tid);
 	if (!(emu->ppu.lcdc & 8))
 		tid = emu->vram[0x1800 + tid];
 	else
@@ -180,23 +181,32 @@ void	ppu_draw_pix(t_emu *emu)
 	offset = (char)tid * 16 + (emu->ppu.ly % 8) * 2;
 	if (emu->ppu.lcdc & 16)
 		offset = tid * 16 + (emu->ppu.ly % 8) * 2;
-	// printf("lcdc:%X  tid:%X offset:%d\n", emu->ppu.lcdc, tid, offset);
 	pi = (emu->ppu.lx - 80) % 8;
 	if (!(emu->ppu.lcdc & 16))
 		offset += 0x1000;
-	cid = get_cid(emu, offset);
+	cid = get_final_cid(emu, offset);
 	s = SDL_GetWindowSurface(emu->window);
 	SDL_LockSurface(s);
-	print_pixel(s, cid, (emu->ppu.lx - 80) / 8, emu->ppu.ly / 8, pi, emu->ppu.ly % 8);
+	print_pixel(s, cid, (emu->ppu.lx - 80) / 8,
+		emu->ppu.ly / 8, pi, emu->ppu.ly % 8);
 	SDL_UnlockSurface(s);
 }
 
-void	ppu_tick(t_emu *emu)
+int	is_vblank(t_emu *emu)
 {
-	++(emu->ppu.lx);
-	if (emu->ppu.ly < 144)
+	return (emu->ppu.ly >= 144 && emu->ppu.ly <= 153);
+}
+
+int	is_last_dot_of_line(t_emu *emu)
+{
+	return (emu->ppu.lx == 456);
+}
+
+void	non_vblank(t_emu *emu)
+{
+	if (!is_vblank(emu))
 	{
-		if (emu->ppu.lx == 456)
+		if (is_last_dot_of_line(emu))
 		{
 			emu->ppu.lx = 0;
 			emu->ppu.ppu_mode = OAM_SCAN;
@@ -210,22 +220,62 @@ void	ppu_tick(t_emu *emu)
 		else if (emu->ppu.lx == 80)
 			emu->ppu.ppu_mode = DRAWING;
 	}
-	if (emu->ppu.lx == 456)
+}
+
+void	last_dot_per_line(t_emu *emu)
+{
+	if (is_last_dot_of_line(emu))
 	{
 		emu->ppu.lx = 0;
 		++(emu->ppu.ly);
 	}
+}
+
+void	last_line_of_screen(t_emu *emu)
+{
 	if (emu->ppu.ly == 154)
 	{
 		emu->ppu.ly = 0;
 		emu->ppu.lx = 0;
 		emu->ppu.ppu_mode = OAM_SCAN;
 	}
-	else if (emu->ppu.ly == 144 && emu->ppu.lx == 0)
+}
+
+int	is_first_dot_of_vblank(t_emu *emu)
+{
+	return (emu->ppu.ly == 144 && emu->ppu.lx == 0);
+}
+
+void	vblank(t_emu *emu)
+{
+	if (is_first_dot_of_vblank(emu))
 	{
 		emu->ppu.ppu_mode = VBLANK;
 		SDL_UpdateWindowSurface(emu->window);
 	}
+}
+
+void	dma_transfer(t_emu *emu)
+{
+	if (emu->ppu.dma_write_counter)
+	{
+		if (!(emu->ppu.dma_write_counter % 4))
+		{
+			emu->ppu.oam[160 - emu->ppu.dma_write_counter / 4]
+				= bus_read(emu, (emu->ppu.dma << 8)
+					+ (160 - emu->ppu.dma_write_counter / 4));
+		}
+		--(emu->ppu.dma_write_counter);
+	}
+}
+
+void	ppu_tick(t_emu *emu)
+{
+	++(emu->ppu.lx);
+	non_vblank(emu);
+	last_dot_per_line(emu);
+	last_line_of_screen(emu);
+	vblank(emu);
 	emu->ppu.stat &= ~3;
 	emu->ppu.stat |= emu->ppu.ppu_mode;
 	emu->ppu.stat &= ~4;
@@ -241,16 +291,5 @@ void	ppu_tick(t_emu *emu)
 		scan_obj(emu);
 	if (emu->ppu.ppu_mode == DRAWING)
 		ppu_draw_pix(emu);
-	if (emu->ppu.dma_write_counter)
-	{
-		if (!(emu->ppu.dma_write_counter % 4))
-		{
-			// printf("dma:%X counter:%d data:%X\n", emu->ppu.dma << 8, emu->ppu.dma_write_counter, bus_read(emu, (emu->ppu.dma << 8)
-					// + (160 - emu->ppu.dma_write_counter / 4)));
-			emu->ppu.oam[160 - emu->ppu.dma_write_counter / 4]
-				= bus_read(emu, (emu->ppu.dma << 8)
-					+ (160 - emu->ppu.dma_write_counter / 4));
-		}
-		--(emu->ppu.dma_write_counter);
-	}
+	dma_transfer(emu);
 }
