@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/14 13:55:29 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/15 16:52:50 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <strings.h>
+#include <string.h>
 #include <fcntl.h>
 #include <stdbool.h>
 #include <sys/time.h>
@@ -97,7 +97,7 @@ typedef struct s_timer
 
 typedef struct s_serial
 {
-	t_byte	serial_out_buf[1000];
+	t_byte	serial_out_buf[0xFFFF];
 	t_word	idx_out_buf;
 	t_byte	sb;
 	t_byte	sc;
