@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/15 16:52:50 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/18 14:56:40 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,6 +114,14 @@ typedef enum e_mode
 	DRAWING
 }	t_mode;
 
+typedef struct s_tile_pix_info
+{
+	t_word	ti;
+	t_word	tj;
+	t_word	pi;
+	t_word	pj;
+}	t_tile_pix_info;
+
 typedef struct s_ppu
 {
 	t_byte	oam[0xA0];
@@ -177,20 +185,10 @@ typedef struct s_app
 	t_emu			emu;
 }	t_app;
 
-typedef union u_bw
-{
-	t_byte	b;
-	t_word	w;
-}	t_ubw;
-
-typedef void(t_inst)(t_emu *, t_byte);
-typedef void(t_setw)(t_cpu *, t_word);
-typedef void(t_setb)(t_cpu *, t_byte);
-typedef void(t_setwb)(t_cpu *, t_ubw);
-typedef t_word(t_getw)(t_cpu);
-typedef t_byte(t_getb)(t_cpu);
-
-extern	t_inst *g_op_map[256];
+typedef void		(t_inst)(t_emu *, t_byte);
+typedef	void		(t_setw)(t_cpu *, t_word);
+typedef	t_word	(t_getw)(t_cpu);
+extern t_inst	*g_op_map[256];
 
 //cartridge
 void	print_cart_header(t_cart cart);
@@ -274,7 +272,7 @@ void	init_ppu(t_emu *emu);
 void	ppu_tick(t_emu *emu);
 void	ppu_write(t_emu *emu, t_word addr, t_byte data);
 t_byte	ppu_read(t_emu *emu, t_word addr);
-void	print_pixel(SDL_Surface *s, t_byte cid, t_word ti, t_word tj, t_word pi, t_word pj);
+void	print_pixel(t_emu *emu, SDL_Surface *s, t_byte cid, t_tile_pix_info t);
 //input
 void	handle_input_down(t_emu *emu, SDL_Event event);
 void	handle_input_up(t_emu *emu, SDL_Event event);

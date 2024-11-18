@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 13:14:12 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/13 23:25:59 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/18 14:56:17 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,24 +65,30 @@ void	write_serial_buf_file(t_emu *emu)
 	}
 }
 
-void	print_pixel(SDL_Surface *s, t_byte cid, t_word ti, t_word tj, t_word pi, t_word pj)
+unsigned int	get_colour_map(t_emu *emu, t_byte cid)
 {
-	t_word				i;
-	t_word				j;
-	unsigned int		colour;
 	static unsigned int	colour_map[4] = {WHITE, LIGHT_GREEN, DARK_GREEN, BLACK};
 
+	(void)emu;
+	return (colour_map[cid]);
+}
+
+void	print_pixel(t_emu *emu, SDL_Surface *s, t_byte cid, t_tile_pix_info t)
+{
+	t_word			i;
+	t_word			j;
+	unsigned int	colour;
+
 	j = 0;
-	colour = colour_map[cid];
+	colour = get_colour_map(emu, cid);
 	while (j < 4)
 	{
 		i = 0;
 		while (i < 4)
 		{
-			// pixels[tj * NUM_TILE_PER_ROW * 8 * 4 + ti * 8 * 4 + pj * 8 * 4 + j + ti * 8 * 4 + pi * 4 + j * 8 * 4 + i * 4] = 0xFF000000 | colour;
 			SDL_WriteSurfacePixel(s,
-				ti * 8 * 4 + pi * 4 + i,
-				tj * 8 * 4 + pj * 4 + j,
+				t.ti * 8 * 4 + t.pi * 4 + i,
+				t.tj * 8 * 4 + t.pj * 4 + j,
 				colour >> 16, (colour & 0xFF00) >> 8, colour & 0xFF, 255);
 			++i;
 		}
@@ -108,7 +114,7 @@ void	print_tile(t_app *app, SDL_Surface *s, t_word ti, t_word tj)
 					& (1 << (7 - pi))) >> (7 - pi);
 			cid += ((app->emu.vram[offset + 1]
 						& (1 << (7 - pi))) >> (7 - pi)) << 1;
-			print_pixel(s, cid, ti, tj, pi, pj);
+			print_pixel(&app->emu, s, cid, (t_tile_pix_info){ti, tj, pi, pj});
 			++pi;
 		}
 		++pj;
@@ -143,7 +149,9 @@ void	print_tile_map(t_emu *emu)
 	t_word	idx;
 
 	idx = 0;
-	printf("LCDC: %02X LY:%02X STAT:%02X SCY:%02X SCX:%02X WY:%02X WX:%02X \n", emu->ppu.lcdc, emu->ppu.ly, emu->ppu.stat, emu->ppu.scy, emu->ppu.scx, emu->ppu.wy, emu->ppu.wx);
+	printf("LCDC: %02X LY:%02X STAT:%02X SCY:%02X SCX:%02X WY:%02X WX:%02X \n",
+		emu->ppu.lcdc, emu->ppu.ly, emu->ppu.stat,
+		emu->ppu.scy, emu->ppu.scx, emu->ppu.wy, emu->ppu.wx);
 	while (idx < 2048)
 	{
 		printf("%02X ", emu->vram[0x1800 + idx]);
