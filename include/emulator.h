@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/19 18:25:48 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/19 19:42:48 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -275,7 +275,9 @@ void	init_ppu(t_emu *emu);
 void	ppu_tick(t_emu *emu);
 void	ppu_write(t_emu *emu, t_word addr, t_byte data);
 t_byte	ppu_read(t_emu *emu, t_word addr);
-void	print_pixel(t_emu *emu, SDL_Surface *s, t_byte cid, t_tile_pix_info t);
+void	print_pixel(t_emu *emu, SDL_Surface *s, unsigned int colour, t_tile_pix_info t);
+unsigned int	get_colour_from_palette(t_emu *emu,
+	t_byte cid, t_byte tile_type);
 //input
 void	handle_input_down(t_emu *emu, SDL_Event event);
 void	handle_input_up(t_emu *emu, SDL_Event event);

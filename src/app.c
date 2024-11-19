@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 13:14:12 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/18 14:56:17 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/19 19:43:15 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,14 +73,15 @@ unsigned int	get_colour_map(t_emu *emu, t_byte cid)
 	return (colour_map[cid]);
 }
 
-void	print_pixel(t_emu *emu, SDL_Surface *s, t_byte cid, t_tile_pix_info t)
+void	print_pixel(t_emu *emu, SDL_Surface *s, unsigned int colour, t_tile_pix_info t)
 {
 	t_word			i;
 	t_word			j;
-	unsigned int	colour;
+	// unsigned int	colour;
 
 	j = 0;
-	colour = get_colour_map(emu, cid);
+	(void)emu;
+	// colour = get_colour_map(emu, cid);
 	while (j < 4)
 	{
 		i = 0;
@@ -114,7 +115,9 @@ void	print_tile(t_app *app, SDL_Surface *s, t_word ti, t_word tj)
 					& (1 << (7 - pi))) >> (7 - pi);
 			cid += ((app->emu.vram[offset + 1]
 						& (1 << (7 - pi))) >> (7 - pi)) << 1;
-			print_pixel(&app->emu, s, cid, (t_tile_pix_info){ti, tj, pi, pj});
+			print_pixel(&app->emu, s,
+				get_colour_from_palette(&app->emu, cid, BG_WIN_TILE),
+				(t_tile_pix_info){ti, tj, pi, pj});
 			++pi;
 		}
 		++pj;

@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 17:42:59 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/19 19:00:09 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/19 22:52:50 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,8 @@ void	ppu_write(t_emu *emu, t_word addr, t_byte data)
 		emu->ppu.wx = data;
 	if (addr >= 0xFE00 && addr <= 0xFE9F)
 		emu->ppu.oam[addr - 0xFE00] = data;
+	// if (addr == 0xFF40)
+		// printf("ly:%d lcdc:%d\n", emu->ppu.ly, emu->ppu.lcdc);
 }
 
 t_byte	ppu_read(t_emu *emu, t_word addr)
@@ -100,32 +102,6 @@ void	scan_obj(t_emu *emu)
 		++idx;
 	}
 }
-
-// void	ppu_draw_pix_n_time(SDL_Surface *s, t_emu *emu, t_word tid, t_byte cid, t_byte n)
-// {
-// 	t_byte				i;
-// 	t_byte				j;
-// 	unsigned int		colour;
-// 	static unsigned int	colour_map[4] = {WHITE, LIGHT_GREEN, DARK_GREEN, BLACK};
-
-// 	j = 0;
-// 	colour = colour_map[cid];
-// 	(void)tid;
-// 	while (j < n)
-// 	{
-// 		i = 0;
-// 		while (i < n)
-// 		{
-// 			SDL_WriteSurfacePixel(s,
-// 				(emu->ppu.lx - 80) / 8 * 8 * n + (emu->ppu.lx - 80) % 8 * n + i,
-// 				emu->ppu.ly / 8 * 8 * n + emu->ppu.ly % 8 * n + j,
-// 				colour >> 16, (colour & 0xFF00) >> 8, colour & 0xFF, 255);
-// 			++i;
-// 		}
-// 		++j;
-// 	}
-
-// }
 
 t_byte	get_cid_from(t_emu *emu, int offset, t_word pi)
 {
@@ -191,7 +167,7 @@ int	is_window_covered(t_emu *emu)
 		&& (emu->ppu.lx - 80) + 7 >= emu->ppu.wx);
 }
 
-int	get_offset_window_tile(t_emu *emu)
+unsigned int	get_colour_window_tile(t_emu *emu)
 {
 	int		offset;
 	t_word	tid;
@@ -213,16 +189,21 @@ int	get_offset_window_tile(t_emu *emu)
 	return (offset);
 }
 
-t_byte	get_final_cid(t_emu *emu, int offset)
+t_byte	get_obj_palette(t_byte attr)
+{
+	if (!(attr & 16))
+		return (OBJ0_TILE);
+	return (OBJ1_TILE);
+}
+
+unsigned int	get_obj_over_bgwin_colour(t_emu *emu, unsigned int colour)
 {
 	t_byte	cid;
-	t_byte	new_cid;
 	t_word	pi;
 	t_byte	idx;
 	t_byte	oid;
+	int		offset;
 
-	pi = 7 - ((emu->ppu.lx - 80 + emu->ppu.scx) % 256) % 8;
-	cid = get_cid_from(emu, offset, pi);
 	idx = 0;
 	while (object_enabled(emu) && idx < emu->ppu.num_obj_scanline)
 	{
@@ -231,23 +212,70 @@ t_byte	get_final_cid(t_emu *emu, int offset)
 		{
 			pi = get_pi_from_objectid(emu, oid);
 			offset = get_offset_pj_from_objectid(emu, oid);
-			new_cid = get_cid_from(emu, offset, pi);
-			if (new_cid)
-				cid = new_cid;
+			cid = (emu->vram[offset] & (1 << pi)) >> pi;
+			cid += ((emu->vram[offset + 1] & (1 << pi)) >> pi) << 1;
+			// if (((!(emu->ppu.oam[oid + 3] & 128) && cid)) || ((emu->ppu.oam[oid + 3] & 128) && !cid))
+			if (cid)
+				colour = get_colour_from_palette(emu, cid, get_obj_palette(emu->ppu.oam[oid + 3]));
 		}
 		++idx;
 	}
-	return (cid);
+	return (colour);
 }
 
-void	ppu_draw_pix(t_emu *emu)
+unsigned int	get_colour_from_palette(t_emu *emu,
+	t_byte cid, t_byte tile_type)
+{
+	static unsigned int	colour_map[4] = {WHITE, LIGHT_GREEN, DARK_GREEN, BLACK};
+	t_word				palette_reg;
+
+	if (tile_type == BG_WIN_TILE)
+		palette_reg = emu->ppu.bgp;
+	else if (tile_type == OBJ0_TILE)
+		palette_reg = emu->ppu.obp0;
+	else
+		palette_reg = emu->ppu.obp1;
+	return (colour_map[(palette_reg >> (2 * cid)) & 3]);
+}
+
+unsigned int	get_win_colour(t_emu *emu)
 {
 	t_byte		cid;
 	t_word		tid;
 	t_word		li;
 	t_word		lj;
+	t_word		pi;
 	int			offset;
-	SDL_Surface	*s;
+
+	li = emu->ppu.lx - 80 - emu->ppu.wx + 7;
+	lj = emu->ppu.ly - emu->ppu.wy;
+	tid = lj / 8 * SCREEN_NUM_TILE_PER_ROW + li / 8;
+	if (!(emu->ppu.lcdc & 64))
+		tid = emu->vram[0x1800 + tid];
+	else
+		tid = emu->vram[0x1C00 + tid];
+	offset = (char)tid * 16 + (lj % 8) * 2;
+	if (emu->ppu.lcdc & 16)
+		offset = tid * 16 + (lj % 8) * 2;
+	if (!(emu->ppu.lcdc & 16))
+		offset += 0x1000;
+	pi = 7 - (emu->ppu.lx - 80 - emu->ppu.wx + 7) % 8;
+	cid = (emu->vram[offset] & (1 << pi)) >> pi;
+	cid += ((emu->vram[offset + 1] & (1 << pi)) >> pi) << 1;
+	if (!(emu->ppu.lcdc & 1))
+		cid = 0;
+		// return (WHITE);
+	return (get_colour_from_palette(emu, cid, BG_WIN_TILE));
+}
+
+unsigned int	get_bg_colour(t_emu *emu)
+{
+	t_byte		cid;
+	t_word		tid;
+	t_word		li;
+	t_word		lj;
+	t_word		pi;
+	int			offset;
 
 	li = (emu->ppu.lx - 80 + emu->ppu.scx) % 256;
 	lj = (emu->ppu.ly + emu->ppu.scy) % 256;
@@ -261,12 +289,30 @@ void	ppu_draw_pix(t_emu *emu)
 		offset = tid * 16 + (lj % 8) * 2;
 	if (!(emu->ppu.lcdc & 16))
 		offset += 0x1000;
+	pi = 7 - ((emu->ppu.lx - 80 + emu->ppu.scx) % 256) % 8;
+	cid = (emu->vram[offset] & (1 << pi)) >> pi;
+	cid += ((emu->vram[offset + 1] & (1 << pi)) >> pi) << 1;
+	if (!(emu->ppu.lcdc & 1))
+		cid = 0;
+		// return (WHITE);
+	// if (emu->ppu.ly == 9)
+	// if (!((emu->ppu.lcdc & 1) % 2))
+		// printf("ly:%d lcdc:%d\n", emu->ppu.ly, emu->ppu.lcdc);
+	return (get_colour_from_palette(emu, cid, BG_WIN_TILE));
+}
+
+void	ppu_draw_pix(t_emu *emu)
+{
+	unsigned int	colour;
+	SDL_Surface		*s;
+
+	colour = get_bg_colour(emu);
 	if (is_window_covered(emu))
-		offset = get_offset_window_tile(emu);
-	cid = get_final_cid(emu, offset);
+		colour = get_win_colour(emu);
+	colour = get_obj_over_bgwin_colour(emu, colour);
 	s = SDL_GetWindowSurface(emu->window);
 	SDL_LockSurface(s);
-	print_pixel(emu, s, cid, (t_tile_pix_info){(emu->ppu.lx - 80) / 8,
+	print_pixel(emu, s, colour, (t_tile_pix_info){(emu->ppu.lx - 80) / 8,
 		emu->ppu.ly / 8, (emu->ppu.lx - 80) % 8, emu->ppu.ly % 8});
 	SDL_UnlockSurface(s);
 }
