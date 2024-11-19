@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 17:42:59 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/19 00:04:07 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/19 19:00:09 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -179,6 +179,40 @@ int	object_enabled(t_emu *emu)
 	return (emu->ppu.lcdc & 2);
 }
 
+int	window_enabled(t_emu *emu)
+{
+	return (emu->ppu.lcdc & 32);
+}
+
+int	is_window_covered(t_emu *emu)
+{
+	return (window_enabled(emu)
+		&& emu->ppu.ly >= emu->ppu.wy
+		&& (emu->ppu.lx - 80) + 7 >= emu->ppu.wx);
+}
+
+int	get_offset_window_tile(t_emu *emu)
+{
+	int		offset;
+	t_word	tid;
+	t_word	li;
+	t_word	lj;
+
+	li = emu->ppu.lx - 80 - emu->ppu.wx + 7;
+	lj = emu->ppu.ly - emu->ppu.wy;
+	tid = lj / 8 * SCREEN_NUM_TILE_PER_ROW + li / 8;
+	if (!(emu->ppu.lcdc & 64))
+		tid = emu->vram[0x1800 + tid];
+	else
+		tid = emu->vram[0x1C00 + tid];
+	offset = (char)tid * 16 + (lj % 8) * 2;
+	if (emu->ppu.lcdc & 16)
+		offset = tid * 16 + (lj % 8) * 2;
+	if (!(emu->ppu.lcdc & 16))
+		offset += 0x1000;
+	return (offset);
+}
+
 t_byte	get_final_cid(t_emu *emu, int offset)
 {
 	t_byte	cid;
@@ -227,6 +261,8 @@ void	ppu_draw_pix(t_emu *emu)
 		offset = tid * 16 + (lj % 8) * 2;
 	if (!(emu->ppu.lcdc & 16))
 		offset += 0x1000;
+	if (is_window_covered(emu))
+		offset = get_offset_window_tile(emu);
 	cid = get_final_cid(emu, offset);
 	s = SDL_GetWindowSurface(emu->window);
 	SDL_LockSurface(s);

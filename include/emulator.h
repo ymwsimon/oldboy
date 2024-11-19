@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/18 14:56:40 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/19 18:25:48 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,9 @@
 #define DARK_GREEN 0x346856
 #define LIGHT_GREEN 0x88C070
 #define WHITE 0xE0F8D0
+#define BG_WIN_TILE 0
+#define OBJ0_TILE 1
+#define OBJ1_TILE 2
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_keycode.h>
 #include <unistd.h>
