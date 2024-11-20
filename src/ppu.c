@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 17:42:59 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/20 21:28:21 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/20 23:32:24 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,8 @@ void	init_ppu(t_emu *emu)
 	emu->ppu.bgp = 0xFC;
 	emu->ppu.obp0 = 0xFF;
 	emu->ppu.obp1 = 0xFF;
+	emu->ppu.win_xl = 0;
+	emu->ppu.win_yl = 0;
 	bzero(&emu->ppu.oam, sizeof(t_byte) * 0xA0);
 }
 
@@ -232,8 +234,14 @@ unsigned int	get_win_colour(t_emu *emu)
 	t_word		pi;
 	int			offset;
 
-	li = emu->ppu.lx - 80 - emu->ppu.wx + 7;
-	lj = emu->ppu.ly - emu->ppu.wy;
+	li = emu->ppu.win_xl;
+	lj = emu->ppu.win_yl;
+	++(emu->ppu.win_xl);
+	if (emu->ppu.lx - 80 >= 159)
+	{
+		emu->ppu.win_xl = 0;
+		++(emu->ppu.win_yl);
+	}
 	tid = lj / 8 * SCREEN_NUM_TILE_PER_ROW + li / 8;
 	if (!(emu->ppu.lcdc & 64))
 		tid = emu->vram[0x1800 + tid];
@@ -356,6 +364,8 @@ void	vblank(t_emu *emu)
 	if (is_first_dot_of_vblank(emu))
 	{
 		emu->ppu.ppu_mode = VBLANK;
+		emu->ppu.win_xl = 0;
+		emu->ppu.win_yl = 0;
 		SDL_UpdateWindowSurface(emu->window);
 	}
 }

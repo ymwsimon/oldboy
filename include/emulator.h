@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/19 19:42:48 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/20 21:29:09 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -144,6 +144,8 @@ typedef struct s_ppu
 	t_byte	bgp;
 	t_byte	obp0;
 	t_byte	obp1;
+	t_byte	win_xl;
+	t_byte	win_yl;
 	t_mode	ppu_mode;
 }	t_ppu;
 
