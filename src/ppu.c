@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 17:42:59 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/20 17:01:11 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/20 21:28:21 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -174,28 +174,6 @@ int	is_window_covered(t_emu *emu)
 		&& (emu->ppu.lx - 80) + 7 >= emu->ppu.wx);
 }
 
-unsigned int	get_colour_window_tile(t_emu *emu)
-{
-	int		offset;
-	t_word	tid;
-	t_word	li;
-	t_word	lj;
-
-	li = emu->ppu.lx - 80 - emu->ppu.wx + 7;
-	lj = emu->ppu.ly - emu->ppu.wy;
-	tid = lj / 8 * SCREEN_NUM_TILE_PER_ROW + li / 8;
-	if (!(emu->ppu.lcdc & 64))
-		tid = emu->vram[0x1800 + tid];
-	else
-		tid = emu->vram[0x1C00 + tid];
-	offset = (char)tid * 16 + (lj % 8) * 2;
-	if (emu->ppu.lcdc & 16)
-		offset = tid * 16 + (lj % 8) * 2;
-	if (!(emu->ppu.lcdc & 16))
-		offset += 0x1000;
-	return (offset);
-}
-
 t_byte	get_obj_palette(t_byte attr)
 {
 	if (!(attr & 16))
@@ -271,7 +249,6 @@ unsigned int	get_win_colour(t_emu *emu)
 	cid += ((emu->vram[offset + 1] & (1 << pi)) >> pi) << 1;
 	if (!(emu->ppu.lcdc & 1))
 		cid = 0;
-		// return (WHITE);
 	return (get_colour_from_palette(emu, cid, BG_WIN_TILE));
 }
 
@@ -301,10 +278,6 @@ unsigned int	get_bg_colour(t_emu *emu)
 	cid += ((emu->vram[offset + 1] & (1 << pi)) >> pi) << 1;
 	if (!(emu->ppu.lcdc & 1))
 		cid = 0;
-		// return (WHITE);
-	// if (emu->ppu.ly == 9)
-	// if (!((emu->ppu.lcdc & 1) % 2))
-		// printf("ly:%d lcdc:%d\n", emu->ppu.ly, emu->ppu.lcdc);
 	return (get_colour_from_palette(emu, cid, BG_WIN_TILE));
 }
 
