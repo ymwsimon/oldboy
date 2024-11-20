@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 17:42:59 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/19 22:52:50 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/20 17:01:11 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,8 +20,13 @@ void	init_ppu(t_emu *emu)
 	emu->ppu.scx = 0;
 	emu->ppu.scy = 0;
 	emu->ppu.stat = 0;
+	emu->ppu.lcdc = 0x91;
+	emu->ppu.lyc = 0;
 	emu->ppu.dma_write_counter = 0;
 	emu->ppu.dma = 0;
+	emu->ppu.bgp = 0xFC;
+	emu->ppu.obp0 = 0xFF;
+	emu->ppu.obp1 = 0xFF;
 	bzero(&emu->ppu.oam, sizeof(t_byte) * 0xA0);
 }
 
@@ -30,15 +35,17 @@ void	ppu_write(t_emu *emu, t_word addr, t_byte data)
 	if (addr == 0xFF40)
 		emu->ppu.lcdc = data;
 	if (addr == 0xFF41)
-		emu->ppu.stat = data;
+		emu->ppu.stat = (data & ~7) | (emu->ppu.stat & 7);
 	if (addr == 0xFF42)
 		emu->ppu.scy = data;
 	if (addr == 0xFF43)
 		emu->ppu.scx = data;
+	if (addr == 0xFF45)
+		emu->ppu.lyc = data;
 	if (addr == 0xFF46)
 	{
 		emu->ppu.dma = data;
-		emu->ppu.dma_write_counter = 640;
+		emu->ppu.dma_write_counter = 644;
 	}
 	if (addr == 0xFF47)
 		emu->ppu.bgp = data;
@@ -340,7 +347,7 @@ void	non_vblank(t_emu *emu)
 		else if (emu->ppu.lx == 240)
 		{
 			emu->ppu.ppu_mode = HBLANK;
-			emu->ppu.stat = 1;
+			emu->ppu.stat = emu->ppu.stat & ~3;
 		}
 		else if (emu->ppu.lx == 80)
 			emu->ppu.ppu_mode = DRAWING;
@@ -384,7 +391,8 @@ void	dma_transfer(t_emu *emu)
 {
 	if (emu->ppu.dma_write_counter)
 	{
-		if (!(emu->ppu.dma_write_counter % 4))
+		if (emu->ppu.dma_write_counter <= 640
+			&& !(emu->ppu.dma_write_counter % 4))
 		{
 			emu->ppu.oam[160 - emu->ppu.dma_write_counter / 4]
 				= bus_read(emu, (emu->ppu.dma << 8)
@@ -408,11 +416,11 @@ void	ppu_tick(t_emu *emu)
 	if ((emu->ppu.ly < 144 && ((emu->ppu.lx == 0 && (emu->ppu.stat & 32))
 				|| (emu->ppu.lx == 240 && (emu->ppu.stat & 8))))
 		|| (emu->ppu.ly == 144 && emu->ppu.lx == 0 && (emu->ppu.stat & 16))
-		|| ((emu->ppu.stat & 4) && (emu->ppu.stat & 64)))
+		|| ((emu->ppu.stat & 4) && (emu->ppu.stat & 64) && emu->ppu.lx == 0))
 		emu->interrupt_flag |= 2;
 	if (emu->ppu.ly == 144 && emu->ppu.lx == 0)
 		emu->interrupt_flag |= 1;
-	if (emu->ppu.ppu_mode == OAM_SCAN && !emu->ppu.lx)
+	if (emu->ppu.ppu_mode == OAM_SCAN && emu->ppu.lx == 0)
 		scan_obj(emu);
 	if (emu->ppu.ppu_mode == DRAWING)
 		ppu_draw_pix(emu);

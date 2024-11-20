@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 15:45:49 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/13 23:24:34 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/20 15:52:44 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,6 +55,7 @@ int	init_emu(t_emu *emu)
 	emu->interrupt_flag = 0;
 	emu->last_render_time = 0;
 	init_cpu(&emu->cpu);
+	init_ppu(emu);
 	init_timer(emu);
 	init_serial(emu);
 	init_input(emu);
