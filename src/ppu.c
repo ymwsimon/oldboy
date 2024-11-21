@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 17:42:59 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/21 21:14:22 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/21 21:39:49 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,22 +112,21 @@ void 	sort_obj_queue(t_emu *emu)
 {
 	t_byte	i;
 	t_byte	j;
-	t_byte	idx_smallest_x;
 
 	i = 0;
 	while (i < emu->ppu.num_obj_scanline - 1)
 	{
 		j = i + 1;
-		idx_smallest_x = i;
 		while (j < emu->ppu.num_obj_scanline)
 		{
-			if (emu->ppu.oam[emu->ppu.object_queue[j] * 4 + 1] < emu->ppu.oam[emu->ppu.object_queue[idx_smallest_x] * 4 + 1]
-				|| (emu->ppu.oam[emu->ppu.object_queue[j] * 4 + 1] == emu->ppu.oam[emu->ppu.object_queue[idx_smallest_x] * 4 + 1]
-					&& emu->ppu.object_queue[j] < emu->ppu.object_queue[idx_smallest_x]))
-				idx_smallest_x = j;
+			if (emu->ppu.oam[emu->ppu.object_queue[j] * 4 + 1]
+				< emu->ppu.oam[emu->ppu.object_queue[i] * 4 + 1]
+				|| (emu->ppu.oam[emu->ppu.object_queue[j] * 4 + 1]
+					== emu->ppu.oam[emu->ppu.object_queue[i] * 4 + 1]
+					&& emu->ppu.object_queue[j] < emu->ppu.object_queue[i]))
+				swap_elem(emu, i, j);
 			++j;
 		}
-		swap_elem(emu, i, idx_smallest_x);
 		++i;
 	}
 	if (emu->ppu.num_obj_scanline > 10)
