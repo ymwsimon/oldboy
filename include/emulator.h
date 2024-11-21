@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/20 21:29:09 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/21 20:39:16 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,7 +128,7 @@ typedef struct s_tile_pix_info
 typedef struct s_ppu
 {
 	t_byte	oam[0xA0];
-	t_byte	object_queue[10];
+	t_byte	object_queue[40];
 	t_byte	num_obj_scanline;
 	t_word	dma_write_counter;
 	t_byte	dma;

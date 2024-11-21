@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 17:42:59 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/21 14:53:38 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/21 21:14:22 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,22 +92,67 @@ t_byte	ppu_read(t_emu *emu, t_word addr)
 	return (0xFF);
 }
 
+t_byte	get_obj_size(t_emu *emu)
+{
+	if (emu->ppu.lcdc & 4)
+		return (16);
+	return (8);
+}
+
+void	swap_elem(t_emu *emu, t_byte i, t_byte j)
+{
+	t_byte	temp;
+
+	temp = emu->ppu.object_queue[i];
+	emu->ppu.object_queue[i] = emu->ppu.object_queue[j];
+	emu->ppu.object_queue[j] = temp;
+}
+
+void 	sort_obj_queue(t_emu *emu)
+{
+	t_byte	i;
+	t_byte	j;
+	t_byte	idx_smallest_x;
+
+	i = 0;
+	while (i < emu->ppu.num_obj_scanline - 1)
+	{
+		j = i + 1;
+		idx_smallest_x = i;
+		while (j < emu->ppu.num_obj_scanline)
+		{
+			if (emu->ppu.oam[emu->ppu.object_queue[j] * 4 + 1] < emu->ppu.oam[emu->ppu.object_queue[idx_smallest_x] * 4 + 1]
+				|| (emu->ppu.oam[emu->ppu.object_queue[j] * 4 + 1] == emu->ppu.oam[emu->ppu.object_queue[idx_smallest_x] * 4 + 1]
+					&& emu->ppu.object_queue[j] < emu->ppu.object_queue[idx_smallest_x]))
+				idx_smallest_x = j;
+			++j;
+		}
+		swap_elem(emu, i, idx_smallest_x);
+		++i;
+	}
+	if (emu->ppu.num_obj_scanline > 10)
+		emu->ppu.num_obj_scanline = 10;
+}
+
 void	scan_obj(t_emu *emu)
 {
 	t_byte	idx;
+	t_byte	obj_size;
 
 	emu->ppu.num_obj_scanline = 0;
 	idx = 0;
-	while (idx < 40 && emu->ppu.num_obj_scanline < 10 && (emu->ppu.lcdc & 2))
+	obj_size = get_obj_size(emu);
+	while (idx < 40 && (emu->ppu.lcdc & 2))
 	{
 		if ((emu->ppu.ly + 16 >= emu->ppu.oam[idx * 4]
-				&& emu->ppu.ly + 16 < emu->ppu.oam[idx * 4] + 8))
+				&& emu->ppu.ly + 16 < emu->ppu.oam[idx * 4] + obj_size))
 		{
 			emu->ppu.object_queue[emu->ppu.num_obj_scanline] = idx;
 			++emu->ppu.num_obj_scanline;
 		}
 		++idx;
 	}
+	sort_obj_queue(emu);
 }
 
 t_byte	get_cid_from(t_emu *emu, int offset, t_word pi)
@@ -131,13 +176,18 @@ int	need_xflip(t_emu *emu, t_byte oid)
 
 int	get_offset_pj_from_objectid(t_emu *emu, t_byte oid)
 {
-	int	offset;
+	int		offset;
+	t_byte	obj_size;
 
 	offset = emu->ppu.oam[oid + 2] * 16;
+	obj_size = get_obj_size(emu);
+	if (obj_size == 16)
+		offset = (emu->ppu.oam[oid + 2] & ~1) * 16;
 	if (need_yflip(emu, oid))
-		offset += (7 - ((emu->ppu.ly - (emu->ppu.oam[oid] - 16))) % 8) * 2;
+		offset += (obj_size - 1
+				- ((emu->ppu.ly - (emu->ppu.oam[oid] - 16))) % obj_size) * 2;
 	else
-		offset += ((emu->ppu.ly - (emu->ppu.oam[oid] - 16)) % 8) * 2;
+		offset += ((emu->ppu.ly - (emu->ppu.oam[oid] - 16)) % obj_size) * 2;
 	return (offset);
 }
 
@@ -151,7 +201,7 @@ t_word	get_pi_from_objectid(t_emu *emu, t_byte oid)
 	return (pi);
 }
 
-int	ly_is_within_object(t_emu *emu, t_byte oid)
+int	lx_is_within_object(t_emu *emu, t_byte oid)
 {
 	return (emu->ppu.lx - 80 + 8 >= emu->ppu.oam[oid + 1]
 		&& emu->ppu.lx - 80 + 8 < emu->ppu.oam[oid + 1] + 8);
@@ -211,11 +261,10 @@ unsigned int	get_obj_over_bgwin_colour(t_emu *emu, t_byte bgwin_cid)
 	int		offset;
 
 	idx = 0;
-	cid = 0;
 	while (object_enabled(emu) && idx < emu->ppu.num_obj_scanline)
 	{
 		oid = emu->ppu.object_queue[idx] * 4;
-		if (ly_is_within_object(emu, oid))
+		if (lx_is_within_object(emu, oid))
 		{
 			offset = get_offset_pj_from_objectid(emu, oid);
 			cid = get_cid_from(emu, offset, get_pi_from_objectid(emu, oid));
