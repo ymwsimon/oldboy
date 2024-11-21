@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 17:42:59 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/20 23:32:24 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/21 14:53:38 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,8 +61,6 @@ void	ppu_write(t_emu *emu, t_word addr, t_byte data)
 		emu->ppu.wx = data;
 	if (addr >= 0xFE00 && addr <= 0xFE9F)
 		emu->ppu.oam[addr - 0xFE00] = data;
-	// if (addr == 0xFF40)
-		// printf("ly:%d lcdc:%d\n", emu->ppu.ly, emu->ppu.lcdc);
 }
 
 t_byte	ppu_read(t_emu *emu, t_word addr)
@@ -183,33 +181,6 @@ t_byte	get_obj_palette(t_byte attr)
 	return (OBJ1_TILE);
 }
 
-unsigned int	get_obj_over_bgwin_colour(t_emu *emu, unsigned int colour)
-{
-	t_byte	cid;
-	t_word	pi;
-	t_byte	idx;
-	t_byte	oid;
-	int		offset;
-
-	idx = 0;
-	while (object_enabled(emu) && idx < emu->ppu.num_obj_scanline)
-	{
-		oid = emu->ppu.object_queue[idx] * 4;
-		if (ly_is_within_object(emu, oid))
-		{
-			pi = get_pi_from_objectid(emu, oid);
-			offset = get_offset_pj_from_objectid(emu, oid);
-			cid = (emu->vram[offset] & (1 << pi)) >> pi;
-			cid += ((emu->vram[offset + 1] & (1 << pi)) >> pi) << 1;
-			// if (((!(emu->ppu.oam[oid + 3] & 128) && cid)) || ((emu->ppu.oam[oid + 3] & 128) && !cid))
-			if (cid)
-				colour = get_colour_from_palette(emu, cid, get_obj_palette(emu->ppu.oam[oid + 3]));
-		}
-		++idx;
-	}
-	return (colour);
-}
-
 unsigned int	get_colour_from_palette(t_emu *emu,
 	t_byte cid, t_byte tile_type)
 {
@@ -225,14 +196,83 @@ unsigned int	get_colour_from_palette(t_emu *emu,
 	return (colour_map[(palette_reg >> (2 * cid)) & 3]);
 }
 
-unsigned int	get_win_colour(t_emu *emu)
+t_byte	get_cid_priority(t_byte bgwin_cid, t_byte cid, t_byte attr)
 {
-	t_byte		cid;
-	t_word		tid;
+	if ((attr & 128) && bgwin_cid > 0)
+		return (0);
+	return (cid);
+}
+
+unsigned int	get_obj_over_bgwin_colour(t_emu *emu, t_byte bgwin_cid)
+{
+	t_byte	cid;
+	t_byte	idx;
+	t_byte	oid;
+	int		offset;
+
+	idx = 0;
+	cid = 0;
+	while (object_enabled(emu) && idx < emu->ppu.num_obj_scanline)
+	{
+		oid = emu->ppu.object_queue[idx] * 4;
+		if (ly_is_within_object(emu, oid))
+		{
+			offset = get_offset_pj_from_objectid(emu, oid);
+			cid = get_cid_from(emu, offset, get_pi_from_objectid(emu, oid));
+			cid = get_cid_priority(bgwin_cid, cid, (emu->ppu.oam[oid + 3]));
+			if (cid)
+				break ;
+		}
+		++idx;
+	}
+	if (cid)
+		return (get_colour_from_palette(emu, cid,
+				get_obj_palette(emu->ppu.oam[oid + 3])));
+	return (get_colour_from_palette(emu, bgwin_cid, BG_WIN_TILE));
+}
+
+t_word	get_tid_from_tile_map(t_emu *emu, t_word tid, t_byte is_bg)
+{
+	if (is_bg)
+	{
+		if (!(emu->ppu.lcdc & 8))
+			tid = emu->vram[0x1800 + tid];
+		else
+			tid = emu->vram[0x1C00 + tid];
+	}
+	else
+	{
+		if (!(emu->ppu.lcdc & 64))
+			tid = emu->vram[0x1800 + tid];
+		else
+			tid = emu->vram[0x1C00 + tid];
+	}
+	return (tid);
+}
+
+t_byte	get_bg_win_cid(t_emu *emu, t_word li, t_word lj, t_byte is_bg)
+{
+	t_word	tid;
+	t_byte	cid;
+	int		offset;
+
+	tid = lj / 8 * SCREEN_NUM_TILE_PER_ROW + li / 8;
+	tid = get_tid_from_tile_map(emu, tid, is_bg);
+	offset = (char)tid * 16 + (lj % 8) * 2;
+	if (emu->ppu.lcdc & 16)
+		offset = tid * 16 + (lj % 8) * 2;
+	if (!(emu->ppu.lcdc & 16))
+		offset += 0x1000;
+	cid = get_cid_from(emu, offset, 7 - li % 8);
+	if (!(emu->ppu.lcdc & 1))
+		cid = 0;
+	return (cid);
+}
+
+t_byte	get_win_cid(t_emu *emu)
+{
 	t_word		li;
 	t_word		lj;
-	t_word		pi;
-	int			offset;
 
 	li = emu->ppu.win_xl;
 	lj = emu->ppu.win_yl;
@@ -242,62 +282,29 @@ unsigned int	get_win_colour(t_emu *emu)
 		emu->ppu.win_xl = 0;
 		++(emu->ppu.win_yl);
 	}
-	tid = lj / 8 * SCREEN_NUM_TILE_PER_ROW + li / 8;
-	if (!(emu->ppu.lcdc & 64))
-		tid = emu->vram[0x1800 + tid];
-	else
-		tid = emu->vram[0x1C00 + tid];
-	offset = (char)tid * 16 + (lj % 8) * 2;
-	if (emu->ppu.lcdc & 16)
-		offset = tid * 16 + (lj % 8) * 2;
-	if (!(emu->ppu.lcdc & 16))
-		offset += 0x1000;
-	pi = 7 - (emu->ppu.lx - 80 - emu->ppu.wx + 7) % 8;
-	cid = (emu->vram[offset] & (1 << pi)) >> pi;
-	cid += ((emu->vram[offset + 1] & (1 << pi)) >> pi) << 1;
-	if (!(emu->ppu.lcdc & 1))
-		cid = 0;
-	return (get_colour_from_palette(emu, cid, BG_WIN_TILE));
+	return (get_bg_win_cid(emu, li, lj, FALSE));
 }
 
-unsigned int	get_bg_colour(t_emu *emu)
+t_byte	get_bg_cid(t_emu *emu)
 {
-	t_byte		cid;
-	t_word		tid;
 	t_word		li;
 	t_word		lj;
-	t_word		pi;
-	int			offset;
 
 	li = (emu->ppu.lx - 80 + emu->ppu.scx) % 256;
 	lj = (emu->ppu.ly + emu->ppu.scy) % 256;
-	tid = lj / 8 * SCREEN_NUM_TILE_PER_ROW + li / 8;
-	if (!(emu->ppu.lcdc & 8))
-		tid = emu->vram[0x1800 + tid];
-	else
-		tid = emu->vram[0x1C00 + tid];
-	offset = (char)tid * 16 + (lj % 8) * 2;
-	if (emu->ppu.lcdc & 16)
-		offset = tid * 16 + (lj % 8) * 2;
-	if (!(emu->ppu.lcdc & 16))
-		offset += 0x1000;
-	pi = 7 - ((emu->ppu.lx - 80 + emu->ppu.scx) % 256) % 8;
-	cid = (emu->vram[offset] & (1 << pi)) >> pi;
-	cid += ((emu->vram[offset + 1] & (1 << pi)) >> pi) << 1;
-	if (!(emu->ppu.lcdc & 1))
-		cid = 0;
-	return (get_colour_from_palette(emu, cid, BG_WIN_TILE));
+	return (get_bg_win_cid(emu, li, lj, TRUE));
 }
 
 void	ppu_draw_pix(t_emu *emu)
 {
 	unsigned int	colour;
+	t_byte			cid;
 	SDL_Surface		*s;
 
-	colour = get_bg_colour(emu);
+	cid = get_bg_cid(emu);
 	if (is_window_covered(emu))
-		colour = get_win_colour(emu);
-	colour = get_obj_over_bgwin_colour(emu, colour);
+		cid = get_win_cid(emu);
+	colour = get_obj_over_bgwin_colour(emu, cid);
 	s = SDL_GetWindowSurface(emu->window);
 	SDL_LockSurface(s);
 	print_pixel(emu, s, colour, (t_tile_pix_info){(emu->ppu.lx - 80) / 8,
