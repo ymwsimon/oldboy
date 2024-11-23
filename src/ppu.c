@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 17:42:59 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/21 21:39:49 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/23 13:25:26 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -365,7 +365,7 @@ int	is_vblank(t_emu *emu)
 	return (emu->ppu.ly >= 144 && emu->ppu.ly <= 153);
 }
 
-int	is_last_dot_of_line(t_emu *emu)
+int	is_switching_to_next_line(t_emu *emu)
 {
 	return (emu->ppu.lx == 456);
 }
@@ -374,34 +374,36 @@ void	non_vblank(t_emu *emu)
 {
 	if (!is_vblank(emu))
 	{
-		if (is_last_dot_of_line(emu))
+		if (is_switching_to_next_line(emu))
 		{
 			emu->ppu.lx = 0;
 			emu->ppu.ppu_mode = OAM_SCAN;
 			++(emu->ppu.ly);
 		}
 		else if (emu->ppu.lx == 240)
-		{
 			emu->ppu.ppu_mode = HBLANK;
-			emu->ppu.stat = emu->ppu.stat & ~3;
-		}
 		else if (emu->ppu.lx == 80)
 			emu->ppu.ppu_mode = DRAWING;
 	}
 }
 
-void	last_dot_per_line(t_emu *emu)
+void	check_last_dot_of_line(t_emu *emu)
 {
-	if (is_last_dot_of_line(emu))
+	if (is_switching_to_next_line(emu))
 	{
 		emu->ppu.lx = 0;
 		++(emu->ppu.ly);
 	}
 }
 
-void	last_line_of_screen(t_emu *emu)
+int	is_switching_to_first_line(t_emu *emu)
 {
-	if (emu->ppu.ly == 154)
+	return (emu->ppu.ly == 154);
+}
+
+void	check_last_line_of_screen(t_emu *emu)
+{
+	if (is_switching_to_first_line(emu))
 	{
 		emu->ppu.ly = 0;
 		emu->ppu.lx = 0;
@@ -409,14 +411,14 @@ void	last_line_of_screen(t_emu *emu)
 	}
 }
 
-int	is_first_dot_of_vblank(t_emu *emu)
+int	is_switching_to_vblank(t_emu *emu)
 {
 	return (emu->ppu.ly == 144 && emu->ppu.lx == 0);
 }
 
 void	vblank(t_emu *emu)
 {
-	if (is_first_dot_of_vblank(emu))
+	if (is_switching_to_vblank(emu))
 	{
 		emu->ppu.ppu_mode = VBLANK;
 		emu->ppu.win_xl = 0;
@@ -440,27 +442,55 @@ void	dma_transfer(t_emu *emu)
 	}
 }
 
-void	ppu_tick(t_emu *emu)
+int	is_ppu_enabled(t_emu *emu)
 {
-	++(emu->ppu.lx);
-	non_vblank(emu);
-	last_dot_per_line(emu);
-	last_line_of_screen(emu);
-	vblank(emu);
+	return (emu->ppu.lcdc & 128);
+}
+
+void	update_ppu_stat_mode(t_emu *emu)
+{
 	emu->ppu.stat &= ~3;
 	emu->ppu.stat |= emu->ppu.ppu_mode;
+}
+
+void	update_ly_eq_lyc(t_emu *emu)
+{
 	emu->ppu.stat &= ~4;
 	emu->ppu.stat |= (emu->ppu.ly == emu->ppu.lyc) * 4;
+}
+
+void	check_ppu_stat_interrupt(t_emu *emu)
+{
 	if ((emu->ppu.ly < 144 && ((emu->ppu.lx == 0 && (emu->ppu.stat & 32))
 				|| (emu->ppu.lx == 240 && (emu->ppu.stat & 8))))
-		|| (emu->ppu.ly == 144 && emu->ppu.lx == 0 && (emu->ppu.stat & 16))
+		|| (is_switching_to_vblank(emu) && (emu->ppu.stat & 16))
 		|| ((emu->ppu.stat & 4) && (emu->ppu.stat & 64) && emu->ppu.lx == 0))
 		emu->interrupt_flag |= 2;
-	if (emu->ppu.ly == 144 && emu->ppu.lx == 0)
+}
+
+void	check_ppu_vblank_interrupt(t_emu *emu)
+{
+	if (is_switching_to_vblank(emu))
 		emu->interrupt_flag |= 1;
+}
+
+void	ppu_tick(t_emu *emu)
+{
+	if (!is_ppu_enabled(emu))
+		return ;
+	
+	non_vblank(emu);
+	check_last_dot_of_line(emu);
+	check_last_line_of_screen(emu);
+	vblank(emu);
+	update_ppu_stat_mode(emu);
+	update_ly_eq_lyc(emu);
+	check_ppu_stat_interrupt(emu);
+	check_ppu_vblank_interrupt(emu);
 	if (emu->ppu.ppu_mode == OAM_SCAN && emu->ppu.lx == 0)
 		scan_obj(emu);
 	if (emu->ppu.ppu_mode == DRAWING)
 		ppu_draw_pix(emu);
 	dma_transfer(emu);
+	++(emu->ppu.lx);
 }
