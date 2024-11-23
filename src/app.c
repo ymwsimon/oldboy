@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 13:14:12 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/19 19:43:15 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/23 14:33:04 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -164,6 +164,14 @@ void	print_tile_map(t_emu *emu)
 	}
 }
 
+void	print_gbmicro_result(t_emu *emu)
+{
+	printf("Test result-FF80:%X Expected-FF81:%X Pass?FF82:%d\n",
+		bus_read(emu, 0xFF80),
+		bus_read(emu, 0xFF81),
+		(char)bus_read(emu, 0xFF82));
+}
+
 int	run_app(t_app *app)
 {
 	SDL_Event		event;
@@ -176,28 +184,14 @@ int	run_app(t_app *app)
 		{
 			if (event.type == SDL_EVENT_QUIT || (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_Q))
 				break;
-			else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_UP)
-				SDL_SetRenderDrawColor(app->renderer, 80, 0, 60, 50);
-			else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_DOWN)
-				SDL_SetRenderDrawColor(app->renderer, 0, 80, 60, 50);
-			else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_LEFT)
-				SDL_SetRenderDrawColor(app->renderer, 80, 60, 0, 50);
-			else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_RIGHT)
-				SDL_SetRenderDrawColor(app->renderer, 80, 100, 60, 50);
-			else if (event.type == SDL_EVENT_KEY_DOWN
-				&& (event.key.key == SDLK_W || event.key.key == SDLK_S
-					|| event.key.key == SDLK_A || event.key.key == SDLK_D
-					|| event.key.key == SDLK_J || event.key.key == SDLK_K
-					|| event.key.key == SDLK_Z || event.key.key == SDLK_X))
-				handle_input_down(&app->emu, event);
-			else if (event.type == SDL_EVENT_KEY_UP
-				&& (event.key.key == SDLK_W || event.key.key == SDLK_S
-					|| event.key.key == SDLK_A || event.key.key == SDLK_D
-					|| event.key.key == SDLK_J || event.key.key == SDLK_K
-					|| event.key.key == SDLK_Z || event.key.key == SDLK_X))
-				handle_input_up(&app->emu, event);
 			else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_P)
 				print_tile_map(&app->emu);
+			else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_M)
+				print_gbmicro_result(&app->emu);
+			else if (event.type == SDL_EVENT_KEY_DOWN)
+				handle_input_down(&app->emu, event);
+			else if (event.type == SDL_EVENT_KEY_UP)
+				handle_input_up(&app->emu, event);
 		}
 	}
 	// if (app->emu.serial.idx_out_buf)

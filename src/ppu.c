@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 17:42:59 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/23 13:25:26 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/23 17:03:54 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,8 @@ void	ppu_write(t_emu *emu, t_word addr, t_byte data)
 		emu->ppu.wy = data;
 	if (addr == 0xFF4B)
 		emu->ppu.wx = data;
-	if (addr >= 0xFE00 && addr <= 0xFE9F)
+	if (addr >= 0xFE00 && addr <= 0xFE9F
+		&& (emu->ppu.ppu_mode == HBLANK || emu->ppu.ppu_mode == VBLANK))
 		emu->ppu.oam[addr - 0xFE00] = data;
 }
 
@@ -89,6 +90,9 @@ t_byte	ppu_read(t_emu *emu, t_word addr)
 		return (emu->ppu.wy);
 	if (addr == 0xFF4B)
 		return (emu->ppu.wx);
+	if (addr >= 0xFE00 && addr <= 0xFE9F
+		&& (emu->ppu.ppu_mode == HBLANK || emu->ppu.ppu_mode == VBLANK))
+		return (emu->ppu.oam[addr - 0xFE00]);
 	return (0xFF);
 }
 
@@ -476,9 +480,8 @@ void	check_ppu_vblank_interrupt(t_emu *emu)
 
 void	ppu_tick(t_emu *emu)
 {
-	if (!is_ppu_enabled(emu))
-		return ;
-	
+	// if (!is_ppu_enabled(emu))
+		// return ;
 	non_vblank(emu);
 	check_last_dot_of_line(emu);
 	check_last_line_of_screen(emu);
@@ -489,7 +492,7 @@ void	ppu_tick(t_emu *emu)
 	check_ppu_vblank_interrupt(emu);
 	if (emu->ppu.ppu_mode == OAM_SCAN && emu->ppu.lx == 0)
 		scan_obj(emu);
-	if (emu->ppu.ppu_mode == DRAWING)
+	if (emu->ppu.ppu_mode == DRAWING && is_ppu_enabled(emu))
 		ppu_draw_pix(emu);
 	dma_transfer(emu);
 	++(emu->ppu.lx);

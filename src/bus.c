@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 16:19:31 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/13 18:43:36 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/23 17:05:34 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,13 +14,13 @@
 
 t_byte	bus_read(t_emu *emu, t_word addr)
 {
-	if (addr < 0x8000)
+	if (addr <= 0x7FFF)
 		return (emu->cart.data[addr]);
-	if (addr >= 0x8000 && addr < 0xA000)
+	if (addr >= 0x8000 && addr <= 0x9FFF)
 		return (emu->vram[addr - 0x8000]);
-	if (addr >= 0xC000 && addr < 0xE000)
+	if (addr >= 0xC000 && addr <= 0xDFFF)
 		return (emu->wram[addr - 0xC000]);
-	if (addr >= 0xFF80 && addr < 0xFFFF)
+	if (addr >= 0xFF80 && addr <= 0xFFFE)
 		return (emu->hram[addr - 0xFF80]);
 	if (addr == 0xFFFF)
 		return (emu->interrupt_enable);
@@ -41,13 +41,13 @@ t_byte	bus_read(t_emu *emu, t_word addr)
 
 void	bus_write(t_emu *emu, t_word addr, t_byte data)
 {
-	if (addr < 0x8000)
+	if (addr <= 0x7FFF)
 		return ;
-	else if (addr >= 0x8000 && addr < 0xA000)
+	else if (addr >= 0x8000 && addr <= 0x9FFF)
 		emu->vram[addr - 0x8000] = data;
-	else if (addr >= 0xC000 && addr < 0xE000)
+	else if (addr >= 0xC000 && addr <= 0xDFFF)
 		emu->wram[addr - 0xC000] = data;
-	else if (addr >= 0xFF80 && addr < 0xFFFF)
+	else if (addr >= 0xFF80 && addr <= 0xFFFE)
 		emu->hram[addr - 0xFF80] = data;
 	else if (addr == 0xFFFF)
 		emu->interrupt_enable = data;
