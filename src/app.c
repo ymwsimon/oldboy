@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 13:14:12 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/23 14:33:04 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/23 20:29:23 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -193,6 +193,7 @@ int	run_app(t_app *app)
 			else if (event.type == SDL_EVENT_KEY_UP)
 				handle_input_up(&app->emu, event);
 		}
+		usleep(5);
 	}
 	// if (app->emu.serial.idx_out_buf)
 	// 	write_serial_buf_file(&app->emu);

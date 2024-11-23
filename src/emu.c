@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 15:45:49 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/23 17:11:27 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/23 20:37:49 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ int	update_frame(t_emu *emu, double delta_time)
 	t_ull	num_clock_cycle;
 	t_ull	i;
 
-	num_clock_cycle = FREQUENCY * delta_time * emu->clock_scale;
+	num_clock_cycle = FREQUENCY * delta_time * emu->clock_scale / 4;
 	i = 0;
 	while (i < num_clock_cycle)
 	{

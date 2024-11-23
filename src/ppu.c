@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 17:42:59 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/23 17:03:54 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/23 20:21:11 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,8 +34,10 @@ void	init_ppu(t_emu *emu)
 
 void	ppu_write(t_emu *emu, t_word addr, t_byte data)
 {
-	if (addr == 0xFF40)
+	if (addr == 0xFF40 && (emu->ppu.ppu_mode == VBLANK || (data & 0x80)))
 		emu->ppu.lcdc = data;
+	if (addr == 0xFF40 && emu->ppu.ppu_mode != VBLANK && !(data & 0x80))
+		emu->ppu.lcdc = 0x80 | (data & ~0x80);
 	if (addr == 0xFF41)
 		emu->ppu.stat = (data & ~7) | (emu->ppu.stat & 7);
 	if (addr == 0xFF42)
