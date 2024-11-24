@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/21 20:39:16 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/24 16:04:17 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,7 @@
 
 typedef unsigned char		t_byte;
 typedef unsigned short		t_word;
+typedef unsigned int		t_ui;
 typedef unsigned long long	t_ull;
 
 typedef struct s_cart_header
@@ -274,12 +275,14 @@ void	serial_tick(t_emu *emu);
 void	write_serial_buf_file(t_emu *emu);
 //ppu
 void	init_ppu(t_emu *emu);
+int		is_ppu_enabled(t_emu *emu);
 void	ppu_tick(t_emu *emu);
 void	ppu_write(t_emu *emu, t_word addr, t_byte data);
 t_byte	ppu_read(t_emu *emu, t_word addr);
-void	print_pixel(t_emu *emu, SDL_Surface *s, unsigned int colour, t_tile_pix_info t);
-unsigned int	get_colour_from_palette(t_emu *emu,
-	t_byte cid, t_byte tile_type);
+void	print_pixel(t_emu *emu, SDL_Surface *s,
+			unsigned int colour, t_tile_pix_info t);
+t_ui	get_colour_from_palette(t_emu *emu,
+			t_byte cid, t_byte tile_type);
 //input
 void	handle_input_down(t_emu *emu, SDL_Event event);
 void	handle_input_up(t_emu *emu, SDL_Event event);
