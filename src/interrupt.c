@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/27 15:16:41 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/28 20:14:35 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/24 13:52:51 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,4 +25,5 @@ void	process_interrupt(t_emu *emu)
 	emu_tick(emu, 8);
 	push_word(emu, emu->cpu.pc);
 	emu->cpu.pc = iaddr[idx];
+	emu_tick(emu, 4);
 }

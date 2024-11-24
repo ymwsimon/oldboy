@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 17:42:59 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/23 20:21:11 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/23 23:56:02 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -467,10 +467,10 @@ void	update_ly_eq_lyc(t_emu *emu)
 
 void	check_ppu_stat_interrupt(t_emu *emu)
 {
-	if ((emu->ppu.ly < 144 && ((emu->ppu.lx == 0 && (emu->ppu.stat & 32))
+	if (is_ppu_enabled(emu) && ((emu->ppu.ly < 144 && ((emu->ppu.lx == 0 && (emu->ppu.stat & 32))
 				|| (emu->ppu.lx == 240 && (emu->ppu.stat & 8))))
 		|| (is_switching_to_vblank(emu) && (emu->ppu.stat & 16))
-		|| ((emu->ppu.stat & 4) && (emu->ppu.stat & 64) && emu->ppu.lx == 0))
+		|| ((emu->ppu.stat & 4) && (emu->ppu.stat & 64) && emu->ppu.lx == 0)))
 		emu->interrupt_flag |= 2;
 }
 
@@ -482,8 +482,8 @@ void	check_ppu_vblank_interrupt(t_emu *emu)
 
 void	ppu_tick(t_emu *emu)
 {
-	// if (!is_ppu_enabled(emu))
-		// return ;
+	if (!is_ppu_enabled(emu))
+		return ;
 	non_vblank(emu);
 	check_last_dot_of_line(emu);
 	check_last_line_of_screen(emu);
@@ -497,5 +497,6 @@ void	ppu_tick(t_emu *emu)
 	if (emu->ppu.ppu_mode == DRAWING && is_ppu_enabled(emu))
 		ppu_draw_pix(emu);
 	dma_transfer(emu);
-	++(emu->ppu.lx);
+	if (is_ppu_enabled(emu))
+		++(emu->ppu.lx);
 }

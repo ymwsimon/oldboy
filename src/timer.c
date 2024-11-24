@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/28 21:44:44 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/31 22:53:41 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/23 22:44:26 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,14 +45,25 @@ void	timer_write(t_emu *emu, t_word addr, t_byte data)
 		emu->timer.tac = data;
 }
 
+int	is_timer_enabled(t_emu *emu)
+{
+	return (emu->timer.tac & 4);
+}
+
+int	need_to_add_tima(t_emu *emu)
+{
+	static t_word	bit_pos[4] = {10, 4, 6, 8};
+
+	return (((emu->timer.div) ^ (emu->timer.div - 1))
+		& (1 << bit_pos[emu->timer.tac & 3]));
+}
+
 void	timer_tick(t_emu *emu)
 {
-	static t_word	n_cycle[4] = {256 * 4, 4 * 4, 16 * 4, 64 * 4};
-
 	++(emu->timer.div);
-	if (emu->timer.tac & 0x4)
+	if (is_timer_enabled(emu))
 	{
-		if (!((emu->timer.div - 1) % n_cycle[emu->timer.tac & 0x3]))
+		if (need_to_add_tima(emu))
 			++(emu->timer.tima);
 		if (!emu->timer.tima)
 		{

@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:54:16 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/04 15:39:39 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/24 13:52:10 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,6 +131,7 @@ void	nop(t_emu *emu, t_byte op_code)
 void	stop(t_emu *emu, t_byte op_code)
 {
 	++(emu->cpu.pc);
+	emu->timer.div = 0;
 	emu->paused = TRUE;
 	(void)op_code;
 }
@@ -450,7 +451,6 @@ void	push_word(t_emu *emu, t_word data)
 	--(emu->cpu.sp);
 	bus_write(emu, emu->cpu.sp, data & 0xFF);
 	emu_tick(emu, 4);
-	emu_tick(emu, 4);
 }
 
 void	push(t_emu *emu, t_byte op_code)
@@ -459,6 +459,7 @@ void	push(t_emu *emu, t_byte op_code)
 
 	data = g_getw_fptr[op_code](emu->cpu);
 	push_word(emu, data);
+	emu_tick(emu, 4);
 }
 
 void	pop(t_emu *emu, t_byte op_code)
