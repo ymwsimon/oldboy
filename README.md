@@ -15,7 +15,9 @@ Reference:
 
 [Test rom](https://github.com/retrio/gb-test-roms/tree/master)
 
-[Op codes table](https://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html)
+[Op codes table](https://gbdev.io/gb-opcodes/optables/)
+
+[Op codes table2](https://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html)
 
 [CPU manual](http://marc.rawer.de/Gameboy/Docs/GBCPUman.pdf)
 
