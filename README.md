@@ -1,4 +1,4 @@
-A Gameboy emulator using SDL 3 library
+An Game Boy emulator using SDL 3 library
 
 
 Reference:
