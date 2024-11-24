@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 17:42:59 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/23 23:56:02 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/24 16:07:24 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,10 @@ void	ppu_write(t_emu *emu, t_word addr, t_byte data)
 	if (addr == 0xFF40 && (emu->ppu.ppu_mode == VBLANK || (data & 0x80)))
 		emu->ppu.lcdc = data;
 	if (addr == 0xFF40 && emu->ppu.ppu_mode != VBLANK && !(data & 0x80))
+	{
 		emu->ppu.lcdc = 0x80 | (data & ~0x80);
+		emu->ppu.ly = 0;
+	}
 	if (addr == 0xFF41)
 		emu->ppu.stat = (data & ~7) | (emu->ppu.stat & 7);
 	if (addr == 0xFF42)
@@ -70,14 +73,18 @@ t_byte	ppu_read(t_emu *emu, t_word addr)
 {
 	if (addr == 0xFF40)
 		return (emu->ppu.lcdc);
-	if (addr == 0xFF41)
+	if (addr == 0xFF41 && is_ppu_enabled(emu))
 		return (emu->ppu.stat);
+	if (addr == 0xFF41 && !is_ppu_enabled(emu))
+		return (emu->ppu.stat & ~3);
 	if (addr == 0xFF42)
 		return (emu->ppu.scy);
 	if (addr == 0xFF43)
 		return (emu->ppu.scx);
-	if (addr == 0xFF44)
+	if (addr == 0xFF44 && is_ppu_enabled(emu))
 		return (emu->ppu.ly);
+	if (addr == 0xFF44 && !is_ppu_enabled(emu))
+		return (0x00);
 	if (addr == 0xFF45)
 		return (emu->ppu.lyc);
 	if (addr == 0xFF46)

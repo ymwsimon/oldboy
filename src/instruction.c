@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:54:16 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/24 13:52:10 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/24 16:32:04 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -433,6 +433,8 @@ void	ld_m(t_emu *emu, t_byte op_code)
 		data = bus_read(emu, c_of(emu->cpu) + 0xFF00);
 	else if (op_code == 0xFA)
 		data = bus_read(emu, read_pc_word_tick(emu));
+	if ((op_code & 0xF0) != 0xE0)
+		emu_tick(emu, 4);
 	if ((op_code & 0xF0) == 0xF0)
 		set_a(&emu->cpu, data);
 	else if (op_code == 0xE0)
@@ -441,6 +443,8 @@ void	ld_m(t_emu *emu, t_byte op_code)
 		bus_write(emu, c_of(emu->cpu) + 0xFF00, data);
 	else if (op_code == 0xEA)
 		bus_write(emu, read_pc_word_tick(emu), data);
+	if ((op_code & 0xF0) != 0xF0)
+		emu_tick(emu, 4);
 }
 
 void	push_word(t_emu *emu, t_word data)
@@ -534,9 +538,13 @@ void	add_16(t_emu *emu, t_byte op_code)
 	if (op_code == 0xE8)
 		old_data = sp_of(emu->cpu);
 	if (op_code == 0xE8)
+	{
 		set_sp(&emu->cpu, sp_of(emu->cpu) + offset);
+		emu_tick(emu, 4);
+	}
 	else
 		g_setw_fptr[op_code](&emu->cpu, hl_of(emu->cpu) + data);
+	emu_tick(emu, 4);
 	set_flag_n(&emu->cpu, 0);
 	set_flag_h(&emu->cpu, 0);
 	set_flag_c(&emu->cpu, 0);

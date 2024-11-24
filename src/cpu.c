@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 19:26:44 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/10 14:07:41 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/24 14:55:09 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -266,20 +266,20 @@ void	init_cpu(t_cpu *cpu)
 	cpu->ime_countdown = 0;
 }
 
-static char	g_f_flag_str[5];
-
 char	*f_flag_str(t_cpu cpu)
 {
-	strcpy(g_f_flag_str, "----");
+	static char	f_flag_str[5] = "";
+
+	strcpy(f_flag_str, "----");
 	if (get_flag_z(cpu))
-		g_f_flag_str[0] = 'Z';
+		f_flag_str[0] = 'Z';
 	if (get_flag_n(cpu))
-		g_f_flag_str[1] = 'N';
+		f_flag_str[1] = 'N';
 	if (get_flag_h(cpu))
-		g_f_flag_str[2] = 'H';
+		f_flag_str[2] = 'H';
 	if (get_flag_c(cpu))
-		g_f_flag_str[3] = 'C';
-	return (g_f_flag_str);
+		f_flag_str[3] = 'C';
+	return (f_flag_str);
 }
 
 void	print_cpu_register(t_emu *emu)

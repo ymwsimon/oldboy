@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 13:14:12 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/23 20:29:23 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/24 14:46:21 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -172,6 +172,12 @@ void	print_gbmicro_result(t_emu *emu)
 		(char)bus_read(emu, 0xFF82));
 }
 
+void	print_mooneye_result(t_emu *emu)
+{
+	printf("Test result -- B:%d C:%d D:%d E:%d H:%d L:%d\n", emu->cpu.b,
+		emu->cpu.c, emu->cpu.d, emu->cpu.e, emu->cpu.h, emu->cpu.l);
+}
+
 int	run_app(t_app *app)
 {
 	SDL_Event		event;
@@ -188,6 +194,8 @@ int	run_app(t_app *app)
 				print_tile_map(&app->emu);
 			else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_M)
 				print_gbmicro_result(&app->emu);
+			else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_Y)
+				print_mooneye_result(&app->emu);
 			else if (event.type == SDL_EVENT_KEY_DOWN)
 				handle_input_down(&app->emu, event);
 			else if (event.type == SDL_EVENT_KEY_UP)
