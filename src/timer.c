@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/28 21:44:44 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/23 22:44:26 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/25 15:24:14 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ t_byte	timer_read(t_emu *emu, t_word addr)
 	if (addr == 0xFF06)
 		return (emu->timer.tma);
 	if (addr == 0xFF07)
-		return (emu->timer.tac);
+		return (0xF8 | emu->timer.tac);
 	return (0xFF);
 }
 
@@ -42,7 +42,7 @@ void	timer_write(t_emu *emu, t_word addr, t_byte data)
 	else if (addr == 0xFF06)
 		emu->timer.tima = data;
 	else if (addr == 0xFF07)
-		emu->timer.tac = data;
+		emu->timer.tac = 0xF8 | data;
 }
 
 int	is_timer_enabled(t_emu *emu)
@@ -52,10 +52,11 @@ int	is_timer_enabled(t_emu *emu)
 
 int	need_to_add_tima(t_emu *emu)
 {
-	static t_word	bit_pos[4] = {10, 4, 6, 8};
+	static t_word	bit_pos[4] = {12, 6, 8, 10};
 
 	return (((emu->timer.div) ^ (emu->timer.div - 1))
-		& (1 << bit_pos[emu->timer.tac & 3]));
+		& (1 << bit_pos[emu->timer.tac & 3])
+		&& !(emu->timer.div & (1 << bit_pos[emu->timer.tac & 3])));
 }
 
 void	timer_tick(t_emu *emu)

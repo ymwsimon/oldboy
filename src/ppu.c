@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 17:42:59 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/24 16:07:24 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/25 13:45:12 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,9 +74,9 @@ t_byte	ppu_read(t_emu *emu, t_word addr)
 	if (addr == 0xFF40)
 		return (emu->ppu.lcdc);
 	if (addr == 0xFF41 && is_ppu_enabled(emu))
-		return (emu->ppu.stat);
+		return (0x80 | emu->ppu.stat);
 	if (addr == 0xFF41 && !is_ppu_enabled(emu))
-		return (emu->ppu.stat & ~3);
+		return (0x80 | (emu->ppu.stat & ~3));
 	if (addr == 0xFF42)
 		return (emu->ppu.scy);
 	if (addr == 0xFF43)
@@ -491,6 +491,7 @@ void	ppu_tick(t_emu *emu)
 {
 	if (!is_ppu_enabled(emu))
 		return ;
+	++(emu->ppu.lx);
 	non_vblank(emu);
 	check_last_dot_of_line(emu);
 	check_last_line_of_screen(emu);
@@ -504,6 +505,4 @@ void	ppu_tick(t_emu *emu)
 	if (emu->ppu.ppu_mode == DRAWING && is_ppu_enabled(emu))
 		ppu_draw_pix(emu);
 	dma_transfer(emu);
-	if (is_ppu_enabled(emu))
-		++(emu->ppu.lx);
 }
