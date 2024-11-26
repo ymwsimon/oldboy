@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:54:16 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/25 14:18:44 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/25 17:16:01 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -496,15 +496,15 @@ void	ret_reti(t_emu *emu, t_byte op_code)
 		get_flag_nz, get_flag_z, get_flag_nc, get_flag_c};
 
 	idx = ((op_code - 0xC0) / 8) % 8;
-	if (((op_code & 0xF) != 0x0 && (op_code & 0xF) != 0x8)
-		|| (((op_code & 0xF) == 0x0 || (op_code & 0xF) == 0x8)
-			&& cc_arr[idx](emu->cpu)))
+	if (((op_code & 0xF) == 9) || cc_arr[idx](emu->cpu))
+	{
+		if ((op_code & 0xF) != 9)
+			emu_tick(emu, 4);
 		pop(emu, op_code);
-	if ((op_code & 0xF) == 0x0 || (op_code & 0xF) == 0x8)
-		emu_tick(emu, 4);
+	}
+	emu_tick(emu, 4);
 	if (op_code == 0xD9)
 		ei(emu, 0);
-	emu_tick(emu, 4);
 }
 
 void	call(t_emu *emu, t_byte op_code)
@@ -516,10 +516,10 @@ void	call(t_emu *emu, t_byte op_code)
 
 	idx = ((op_code - 0xC4) / 8) % 8;
 	addr = read_pc_word_tick(emu);
-	if (op_code == 0xCD || (op_code != 0xCD && cc_arr[idx](emu->cpu)))
+	if (op_code == 0xCD || cc_arr[idx](emu->cpu))
 	{
-		emu_tick(emu, 4);
 		push_word(emu, pc_of(emu->cpu));
+		emu_tick(emu, 4);
 		emu->cpu.pc = addr;
 	}
 }
