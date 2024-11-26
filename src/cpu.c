@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 19:26:44 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/25 15:52:31 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/26 13:28:20 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -299,7 +299,8 @@ int	cpu_step(t_emu *emu)
 
 	if (!emu->cpu.halted)
 	{
-		if (emu->cpu.ime && (emu->interrupt_enable & emu->interrupt_flag))
+		if (emu->cpu.ime
+			&& ((emu->interrupt_enable & emu->interrupt_flag) & 0x1F))
 			process_interrupt(emu);
 		else
 		{
@@ -323,7 +324,7 @@ int	cpu_step(t_emu *emu)
 	else
 	{
 		emu_tick(emu, 4);
-		if (emu->interrupt_enable & emu->interrupt_flag)
+		if ((emu->interrupt_enable & emu->interrupt_flag) & 0x1F)
 			emu->cpu.halted = FALSE;
 	}
 	if (emu->cpu.ime_countdown)
