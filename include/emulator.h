@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/26 22:58:57 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/27 12:13:05 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,6 +94,7 @@ typedef struct s_cpu
 typedef struct s_timer
 {
 	t_word	div;
+	t_word	p_div;
 	t_byte	tima;
 	t_byte	tma;
 	t_byte	tac;
