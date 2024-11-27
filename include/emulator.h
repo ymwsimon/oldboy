@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/24 16:04:17 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/26 22:58:57 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,6 +97,7 @@ typedef struct s_timer
 	t_byte	tima;
 	t_byte	tma;
 	t_byte	tac;
+	t_byte	interrupt_countdown;
 }	t_timer;
 
 typedef struct s_serial
