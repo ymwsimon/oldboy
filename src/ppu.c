@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 17:42:59 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/25 13:45:12 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/27 12:52:21 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -491,7 +491,6 @@ void	ppu_tick(t_emu *emu)
 {
 	if (!is_ppu_enabled(emu))
 		return ;
-	++(emu->ppu.lx);
 	non_vblank(emu);
 	check_last_dot_of_line(emu);
 	check_last_line_of_screen(emu);
@@ -505,4 +504,5 @@ void	ppu_tick(t_emu *emu)
 	if (emu->ppu.ppu_mode == DRAWING && is_ppu_enabled(emu))
 		ppu_draw_pix(emu);
 	dma_transfer(emu);
+	++(emu->ppu.lx);
 }
