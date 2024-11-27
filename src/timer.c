@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/28 21:44:44 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/26 12:23:16 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/27 10:47:29 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@ void	init_timer(t_emu *emu)
 	emu->timer.tima = 0;
 	emu->timer.tma = 0;
 	emu->timer.tac = 0;
+	emu->timer.interrupt_countdown = 0;
 }
 
 t_byte	timer_read(t_emu *emu, t_word addr)
@@ -38,11 +39,23 @@ void	timer_write(t_emu *emu, t_word addr, t_byte data)
 	if (addr == 0xFF04)
 		emu->timer.div = 0;
 	else if (addr == 0xFF05)
-		emu->timer.tma = data;
-	else if (addr == 0xFF06)
 		emu->timer.tima = data;
+	else if (addr == 0xFF06)
+		emu->timer.tma = data;
 	else if (addr == 0xFF07)
+	{
+		// if ((data ^ emu->timer.tac) & 4)
+		// {
+		// 	emu->timer.tac &= ~4;
+		// 	emu->timer.tac |= data & 4;
+		// }
+		// else
+		// {
+		// 	emu->timer.tac &= ~3;
+		// 	emu->timer.tac |= data & 3;
+		// }
 		emu->timer.tac = 0xF8 | data;
+	}
 }
 
 int	is_timer_enabled(t_emu *emu)
@@ -52,7 +65,7 @@ int	is_timer_enabled(t_emu *emu)
 
 int	need_to_add_tima(t_emu *emu)
 {
-	static t_word	bit_pos[4] = {9, 3, 5, 7};
+	static t_word	bit_pos[4] = {10, 4, 6, 8};
 	t_word			p_div;
 	t_word			div;
 	t_byte			clock_setting;
@@ -61,24 +74,31 @@ int	need_to_add_tima(t_emu *emu)
 	div = emu->timer.div;
 	clock_setting = emu->timer.tac & 3;
 	return ((div ^ p_div)
-		& (1 << bit_pos[clock_setting])
-		&& (div & (1 << bit_pos[clock_setting])));
+		& (1 << bit_pos[clock_setting]));
+		// && !(p_div & (1 << bit_pos[clock_setting])));
+		// && (div & (1 << bit_pos[clock_setting])));
 }
 
 void	timer_tick(t_emu *emu)
 {
 	++(emu->timer.div);
+	// if (emu->timer.interrupt_countdown)
+	// {
+	// 	--(emu->timer.interrupt_countdown);
+	// 	if (!emu->timer.interrupt_countdown)
+	// 		emu->interrupt_flag |= 4;
+	// }
 	if (is_timer_enabled(emu))
 	{
 		if (need_to_add_tima(emu))
 		{
-			if (emu->timer.tima == 0xFF)
+			++(emu->timer.tima);
+			if (emu->timer.tima == 0)
 			{
 				emu->timer.tima = emu->timer.tma;
-				emu->interrupt_flag |= 0x4;
+				// emu->timer.interrupt_countdown = 4;
+				emu->interrupt_flag |= 4;
 			}
-			else
-				++(emu->timer.tima);
 		}
 	}
 }
