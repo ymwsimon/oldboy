@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:54:16 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/25 17:16:01 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/28 21:22:49 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -462,8 +462,8 @@ void	push(t_emu *emu, t_byte op_code)
 	t_word	data;
 
 	data = g_getw_fptr[op_code](emu->cpu);
-	push_word(emu, data);
 	emu_tick(emu, 4);
+	push_word(emu, data);
 }
 
 void	pop(t_emu *emu, t_byte op_code)

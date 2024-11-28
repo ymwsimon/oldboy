@@ -6,11 +6,16 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 17:42:59 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/27 12:52:21 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/28 21:22:12 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/emulator.h"
+
+int	not_in_dma(t_emu *emu)
+{
+	return (emu->ppu.dma_write_counter == 0 || emu->ppu.dma_write_counter > 640);
+}
 
 void	init_ppu(t_emu *emu)
 {
@@ -30,6 +35,21 @@ void	init_ppu(t_emu *emu)
 	emu->ppu.win_xl = 0;
 	emu->ppu.win_yl = 0;
 	bzero(&emu->ppu.oam, sizeof(t_byte) * 0xA0);
+}
+
+void	print_oam(t_emu *emu)
+{
+	t_word	idx;
+
+	idx = 0;
+	while (idx < 160)
+	{
+		printf("%02X ", emu->ppu.oam[idx]);
+		++idx;
+		if (!(idx % 16))
+			printf("\n");
+	}
+	printf("SP:%04X\n\n", emu->cpu.sp);
 }
 
 void	ppu_write(t_emu *emu, t_word addr, t_byte data)
@@ -52,7 +72,7 @@ void	ppu_write(t_emu *emu, t_word addr, t_byte data)
 	if (addr == 0xFF46)
 	{
 		emu->ppu.dma = data;
-		emu->ppu.dma_write_counter = 644;
+		emu->ppu.dma_write_counter = 648;
 	}
 	if (addr == 0xFF47)
 		emu->ppu.bgp = data;
@@ -65,7 +85,8 @@ void	ppu_write(t_emu *emu, t_word addr, t_byte data)
 	if (addr == 0xFF4B)
 		emu->ppu.wx = data;
 	if (addr >= 0xFE00 && addr <= 0xFE9F
-		&& (emu->ppu.ppu_mode == HBLANK || emu->ppu.ppu_mode == VBLANK))
+		&& (emu->ppu.ppu_mode == HBLANK || emu->ppu.ppu_mode == VBLANK)
+		&& not_in_dma(emu))
 		emu->ppu.oam[addr - 0xFE00] = data;
 }
 
@@ -100,7 +121,8 @@ t_byte	ppu_read(t_emu *emu, t_word addr)
 	if (addr == 0xFF4B)
 		return (emu->ppu.wx);
 	if (addr >= 0xFE00 && addr <= 0xFE9F
-		&& (emu->ppu.ppu_mode == HBLANK || emu->ppu.ppu_mode == VBLANK))
+		&& (emu->ppu.ppu_mode == HBLANK || emu->ppu.ppu_mode == VBLANK)
+		&& not_in_dma(emu))
 		return (emu->ppu.oam[addr - 0xFE00]);
 	return (0xFF);
 }
