@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 16:19:31 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/23 17:05:34 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/28 22:41:55 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,9 +50,9 @@ void	bus_write(t_emu *emu, t_word addr, t_byte data)
 	else if (addr >= 0xFF80 && addr <= 0xFFFE)
 		emu->hram[addr - 0xFF80] = data;
 	else if (addr == 0xFFFF)
-		emu->interrupt_enable = data;
+		emu->interrupt_enable = data | 0xE0;
 	else if (addr == 0xFF0F)
-		emu->interrupt_flag = data;
+		emu->interrupt_flag = data | 0xE0;
 	else if (addr == 0xFF01 || addr == 0xFF02)
 		serial_write(emu, addr, data);
 	else if (addr >= 0xFF04 && addr <= 0xFF07)
