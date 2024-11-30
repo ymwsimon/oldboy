@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:54:16 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/28 21:22:49 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/11/30 11:58:29 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -518,8 +518,8 @@ void	call(t_emu *emu, t_byte op_code)
 	addr = read_pc_word_tick(emu);
 	if (op_code == 0xCD || cc_arr[idx](emu->cpu))
 	{
-		push_word(emu, pc_of(emu->cpu));
 		emu_tick(emu, 4);
+		push_word(emu, pc_of(emu->cpu));
 		emu->cpu.pc = addr;
 	}
 }
