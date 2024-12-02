@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/28 18:46:23 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/02 12:23:56 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,6 +71,14 @@ typedef struct s_cart
 {
 	t_byte			*data;
 	int				file_size;
+	t_byte			ram[0x20000];
+	t_byte			*rom_bank0_ptr;
+	t_byte			*rom_bankx_ptr;
+	t_byte			*ram_bank_ptr;
+	t_byte			ram_enbaled;
+	t_byte			rom_bank_id;
+	t_byte			ram_bank_id;
+	t_byte			banking_mode;
 	t_cart_header	header;
 }	t_cart;
 
@@ -202,6 +210,8 @@ extern t_inst	*g_op_map[256];
 void	print_cart_header(t_cart cart);
 int		read_cartridge_header(t_cart *cart);
 int		read_cartridge(char *path, t_cart *cart);
+void	cart_write(t_emu *emu, t_word addr, t_byte data);
+t_byte	cart_read(t_emu *emu, t_word addr);
 //app
 int		init_sdl(t_app *app);
 int		run_app(t_app *app);

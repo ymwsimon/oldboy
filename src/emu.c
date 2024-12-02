@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 15:45:49 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/26 23:13:28 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/01 20:33:18 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,11 @@ int	init_emu(t_emu *emu)
 	emu->interrupt_enable = 0;
 	emu->interrupt_flag = 0;
 	emu->last_render_time = 0;
+	emu->cart.rom_bank0_ptr = emu->cart.data;
+	emu->cart.rom_bankx_ptr = emu->cart.data + 0x4000;
+	emu->cart.ram_bank_ptr = emu->cart.ram;
+	emu->cart.ram_enbaled = FALSE;
+	emu->cart.banking_mode = 0;
 	init_cpu(&emu->cpu);
 	init_ppu(emu);
 	init_timer(emu);
@@ -62,5 +67,6 @@ int	init_emu(t_emu *emu)
 	bzero(&emu->vram, 0x2000);
 	bzero(&emu->wram, 0x2000);
 	bzero(&emu->hram, 0x7F);
+	bzero(&emu->cart.ram, 0x20000);
 	return (OK);
 }

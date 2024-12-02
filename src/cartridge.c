@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 13:19:30 by mayeung           #+#    #+#             */
-/*   Updated: 2024/10/24 14:50:16 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/02 13:13:11 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,4 +101,85 @@ int	read_cartridge(char *path, t_cart *cart)
 	}
 	close(fd);
 	return (OK);
+}
+
+t_word	n_rom_bank_bit_mask(t_emu *emu)
+{
+	t_word	mask;
+	t_byte	n_rom_bank_bit;
+
+	mask = 1;
+	n_rom_bank_bit = emu->cart.header.rom_size;
+	while (n_rom_bank_bit--)
+		mask = (mask << 1) | 1;
+	return (mask);
+}
+
+t_byte	n_ram_bank_bit_mask(t_emu *emu)
+{
+	t_byte	ram_bank_type;
+
+	ram_bank_type = emu->cart.header.ram_size;
+	if (ram_bank_type == 0)
+		return (0);
+	if (ram_bank_type == 1)
+		return (0);
+	if (ram_bank_type == 2)
+		return (1);
+	if (ram_bank_type == 3)
+		return (7);
+	if (ram_bank_type == 4)
+		return (31);
+	if (ram_bank_type == 5)
+		return (15);
+	return (0);
+}
+
+void	cart_write(t_emu *emu, t_word addr, t_byte data)
+{
+	// unsigned int	offset;
+	// offset = emu->cart.rom_bankx_ptr - emu->cart.data;
+	if (addr <= 0x1FFF && (data & 0xF) == 0xA)
+		emu->cart.ram_enbaled = TRUE;
+	else if (addr >= 0x2000 && addr <= 0x3FFF)
+	{
+		emu->cart.rom_bank_id = data & 0x1F;
+		// if (!emu->cart.rom_bank_id)
+			// emu->cart.rom_bank_id = 1;
+	}
+	else if (addr >= 0x4000 && addr <= 0x5FFF)
+		emu->cart.ram_bank_id = data & 3;
+	else if (addr >= 0x6000 && addr <= 0x7FFF)
+		emu->cart.banking_mode = data & 1;
+	emu->cart.rom_bank0_ptr = emu->cart.data;
+	emu->cart.rom_bankx_ptr = emu->cart.data;
+	emu->cart.rom_bankx_ptr += 0x4000 * (n_rom_bank_bit_mask(emu)
+			& ((emu->cart.ram_bank_id << 5) + emu->cart.rom_bank_id));
+	if (!emu->cart.rom_bank_id)
+		emu->cart.rom_bankx_ptr += 0x4000;
+	emu->cart.ram_bank_ptr = NULL;
+	if (n_ram_bank_bit_mask(emu))
+		emu->cart.ram_bank_ptr = emu->cart.ram;
+		// + 0x2000 * ((n_ram_bank_bit_mask(emu) / 2) & emu->cart.ram_bank_id);
+	if (emu->cart.banking_mode == 1)
+	{
+		emu->cart.rom_bank0_ptr = emu->cart.data + 0x4000
+			* (n_rom_bank_bit_mask(emu) & (emu->cart.ram_bank_id << 5));
+		if (n_ram_bank_bit_mask(emu))
+			emu->cart.ram_bank_ptr = emu->cart.data + 0x2000
+				* ((n_ram_bank_bit_mask(emu) / 2) & emu->cart.ram_bank_id);
+	}
+}
+
+t_byte	cart_read(t_emu *emu, t_word addr)
+{
+	// if (!emu->cart.ram_bank_ptr)
+		// return (0xFF);
+	if (addr <= 0x3FFF)
+		return (emu->cart.rom_bank0_ptr[addr]);
+	if (addr >= 0x4000 && addr <= 0x7FFF)
+		return (emu->cart.rom_bankx_ptr[addr - 0x4000]);
+	if (addr >= 0xA000 && addr <= 0xBFFF && emu->cart.ram_bank_ptr)
+		return (emu->cart.ram_bank_ptr[addr - 0xA000]);
+	return (0xFF);
 }
