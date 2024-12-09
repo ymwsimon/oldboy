@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/02 12:23:56 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/07 14:27:09 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,8 +16,11 @@
 #define CLOCK_SCALE 20
 #define FPS 59.72750056960583
 #define WINDOW_NAME "Old Boy"
-#define WINDOW_H 576
-#define WINDOW_W 640
+#define RES_SCALE 4
+#define SCR_H 144
+#define SCR_W 160
+#define WINDOW_H SCR_H * RES_SCALE
+#define WINDOW_W SCR_W * RES_SCALE
 #define NUM_TILE_PER_ROW 16
 #define NUM_ROW_TILE_DATA 24
 #define SCREEN_NUM_TILE_PER_ROW 32
@@ -192,6 +195,7 @@ typedef struct s_emu
 	t_ppu			ppu;
 	SDL_Window		*window;
 	struct timeval	last_tick;
+	t_byte			print_log;
 }	t_emu;
 
 typedef struct s_app

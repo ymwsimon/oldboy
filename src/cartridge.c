@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 13:19:30 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/02 13:13:11 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/07 20:11:31 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,10 +103,10 @@ int	read_cartridge(char *path, t_cart *cart)
 	return (OK);
 }
 
-t_word	n_rom_bank_bit_mask(t_emu *emu)
+uint32_t	n_rom_bank_bit_mask(t_emu *emu)
 {
-	t_word	mask;
-	t_byte	n_rom_bank_bit;
+	uint32_t	mask;
+	t_byte		n_rom_bank_bit;
 
 	mask = 1;
 	n_rom_bank_bit = emu->cart.header.rom_size;
@@ -117,43 +117,21 @@ t_word	n_rom_bank_bit_mask(t_emu *emu)
 
 t_byte	n_ram_bank_bit_mask(t_emu *emu)
 {
-	t_byte	ram_bank_type;
+	t_byte			ram_bank_type;
+	static t_byte	offsets[] = {0, 0, 1, 7, 31, 15};
 
 	ram_bank_type = emu->cart.header.ram_size;
-	if (ram_bank_type == 0)
-		return (0);
-	if (ram_bank_type == 1)
-		return (0);
-	if (ram_bank_type == 2)
-		return (1);
-	if (ram_bank_type == 3)
-		return (7);
-	if (ram_bank_type == 4)
-		return (31);
-	if (ram_bank_type == 5)
-		return (15);
+	if (ram_bank_type <= 5)
+		return (offsets[ram_bank_type]);
 	return (0);
 }
 
-void	cart_write(t_emu *emu, t_word addr, t_byte data)
+void	update_cart_ptr_offset(t_emu *emu)
 {
-	// unsigned int	offset;
-	// offset = emu->cart.rom_bankx_ptr - emu->cart.data;
-	if (addr <= 0x1FFF && (data & 0xF) == 0xA)
-		emu->cart.ram_enbaled = TRUE;
-	else if (addr >= 0x2000 && addr <= 0x3FFF)
-	{
-		emu->cart.rom_bank_id = data & 0x1F;
-		// if (!emu->cart.rom_bank_id)
-			// emu->cart.rom_bank_id = 1;
-	}
-	else if (addr >= 0x4000 && addr <= 0x5FFF)
-		emu->cart.ram_bank_id = data & 3;
-	else if (addr >= 0x6000 && addr <= 0x7FFF)
-		emu->cart.banking_mode = data & 1;
+
 	emu->cart.rom_bank0_ptr = emu->cart.data;
-	emu->cart.rom_bankx_ptr = emu->cart.data;
-	emu->cart.rom_bankx_ptr += 0x4000 * (n_rom_bank_bit_mask(emu)
+	emu->cart.rom_bankx_ptr
+		= emu->cart.data + 0x4000 * (n_rom_bank_bit_mask(emu)
 			& ((emu->cart.ram_bank_id << 5) + emu->cart.rom_bank_id));
 	if (!emu->cart.rom_bank_id)
 		emu->cart.rom_bankx_ptr += 0x4000;
@@ -171,15 +149,79 @@ void	cart_write(t_emu *emu, t_word addr, t_byte data)
 	}
 }
 
+uint32_t	get_offset_rom_mbc1(t_emu *emu, t_byte is_upper)
+{
+	uint32_t	offset;
+
+	offset = 0;
+	if (!is_upper && emu->cart.banking_mode == 1)
+		offset = 0x4000
+			* (n_rom_bank_bit_mask(emu) & (emu->cart.ram_bank_id << 5));
+	if (is_upper)
+	{
+		offset = 0x4000 * (n_rom_bank_bit_mask(emu)
+				& (((emu->cart.ram_bank_id & 3) << 5) + emu->cart.rom_bank_id));
+		if (!emu->cart.rom_bank_id)
+			offset += 0x4000;
+	}
+	return (offset);
+}
+
+uint32_t	get_offset_rom_upper(t_emu *emu)
+{
+	t_byte	cart_type;
+
+	cart_type = emu->cart.header.cart_type;
+	if (cart_type == 0 || cart_type == 8 || cart_type == 9)
+		return (0x4000);
+	if (cart_type >= 1 && cart_type <= 3)
+		return (get_offset_rom_mbc1(emu, TRUE));
+	return (0x4000);
+}
+
+uint32_t	get_offset_rom_lower(t_emu *emu)
+{
+	t_byte	cart_type;
+
+	cart_type = emu->cart.header.cart_type;
+	if (cart_type == 0 || cart_type == 8 || cart_type == 9)
+		return (0);
+	if (cart_type >= 1 && cart_type <= 3)
+		return (get_offset_rom_mbc1(emu, FALSE));
+	return (0);
+}
+
+uint32_t	get_offset_ram(t_emu *emu)
+{
+	(void)emu;
+	return (0);
+}
+
+void	cart_write(t_emu *emu, t_word addr, t_byte data)
+{
+	// printf("writing cart- addr:%4X data:%4X\n", addr, data);
+	if (addr <= 0x1FFF)
+	{
+		emu->cart.ram_enbaled = (data & 0xF) == 0xA;
+		return ;
+	}
+	else if (addr >= 0x2000 && addr <= 0x3FFF)
+		emu->cart.rom_bank_id = data & 0x1F;
+	else if (addr >= 0x4000 && addr <= 0x5FFF)
+		emu->cart.ram_bank_id = data & 3;
+	else if (addr >= 0x6000 && addr <= 0x7FFF)
+		emu->cart.banking_mode = data & 1;
+	update_cart_ptr_offset(emu);
+}
+
 t_byte	cart_read(t_emu *emu, t_word addr)
 {
-	// if (!emu->cart.ram_bank_ptr)
-		// return (0xFF);
 	if (addr <= 0x3FFF)
 		return (emu->cart.rom_bank0_ptr[addr]);
 	if (addr >= 0x4000 && addr <= 0x7FFF)
 		return (emu->cart.rom_bankx_ptr[addr - 0x4000]);
-	if (addr >= 0xA000 && addr <= 0xBFFF && emu->cart.ram_bank_ptr)
+	if (addr >= 0xA000 && addr <= 0xBFFF && emu->cart.ram_bank_ptr
+		&& emu->cart.ram_enbaled)
 		return (emu->cart.ram_bank_ptr[addr - 0xA000]);
 	return (0xFF);
 }

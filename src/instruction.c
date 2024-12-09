@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:54:16 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/30 11:58:29 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/09 00:37:12 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -412,13 +412,19 @@ void	di(t_emu *emu, t_byte op_code)
 {
 	(void)op_code;
 	emu->cpu.ime = FALSE;
-	emu->cpu.ime_countdown = 0;
+	// if (emu->cpu.ime_countdown == 0)
+		// emu->cpu.ime_countdown = -2;
 }
 
 void	ei(t_emu *emu, t_byte op_code)
 {
 	(void)op_code;
-	emu->cpu.ime_countdown = 2;
+	if (emu->cpu.ime_countdown == 0)
+		emu->cpu.ime_countdown = 2;
+	// cpu_step(emu);
+	// emu->cpu.ime = TRUE;
+	// cpu_step(emu);
+	// emu->cpu.ime_countdown = 0;
 }
 
 void	ld_m(t_emu *emu, t_byte op_code)
@@ -501,6 +507,7 @@ void	ret_reti(t_emu *emu, t_byte op_code)
 		if ((op_code & 0xF) != 9)
 			emu_tick(emu, 4);
 		pop(emu, op_code);
+		// printf("returing to pc:%4X\n", emu->cpu.pc);
 	}
 	emu_tick(emu, 4);
 	if (op_code == 0xD9)
@@ -519,6 +526,7 @@ void	call(t_emu *emu, t_byte op_code)
 	if (op_code == 0xCD || cc_arr[idx](emu->cpu))
 	{
 		emu_tick(emu, 4);
+		// printf("pushing PC:%4X\n", pc_of(emu->cpu));
 		push_word(emu, pc_of(emu->cpu));
 		emu->cpu.pc = addr;
 	}

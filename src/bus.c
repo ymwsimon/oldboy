@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 16:19:31 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/01 21:08:49 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/09 12:44:04 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,8 @@
 
 t_byte	bus_read(t_emu *emu, t_word addr)
 {
+	// if (emu->ppu.dma_write_counter)
+	// 	return (0xFF);
 	if (addr <= 0x7FFF || (addr >= 0xA000 && addr <= 0xBFFF))
 		return (cart_read(emu, addr));
 	if (addr >= 0x8000 && addr <= 0x9FFF)
@@ -41,7 +43,7 @@ t_byte	bus_read(t_emu *emu, t_word addr)
 
 void	bus_write(t_emu *emu, t_word addr, t_byte data)
 {
-	if (addr <= 0x7FFF)
+	if (addr <= 0x7FFF || (addr >= 0xA000 && addr <= 0xBFFF))
 		cart_write(emu, addr, data);
 	else if (addr >= 0x8000 && addr <= 0x9FFF)
 		emu->vram[addr - 0x8000] = data;

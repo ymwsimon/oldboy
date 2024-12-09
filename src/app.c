@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 13:14:12 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/24 14:46:21 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/07 00:58:30 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,14 +82,14 @@ void	print_pixel(t_emu *emu, SDL_Surface *s, unsigned int colour, t_tile_pix_inf
 	j = 0;
 	(void)emu;
 	// colour = get_colour_map(emu, cid);
-	while (j < 4)
+	while (j < RES_SCALE)
 	{
 		i = 0;
-		while (i < 4)
+		while (i < RES_SCALE)
 		{
 			SDL_WriteSurfacePixel(s,
-				t.ti * 8 * 4 + t.pi * 4 + i,
-				t.tj * 8 * 4 + t.pj * 4 + j,
+				t.ti * 8 * RES_SCALE + t.pi * RES_SCALE + i,
+				t.tj * 8 * RES_SCALE + t.pj * RES_SCALE + j,
 				colour >> 16, (colour & 0xFF00) >> 8, colour & 0xFF, 255);
 			++i;
 		}
@@ -196,6 +196,8 @@ int	run_app(t_app *app)
 				print_gbmicro_result(&app->emu);
 			else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_Y)
 				print_mooneye_result(&app->emu);
+			else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_L)
+				app->emu.print_log = !app->emu.print_log;
 			else if (event.type == SDL_EVENT_KEY_DOWN)
 				handle_input_down(&app->emu, event);
 			else if (event.type == SDL_EVENT_KEY_UP)

@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 19:26:44 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/27 00:51:41 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/08 20:13:44 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -297,12 +297,6 @@ int	cpu_step(t_emu *emu)
 	t_byte	op_code;
 	t_inst	*instruction;
 
-	if (emu->cpu.ime_countdown)
-	{
-		--(emu->cpu.ime_countdown);
-		if (!emu->cpu.ime_countdown)
-			emu->cpu.ime = TRUE;
-	}
 	if (!emu->cpu.halted)
 	{
 		if (emu->cpu.ime
@@ -315,7 +309,8 @@ int	cpu_step(t_emu *emu)
 			instruction = g_op_map[op_code];
 			if (instruction)
 			{
-				// print_cpu_register(emu);
+				if (emu->print_log)
+					print_cpu_register(emu);
 				++(emu->cpu.pc);
 				instruction(emu, op_code);
 			}
@@ -332,6 +327,21 @@ int	cpu_step(t_emu *emu)
 		emu_tick(emu, 4);
 		if ((emu->interrupt_enable & emu->interrupt_flag) & 0x1F)
 			emu->cpu.halted = FALSE;
+	}
+	if (emu->cpu.ime_countdown)
+	{
+		if (emu->cpu.ime_countdown > 0)
+		{
+			--(emu->cpu.ime_countdown);
+			if (!emu->cpu.ime_countdown)
+				emu->cpu.ime = TRUE;
+		}
+		else
+		{
+			++(emu->cpu.ime_countdown);
+			if (!emu->cpu.ime_countdown)
+				emu->cpu.ime = FALSE;
+		}
 	}
 	return (1);
 }
