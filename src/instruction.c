@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:54:16 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/09 00:37:12 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/10 15:00:19 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,7 +77,7 @@ t_getw	*g_getw_fptr[256] = {
 	NULL, NULL, NULL, NULL, NULL, de_of, NULL, pc_of,
 	NULL, NULL, NULL, NULL, NULL, NULL, NULL, pc_of,
 	NULL, NULL, NULL, NULL, NULL, hl_of, NULL, pc_of,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, pc_of,
+	empty_of, NULL, NULL, NULL, NULL, NULL, NULL, pc_of,
 	NULL, NULL, NULL, NULL, NULL, af_of, NULL, pc_of,
 	sp_of, hl_of, NULL, NULL, NULL, NULL, NULL, pc_of
 };
@@ -412,8 +412,7 @@ void	di(t_emu *emu, t_byte op_code)
 {
 	(void)op_code;
 	emu->cpu.ime = FALSE;
-	// if (emu->cpu.ime_countdown == 0)
-		// emu->cpu.ime_countdown = -2;
+	emu->cpu.ime_countdown = 0;
 }
 
 void	ei(t_emu *emu, t_byte op_code)
@@ -421,10 +420,6 @@ void	ei(t_emu *emu, t_byte op_code)
 	(void)op_code;
 	if (emu->cpu.ime_countdown == 0)
 		emu->cpu.ime_countdown = 2;
-	// cpu_step(emu);
-	// emu->cpu.ime = TRUE;
-	// cpu_step(emu);
-	// emu->cpu.ime_countdown = 0;
 }
 
 void	ld_m(t_emu *emu, t_byte op_code)
@@ -507,11 +502,10 @@ void	ret_reti(t_emu *emu, t_byte op_code)
 		if ((op_code & 0xF) != 9)
 			emu_tick(emu, 4);
 		pop(emu, op_code);
-		// printf("returing to pc:%4X\n", emu->cpu.pc);
 	}
 	emu_tick(emu, 4);
 	if (op_code == 0xD9)
-		ei(emu, 0);
+		emu->cpu.ime = TRUE;
 }
 
 void	call(t_emu *emu, t_byte op_code)
@@ -526,7 +520,6 @@ void	call(t_emu *emu, t_byte op_code)
 	if (op_code == 0xCD || cc_arr[idx](emu->cpu))
 	{
 		emu_tick(emu, 4);
-		// printf("pushing PC:%4X\n", pc_of(emu->cpu));
 		push_word(emu, pc_of(emu->cpu));
 		emu->cpu.pc = addr;
 	}
@@ -538,16 +531,12 @@ void	add_16(t_emu *emu, t_byte op_code)
 	t_word	old_data;
 	char	offset;
 
-	data = 0;
-	if (op_code == 0xE8)
-		offset = (char)read_pc_byte_tick(emu);
-	else
-		data = g_getw_fptr[op_code](emu->cpu);
+	data = g_getw_fptr[op_code](emu->cpu);
 	old_data = hl_of(emu->cpu);
 	if (op_code == 0xE8)
-		old_data = sp_of(emu->cpu);
-	if (op_code == 0xE8)
 	{
+		offset = (char)read_pc_byte_tick(emu);
+		old_data = sp_of(emu->cpu);
 		set_sp(&emu->cpu, sp_of(emu->cpu) + offset);
 		emu_tick(emu, 4);
 	}

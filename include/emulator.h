@@ -6,45 +6,50 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/07 14:27:09 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/10 14:23:35 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#define BUFFER_SIZE 10000
-#define FREQUENCY 4194304
-#define MS_PER_SECOND 1000000
-#define CLOCK_SCALE 20
-#define FPS 59.72750056960583
-#define WINDOW_NAME "Old Boy"
-#define RES_SCALE 4
-#define SCR_H 144
-#define SCR_W 160
-#define WINDOW_H SCR_H * RES_SCALE
-#define WINDOW_W SCR_W * RES_SCALE
-#define NUM_TILE_PER_ROW 16
-#define NUM_ROW_TILE_DATA 24
-#define SCREEN_NUM_TILE_PER_ROW 32
-#define SCREEN_NUM_TILE_ROW 18
-#define TRUE 1
-#define FALSE 0
-#define OK 1
-#define NOT_OK 0
-#define BLACK 0x081820
-#define DARK_GREEN 0x346856
-#define LIGHT_GREEN 0x88C070
-#define WHITE 0xE0F8D0
-#define BG_WIN_TILE 0
-#define OBJ0_TILE 1
-#define OBJ1_TILE 2
-#include <SDL3/SDL.h>
-#include <SDL3/SDL_keycode.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <fcntl.h>
-#include <stdbool.h>
-#include <sys/time.h>
+#ifndef EMULATOR_H
+# define EMULATOR_H
+# ifndef PRINT_CPU_LOG
+#  define PRINT_CPU_LOG 0
+# endif
+# define BUFFER_SIZE 10000
+# define FREQUENCY 4194304
+# define MS_PER_SECOND 1000000
+# define CLOCK_SCALE 20
+# define FPS 59.72750056960583
+# define WINDOW_NAME "Old Boy"
+# define RES_SCALE 4
+# define SCR_H 144
+# define SCR_W 160
+# define WINDOW_H SCR_H * RES_SCALE
+# define WINDOW_W SCR_W * RES_SCALE
+# define NUM_TILE_PER_ROW 16
+# define NUM_ROW_TILE_DATA 24
+# define SCREEN_NUM_TILE_PER_ROW 32
+# define SCREEN_NUM_TILE_ROW 18
+# define TRUE 1
+# define FALSE 0
+# define OK 1
+# define NOT_OK 0
+# define BLACK 0x081820
+# define DARK_GREEN 0x346856
+# define LIGHT_GREEN 0x88C070
+# define WHITE 0xE0F8D0
+# define BG_WIN_TILE 0
+# define OBJ0_TILE 1
+# define OBJ1_TILE 2
+# include <SDL3/SDL.h>
+# include <SDL3/SDL_keycode.h>
+# include <unistd.h>
+# include <stdlib.h>
+# include <stdio.h>
+# include <string.h>
+# include <fcntl.h>
+# include <stdbool.h>
+# include <sys/time.h>
 
 typedef unsigned char		t_byte;
 typedef unsigned short		t_word;
@@ -239,6 +244,7 @@ t_word	e_of(t_cpu cpu);
 t_word	f_of(t_cpu cpu);
 t_word	h_of(t_cpu cpu);
 t_word	l_of(t_cpu cpu);
+t_word	empty_of(t_cpu cpu);
 int		get_flag_z(t_cpu cpu);
 int		get_flag_nz(t_cpu cpu);
 int		get_flag_n(t_cpu cpu);
@@ -307,3 +313,5 @@ void	input_write(t_emu *emu, t_byte data);
 t_byte	input_read(t_emu *emu);
 void	init_input(t_emu *emu);
 void	input_tick_state(t_emu *emu);
+
+#endif

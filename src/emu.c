@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 15:45:49 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/07 14:27:16 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/09 17:23:09 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ int	init_emu(t_emu *emu)
 	emu->cart.ram_bank_ptr = emu->cart.ram;
 	emu->cart.ram_enbaled = FALSE;
 	emu->cart.banking_mode = 0;
-	emu->print_log = FALSE;
+	emu->print_log = PRINT_CPU_LOG;
 	init_cpu(&emu->cpu);
 	init_ppu(emu);
 	init_timer(emu);

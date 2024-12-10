@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 19:26:44 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/08 20:13:44 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/10 14:23:14 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,6 +89,12 @@ t_word	h_of(t_cpu cpu)
 t_word	l_of(t_cpu cpu)
 {
 	return (cpu.l);
+}
+
+t_word	empty_of(t_cpu cpu)
+{
+	(void)cpu;
+	return (0);
 }
 
 void	set_two_byte(t_cpu *cpu, t_word two_byte, t_byte offset)
