@@ -165,6 +165,7 @@ typedef struct s_ppu
 	t_byte	obp1;
 	t_byte	win_xl;
 	t_byte	win_yl;
+	t_byte	dma_cancelled;
 	t_mode	ppu_mode;
 }	t_ppu;
 

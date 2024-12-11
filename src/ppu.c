@@ -14,7 +14,9 @@
 
 int	not_in_dma(t_emu *emu)
 {
-	return (emu->ppu.dma_write_counter == 0 || emu->ppu.dma_write_counter > 640);
+	return ((emu->ppu.dma_write_counter == 0
+		|| emu->ppu.dma_write_counter > 640)
+		&& !emu->ppu.dma_cancelled);
 }
 
 void	init_ppu(t_emu *emu)
@@ -34,6 +36,7 @@ void	init_ppu(t_emu *emu)
 	emu->ppu.obp1 = 0xFF;
 	emu->ppu.win_xl = 0;
 	emu->ppu.win_yl = 0;
+	emu->ppu.dma_cancelled = FALSE;
 	bzero(&emu->ppu.oam, sizeof(t_byte) * 0xA0);
 }
 
@@ -72,6 +75,8 @@ void	ppu_write(t_emu *emu, t_word addr, t_byte data)
 	if (addr == 0xFF46)
 	{
 		emu->ppu.dma = data;
+		if (emu->ppu.dma_write_counter)
+			{emu->ppu.dma_cancelled = 8;printf("dma cancelled\n");}
 		emu->ppu.dma_write_counter = 648;
 	}
 	if (addr == 0xFF46 && !not_in_dma(emu))
@@ -479,6 +484,8 @@ void	dma_transfer(t_emu *emu)
 		}
 		--(emu->ppu.dma_write_counter);
 	}
+	if (emu->ppu.dma_cancelled)
+		--(emu->ppu.dma_cancelled);
 }
 
 int	is_ppu_enabled(t_emu *emu)
