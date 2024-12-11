@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 19:26:44 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/10 14:23:14 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/10 15:25:50 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -322,7 +322,7 @@ int	cpu_step(t_emu *emu)
 			}
 			else
 			{
-				printf("unknown op code:%02X ", op_code);
+				printf("unknown op code:%02X -- ", op_code);
 				print_cpu_register(emu);
 				emu->cpu.halted = TRUE;
 			}
@@ -341,12 +341,6 @@ int	cpu_step(t_emu *emu)
 			--(emu->cpu.ime_countdown);
 			if (!emu->cpu.ime_countdown)
 				emu->cpu.ime = TRUE;
-		}
-		else
-		{
-			++(emu->cpu.ime_countdown);
-			if (!emu->cpu.ime_countdown)
-				emu->cpu.ime = FALSE;
 		}
 	}
 	return (1);

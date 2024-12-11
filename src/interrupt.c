@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/27 15:16:41 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/10 14:18:40 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/10 15:24:38 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,8 @@ void	process_interrupt(t_emu *emu)
 	t_byte			idx;
 	t_word			pc;
 
+	if (emu->print_log)
+		print_cpu_register(emu);
 	di(emu, 0);
 	emu_tick(emu, 8);
 	pc = emu->cpu.pc;
