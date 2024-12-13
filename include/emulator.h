@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/10 14:23:35 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/12 22:57:44 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,6 +75,18 @@ typedef struct s_cart_header
 	t_byte	cgb_flag;
 }	t_cart_header;
 
+typedef struct s_rtc
+{
+	t_byte	s;
+	t_byte	m;
+	t_byte	h;
+	t_byte	dl;
+	t_byte	dh;
+	t_byte	last_latch_write;
+	t_byte	is_latched;
+	t_word	cycle;
+}	t_rtc;
+
 typedef struct s_cart
 {
 	t_byte			*data;
@@ -83,10 +95,12 @@ typedef struct s_cart
 	t_byte			*rom_bank0_ptr;
 	t_byte			*rom_bankx_ptr;
 	t_byte			*ram_bank_ptr;
-	t_byte			ram_enbaled;
+	t_byte			ram_timer_enbaled;
 	t_byte			rom_bank_id;
+	t_byte			rom_bank_id2;
 	t_byte			ram_bank_id;
 	t_byte			banking_mode;
+	t_rtc			rtc;
 	t_cart_header	header;
 }	t_cart;
 
@@ -222,6 +236,8 @@ int		read_cartridge_header(t_cart *cart);
 int		read_cartridge(char *path, t_cart *cart);
 void	cart_write(t_emu *emu, t_word addr, t_byte data);
 t_byte	cart_read(t_emu *emu, t_word addr);
+void	init_cart(t_emu *emu);
+void	rtc_tick(t_emu *emu);
 //app
 int		init_sdl(t_app *app);
 int		run_app(t_app *app);

@@ -6,11 +6,24 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 13:19:30 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/07 20:11:31 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/12 23:02:23 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/emulator.h"
+
+void	init_cart(t_emu *emu)
+{
+	emu->cart.rom_bank0_ptr = emu->cart.data;
+	emu->cart.rom_bankx_ptr = emu->cart.data + 0x4000;
+	emu->cart.ram_bank_ptr = emu->cart.ram;
+	emu->cart.ram_timer_enbaled = FALSE;
+	emu->cart.banking_mode = 0;
+	emu->cart.rom_bank_id = 1;
+	emu->cart.rom_bank_id2 = 0;
+	emu->cart.ram_bank_id = 0;
+	bzero(&emu->cart.ram, 0x20000);
+}
 
 void	print_byte_arr(t_byte *arr, size_t n, int in_char, int with_nl)
 {
@@ -29,6 +42,106 @@ void	print_byte_arr(t_byte *arr, size_t n, int in_char, int with_nl)
 	}
 	if (with_nl)
 		printf("\n");
+}
+
+t_byte	is_no_mbc(t_emu *emu)
+{
+	t_byte	cart_type;
+
+	cart_type = emu->cart.header.cart_type;
+	if (cart_type == 0 || cart_type == 8 || cart_type == 9)
+		return (TRUE);
+	return (FALSE);
+}
+
+t_byte	is_mbc1(t_emu *emu)
+{
+	t_byte	cart_type;
+
+	cart_type = emu->cart.header.cart_type;
+	if (cart_type >= 1 && cart_type <= 3)
+		return (TRUE);
+	return (FALSE);
+}
+
+t_byte	is_mbc2(t_emu *emu)
+{
+	t_byte	cart_type;
+
+	cart_type = emu->cart.header.cart_type;
+	if (cart_type >= 5 && cart_type <= 6)
+		return (TRUE);
+	return (FALSE);
+}
+
+t_byte	is_mmm(t_emu *emu)
+{
+	t_byte	cart_type;
+
+	cart_type = emu->cart.header.cart_type;
+	if (cart_type >= 0xB && cart_type <= 0xD)
+		return (TRUE);
+	return (FALSE);
+}
+
+t_byte	is_mbc3(t_emu *emu)
+{
+	t_byte	cart_type;
+
+	cart_type = emu->cart.header.cart_type;
+	if (cart_type >= 0xF && cart_type <= 0x13)
+		return (TRUE);
+	return (FALSE);
+}
+
+t_byte	is_mbc5(t_emu *emu)
+{
+	t_byte	cart_type;
+
+	cart_type = emu->cart.header.cart_type;
+	if (cart_type >= 0x19 && cart_type <= 0x1E)
+		return (TRUE);
+	return (FALSE);
+}
+
+t_byte	is_mbc6(t_emu *emu)
+{
+	t_byte	cart_type;
+
+	cart_type = emu->cart.header.cart_type;
+	if (cart_type == 0x20)
+		return (TRUE);
+	return (FALSE);
+}
+
+t_byte	is_mbc7(t_emu *emu)
+{
+	t_byte	cart_type;
+
+	cart_type = emu->cart.header.cart_type;
+	if (cart_type == 0x22)
+		return (TRUE);
+	return (FALSE);
+}
+
+t_byte	is_huc3(t_emu *emu)
+{
+	t_byte	cart_type;
+
+	cart_type = emu->cart.header.cart_type;
+	if (cart_type == 0xFE)
+		return (TRUE);
+	return (FALSE);
+}
+
+t_byte	is_huc1(t_emu *emu)
+{
+	t_byte	cart_type;
+
+	cart_type = emu->cart.header.cart_type;
+	if (cart_type == 0xFF)
+		return (TRUE);
+	return (FALSE);
 }
 
 void	print_cart_header(t_cart cart)
@@ -118,7 +231,7 @@ uint32_t	n_rom_bank_bit_mask(t_emu *emu)
 t_byte	n_ram_bank_bit_mask(t_emu *emu)
 {
 	t_byte			ram_bank_type;
-	static t_byte	offsets[] = {0, 0, 1, 7, 31, 15};
+	static t_byte	offsets[] = {0, 0, 0, 3, 15, 7};
 
 	ram_bank_type = emu->cart.header.ram_size;
 	if (ram_bank_type <= 5)
@@ -126,9 +239,19 @@ t_byte	n_ram_bank_bit_mask(t_emu *emu)
 	return (0);
 }
 
-void	update_cart_ptr_offset(t_emu *emu)
+t_byte	has_cart_ram(t_emu *emu)
 {
+	return (emu->cart.header.ram_size >= 2 && emu->cart.header.ram_size <= 5);
+}
 
+t_byte	has_cart_timer(t_emu *emu)
+{
+	return (emu->cart.header.cart_type == 0xF
+		|| emu->cart.header.cart_type == 0x10);
+}
+
+void	update_cart_mbc1_ptr_offset(t_emu *emu)
+{
 	emu->cart.rom_bank0_ptr = emu->cart.data;
 	emu->cart.rom_bankx_ptr
 		= emu->cart.data + 0x4000 * (n_rom_bank_bit_mask(emu)
@@ -136,17 +259,50 @@ void	update_cart_ptr_offset(t_emu *emu)
 	if (!emu->cart.rom_bank_id)
 		emu->cart.rom_bankx_ptr += 0x4000;
 	emu->cart.ram_bank_ptr = NULL;
-	if (n_ram_bank_bit_mask(emu))
+	if (has_cart_ram(emu))
 		emu->cart.ram_bank_ptr = emu->cart.ram;
-		// + 0x2000 * ((n_ram_bank_bit_mask(emu) / 2) & emu->cart.ram_bank_id);
 	if (emu->cart.banking_mode == 1)
 	{
 		emu->cart.rom_bank0_ptr = emu->cart.data + 0x4000
 			* (n_rom_bank_bit_mask(emu) & (emu->cart.ram_bank_id << 5));
-		if (n_ram_bank_bit_mask(emu))
-			emu->cart.ram_bank_ptr = emu->cart.data + 0x2000
-				* ((n_ram_bank_bit_mask(emu) / 2) & emu->cart.ram_bank_id);
+		if (has_cart_ram(emu))
+			emu->cart.ram_bank_ptr = emu->cart.ram + 0x2000
+				* (n_ram_bank_bit_mask(emu) & emu->cart.ram_bank_id);
 	}
+}
+
+t_byte	mbc3_is_pointing_ram(t_emu *emu)
+{
+	return (emu->cart.ram_bank_id <= 0x3);
+}
+
+void	update_cart_mbc3_ptr_offset(t_emu *emu)
+{
+	emu->cart.rom_bank0_ptr = emu->cart.data;
+	emu->cart.rom_bankx_ptr
+		= emu->cart.data + 0x4000 * (n_rom_bank_bit_mask(emu)
+			& emu->cart.rom_bank_id);
+	if (!emu->cart.rom_bank_id)
+		emu->cart.rom_bankx_ptr += 0x4000;
+	emu->cart.ram_bank_ptr = NULL;
+	if (has_cart_ram(emu) && mbc3_is_pointing_ram(emu))
+		emu->cart.ram_bank_ptr = emu->cart.ram + 0x2000
+			* (n_ram_bank_bit_mask(emu) & emu->cart.ram_bank_id);
+	if (!mbc3_is_pointing_ram(emu))
+		emu->cart.ram_bank_ptr = (t_byte *)&(emu->cart.rtc)
+			+ (emu->cart.ram_bank_id - 0x8);
+}
+
+void	update_cart_mbc5_ptr_offset(t_emu *emu)
+{
+	emu->cart.rom_bank0_ptr = emu->cart.data;
+	emu->cart.rom_bankx_ptr
+		= emu->cart.data + 0x4000 * (n_rom_bank_bit_mask(emu)
+			& (emu->cart.rom_bank_id + ((emu->cart.rom_bank_id2 & 1) << 8)));
+	emu->cart.ram_bank_ptr = NULL;
+	if (has_cart_ram(emu))
+		emu->cart.ram_bank_ptr = emu->cart.ram + 0x2000
+			* (n_ram_bank_bit_mask(emu) & emu->cart.ram_bank_id);
 }
 
 uint32_t	get_offset_rom_mbc1(t_emu *emu, t_byte is_upper)
@@ -197,12 +353,11 @@ uint32_t	get_offset_ram(t_emu *emu)
 	return (0);
 }
 
-void	cart_write(t_emu *emu, t_word addr, t_byte data)
+void	mbc1_write(t_emu *emu, t_word addr, t_byte data)
 {
-	// printf("writing cart- addr:%4X data:%4X\n", addr, data);
 	if (addr <= 0x1FFF)
 	{
-		emu->cart.ram_enbaled = (data & 0xF) == 0xA;
+		emu->cart.ram_timer_enbaled = (data & 0xF) == 0xA;
 		return ;
 	}
 	else if (addr >= 0x2000 && addr <= 0x3FFF)
@@ -211,7 +366,76 @@ void	cart_write(t_emu *emu, t_word addr, t_byte data)
 		emu->cart.ram_bank_id = data & 3;
 	else if (addr >= 0x6000 && addr <= 0x7FFF)
 		emu->cart.banking_mode = data & 1;
-	update_cart_ptr_offset(emu);
+	else if (addr >= 0xA000 && addr <= 0xBFFF && emu->cart.ram_timer_enbaled)
+		emu->cart.ram_bank_ptr[addr - 0xA000] = data;
+	update_cart_mbc1_ptr_offset(emu);
+}
+
+t_byte	get_rtc_reg_data(t_emu *emu)
+{
+	return (*(((t_byte *)&emu->cart.rtc) + (emu->cart.ram_bank_id - 0x8)));
+}
+
+void	mbc3_write_rtc_reg(t_emu *emu, t_byte data)
+{
+	static t_byte	modu[5] = {60, 60, 24, 255, 255};
+
+	emu->cart.ram_bank_ptr[0] = data % modu[emu->cart.ram_bank_id - 0x8];
+}
+
+void	mbc3_write(t_emu *emu, t_word addr, t_byte data)
+{
+	if (addr <= 0x1FFF)
+	{
+		emu->cart.ram_timer_enbaled = (data & 0xF) == 0xA;
+		return ;
+	}
+	else if (addr >= 0x2000 && addr <= 0x3FFF)
+		emu->cart.rom_bank_id = data & 0x7F;
+	else if (addr >= 0x4000 && addr <= 0x5FFF
+		&& (data <= 0x3 || (data >= 0x8 && data <= 0xC)))
+		emu->cart.ram_bank_id = data;
+	else if (addr >= 0x6000 && addr <= 0x7FFF)
+	{
+		if (data == 1 && emu->cart.rtc.last_latch_write == 0)
+			emu->cart.rtc.is_latched = !(emu->cart.rtc.is_latched);
+		emu->cart.rtc.last_latch_write = data;
+	}
+	else if (addr >= 0xA000 && addr <= 0xBFFF && emu->cart.ram_timer_enbaled
+		&& mbc3_is_pointing_ram(emu))
+		emu->cart.ram_bank_ptr[addr - 0xA000] = data;
+	else if (addr >= 0xA000 && addr <= 0xBFFF && emu->cart.ram_timer_enbaled
+		&& !mbc3_is_pointing_ram(emu))
+		mbc3_write_rtc_reg(emu, data);
+	update_cart_mbc3_ptr_offset(emu);
+}
+
+void	mbc5_write(t_emu *emu, t_word addr, t_byte data)
+{
+	if (addr <= 0x1FFF)
+	{
+		emu->cart.ram_timer_enbaled = (data & 0xF) == 0xA;
+		return ;
+	}
+	else if (addr >= 0x2000 && addr <= 0x2FFF)
+		emu->cart.rom_bank_id = data;
+	else if (addr >= 0x3000 && addr <= 0x3FFF)
+		emu->cart.rom_bank_id2 = data & 1;
+	else if (addr >= 0x4000 && addr <= 0x5FFF)
+		emu->cart.ram_bank_id = data;
+	else if (addr >= 0xA000 && addr <= 0xBFFF && emu->cart.ram_timer_enbaled)
+		emu->cart.ram_bank_ptr[addr - 0xA000] = data;
+	update_cart_mbc5_ptr_offset(emu);
+}
+
+void	cart_write(t_emu *emu, t_word addr, t_byte data)
+{
+	if (is_mbc1(emu))
+		mbc1_write(emu, addr, data);
+	if (is_mbc3(emu))
+		mbc3_write(emu, addr, data);
+	if (is_mbc5(emu))
+		mbc5_write(emu, addr, data);
 }
 
 t_byte	cart_read(t_emu *emu, t_word addr)
@@ -221,7 +445,35 @@ t_byte	cart_read(t_emu *emu, t_word addr)
 	if (addr >= 0x4000 && addr <= 0x7FFF)
 		return (emu->cart.rom_bankx_ptr[addr - 0x4000]);
 	if (addr >= 0xA000 && addr <= 0xBFFF && emu->cart.ram_bank_ptr
-		&& emu->cart.ram_enbaled)
+		&& emu->cart.ram_timer_enbaled)
 		return (emu->cart.ram_bank_ptr[addr - 0xA000]);
+	if (addr >= 0xA000 && addr <= 0xBFFF && emu->cart.ram_bank_ptr
+		&& emu->cart.ram_timer_enbaled
+		&& is_mbc3(emu) && !mbc3_is_pointing_ram(emu))
+		return (emu->cart.ram_bank_ptr[0]);
 	return (0xFF);
+}
+
+void	rtc_tick(t_emu *emu)
+{
+	t_word	day;
+
+	if (!(emu->cart.rtc.dh & 64))
+		++(emu->cart.rtc.cycle);
+	if ((emu->cart.rtc.dh & 64) || emu->cart.rtc.is_latched)
+		return ;
+	if (!(emu->cart.rtc.cycle % 32768))
+		++(emu->cart.rtc.s);
+	emu->cart.rtc.m += emu->cart.rtc.s / 60;
+	emu->cart.rtc.s %= 60;
+	emu->cart.rtc.h += emu->cart.rtc.m / 60;
+	emu->cart.rtc.m %= 60;
+	day = emu->cart.rtc.dl + ((emu->cart.rtc.dh & 1) << 8);
+	day += emu->cart.rtc.h / 24;
+	emu->cart.rtc.h %= 24;
+	if (day > 0x1FFF)
+		emu->cart.rtc.dh |= 0x80;
+	emu->cart.rtc.dl = day & 0xFF;
+	emu->cart.rtc.dh = ~1;
+	emu->cart.rtc.dh |= day & 1;
 }

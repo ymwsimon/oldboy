@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 13:14:12 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/07 00:58:30 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/12 12:14:51 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -178,6 +178,20 @@ void	print_mooneye_result(t_emu *emu)
 		emu->cpu.c, emu->cpu.d, emu->cpu.e, emu->cpu.h, emu->cpu.l);
 }
 
+void	print_oam_content(t_emu *emu)
+{
+	t_byte	idx;
+
+	idx = 0;
+	while (idx < 160)
+	{
+		printf("%2X ", emu->ppu.oam[idx]);
+		++idx;
+		if (!(idx % 16))
+			printf("\n");
+	}
+}
+
 int	run_app(t_app *app)
 {
 	SDL_Event		event;
@@ -196,6 +210,8 @@ int	run_app(t_app *app)
 				print_gbmicro_result(&app->emu);
 			else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_Y)
 				print_mooneye_result(&app->emu);
+			else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_O)
+				print_oam_content(&app->emu);
 			else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_L)
 				app->emu.print_log = !app->emu.print_log;
 			else if (event.type == SDL_EVENT_KEY_DOWN)

@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 17:42:59 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/11 12:46:29 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/12 13:45:50 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,11 +76,12 @@ void	ppu_write(t_emu *emu, t_word addr, t_byte data)
 	{
 		emu->ppu.dma = data;
 		if (emu->ppu.dma_write_counter)
-			{emu->ppu.dma_cancelled = 8;printf("dma cancelled\n");}
+			emu->ppu.dma_cancelled = 8;
+			// {emu->ppu.dma_cancelled = 8;printf("dma cancelled\n");}
 		emu->ppu.dma_write_counter = 648;
 	}
-	if (addr == 0xFF46 && !not_in_dma(emu))
-		printf("in dma-- counter:%d pc:%X\n", emu->ppu.dma_write_counter, emu->cpu.pc);
+	// if (addr == 0xFF46 && !not_in_dma(emu))
+		// printf("in dma-- counter:%d pc:%X\n", emu->ppu.dma_write_counter, emu->cpu.pc);
 	if (addr == 0xFF47)
 		emu->ppu.bgp = data;
 	if (addr == 0xFF48)
@@ -127,8 +128,8 @@ t_byte	ppu_read(t_emu *emu, t_word addr)
 		return (emu->ppu.wy);
 	if (addr == 0xFF4B)
 		return (emu->ppu.wx);
-	if (addr >= 0xFE00 && addr <= 0xFE9F)
-		printf("reading from oam-- dma counter:%d addr:%X data:%X\n", emu->ppu.dma_write_counter, addr, emu->ppu.oam[addr - 0xFE00]);
+	// if (addr >= 0xFE00 && addr <= 0xFE9F)
+		// printf("reading from oam-- dma counter:%d addr:%X data:%X\n", emu->ppu.dma_write_counter, addr, emu->ppu.oam[addr - 0xFE00]);
 	if (addr >= 0xFE00 && addr <= 0xFE9F
 		&& (emu->ppu.ppu_mode == HBLANK || emu->ppu.ppu_mode == VBLANK)
 		&& not_in_dma(emu))
@@ -473,14 +474,16 @@ void	vblank(t_emu *emu)
 
 void	dma_transfer(t_emu *emu)
 {
+	t_byte	offset;
+
 	if (emu->ppu.dma_write_counter)
 	{
 		if (emu->ppu.dma_write_counter <= 640
 			&& !(emu->ppu.dma_write_counter % 4))
 		{
-			emu->ppu.oam[160 - emu->ppu.dma_write_counter / 4]
-				= bus_read(emu, (emu->ppu.dma << 8)
-					+ (160 - emu->ppu.dma_write_counter / 4));
+			offset = 160 - emu->ppu.dma_write_counter / 4;
+			emu->ppu.oam[offset]
+				= bus_read(emu, (emu->ppu.dma << 8) + offset);
 		}
 		--(emu->ppu.dma_write_counter);
 	}
@@ -522,6 +525,7 @@ void	check_ppu_vblank_interrupt(t_emu *emu)
 
 void	ppu_tick(t_emu *emu)
 {
+	dma_transfer(emu);
 	if (!is_ppu_enabled(emu))
 		return ;
 	non_vblank(emu);
@@ -536,6 +540,5 @@ void	ppu_tick(t_emu *emu)
 		scan_obj(emu);
 	if (emu->ppu.ppu_mode == DRAWING && is_ppu_enabled(emu))
 		ppu_draw_pix(emu);
-	dma_transfer(emu);
 	++(emu->ppu.lx);
 }

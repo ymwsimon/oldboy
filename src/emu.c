@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 15:45:49 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/09 17:23:09 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/12 21:46:25 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,7 @@ void	emu_tick(t_emu *emu, t_ull clock_cycle)
 		timer_tick(emu);
 		serial_tick(emu);
 		input_tick_state(emu);
+		rtc_tick(emu);
 		++(emu->clock_cycle);
 		++i;
 	}
@@ -54,20 +55,15 @@ int	init_emu(t_emu *emu)
 	emu->interrupt_enable = 0;
 	emu->interrupt_flag = 0;
 	emu->last_render_time = 0;
-	emu->cart.rom_bank0_ptr = emu->cart.data;
-	emu->cart.rom_bankx_ptr = emu->cart.data + 0x4000;
-	emu->cart.ram_bank_ptr = emu->cart.ram;
-	emu->cart.ram_enbaled = FALSE;
-	emu->cart.banking_mode = 0;
 	emu->print_log = PRINT_CPU_LOG;
 	init_cpu(&emu->cpu);
 	init_ppu(emu);
 	init_timer(emu);
 	init_serial(emu);
 	init_input(emu);
+	init_cart(emu);
 	bzero(&emu->vram, 0x2000);
 	bzero(&emu->wram, 0x2000);
 	bzero(&emu->hram, 0x7F);
-	bzero(&emu->cart.ram, 0x20000);
 	return (OK);
 }
