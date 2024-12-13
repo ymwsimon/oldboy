@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/12 22:57:44 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/13 21:09:22 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -327,8 +327,8 @@ void	print_oam(t_emu *emu);
 void	handle_input_down(t_emu *emu, SDL_Event event);
 void	handle_input_up(t_emu *emu, SDL_Event event);
 void	input_write(t_emu *emu, t_byte data);
+void	input_tick(t_emu *emu);
 t_byte	input_read(t_emu *emu);
 void	init_input(t_emu *emu);
-void	input_tick_state(t_emu *emu);
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 15:45:49 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/12 21:46:25 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/13 21:08:49 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ void	emu_tick(t_emu *emu, t_ull clock_cycle)
 		ppu_tick(emu);
 		timer_tick(emu);
 		serial_tick(emu);
-		input_tick_state(emu);
+		input_tick(emu);
 		rtc_tick(emu);
 		++(emu->clock_cycle);
 		++i;
@@ -53,7 +53,7 @@ int	init_emu(t_emu *emu)
 	gettimeofday(&emu->last_tick, NULL);
 	emu->paused = FALSE;
 	emu->interrupt_enable = 0;
-	emu->interrupt_flag = 0;
+	emu->interrupt_flag = 0xE1;
 	emu->last_render_time = 0;
 	emu->print_log = PRINT_CPU_LOG;
 	init_cpu(&emu->cpu);
