@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 13:14:12 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/12 12:14:51 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/14 13:18:06 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,28 +73,15 @@ unsigned int	get_colour_map(t_emu *emu, t_byte cid)
 	return (colour_map[cid]);
 }
 
-void	print_pixel(t_emu *emu, SDL_Surface *s, unsigned int colour, t_tile_pix_info t)
+void	print_pixel(SDL_Surface *s, unsigned int colour, t_tile_pix_info t)
 {
-	t_word			i;
-	t_word			j;
-	// unsigned int	colour;
+	SDL_Rect	rect;
 
-	j = 0;
-	(void)emu;
-	// colour = get_colour_map(emu, cid);
-	while (j < RES_SCALE)
-	{
-		i = 0;
-		while (i < RES_SCALE)
-		{
-			SDL_WriteSurfacePixel(s,
-				t.ti * 8 * RES_SCALE + t.pi * RES_SCALE + i,
-				t.tj * 8 * RES_SCALE + t.pj * RES_SCALE + j,
-				colour >> 16, (colour & 0xFF00) >> 8, colour & 0xFF, 255);
-			++i;
-		}
-		++j;
-	}
+	rect.h = RES_SCALE;
+	rect.w = RES_SCALE;
+	rect.x = t.ti * 8 * RES_SCALE + t.pi * RES_SCALE;
+	rect.y = t.tj * 8 * RES_SCALE + t.pj * RES_SCALE;
+	SDL_FillSurfaceRect(s, &rect, colour);
 }
 
 void	print_tile(t_app *app, SDL_Surface *s, t_word ti, t_word tj)
@@ -115,7 +102,7 @@ void	print_tile(t_app *app, SDL_Surface *s, t_word ti, t_word tj)
 					& (1 << (7 - pi))) >> (7 - pi);
 			cid += ((app->emu.vram[offset + 1]
 						& (1 << (7 - pi))) >> (7 - pi)) << 1;
-			print_pixel(&app->emu, s,
+			print_pixel(s,
 				get_colour_from_palette(&app->emu, cid, BG_WIN_TILE),
 				(t_tile_pix_info){ti, tj, pi, pj});
 			++pi;
@@ -241,5 +228,6 @@ int	init_sdl(t_app *app)
 		return (fprintf(stderr, "Can't create renderer\n"), NOT_OK);
 	gettimeofday(&app->emu.last_tick, NULL);
 	app->emu.window = app->window;
+	app->emu.renderer = app->renderer;
 	return (OK);
 }

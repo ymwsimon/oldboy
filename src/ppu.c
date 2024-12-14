@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 17:42:59 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/12 13:45:50 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/14 12:58:52 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -400,7 +400,7 @@ void	ppu_draw_pix(t_emu *emu)
 	colour = get_obj_over_bgwin_colour(emu, cid);
 	s = SDL_GetWindowSurface(emu->window);
 	SDL_LockSurface(s);
-	print_pixel(emu, s, colour, (t_tile_pix_info){(emu->ppu.lx - 80) / 8,
+	print_pixel(s, colour, (t_tile_pix_info){(emu->ppu.lx - 80) / 8,
 		emu->ppu.ly / 8, (emu->ppu.lx - 80) % 8, emu->ppu.ly % 8});
 	SDL_UnlockSurface(s);
 }

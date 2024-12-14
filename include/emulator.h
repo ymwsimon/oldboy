@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/13 21:09:22 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/14 12:58:07 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -214,6 +214,7 @@ typedef struct s_emu
 	t_serial		serial;
 	t_ppu			ppu;
 	SDL_Window		*window;
+	SDL_Renderer	*renderer;
 	struct timeval	last_tick;
 	t_byte			print_log;
 }	t_emu;
@@ -318,7 +319,7 @@ int		is_ppu_enabled(t_emu *emu);
 void	ppu_tick(t_emu *emu);
 void	ppu_write(t_emu *emu, t_word addr, t_byte data);
 t_byte	ppu_read(t_emu *emu, t_word addr);
-void	print_pixel(t_emu *emu, SDL_Surface *s,
+void	print_pixel(SDL_Surface *s,
 			unsigned int colour, t_tile_pix_info t);
 t_ui	get_colour_from_palette(t_emu *emu,
 			t_byte cid, t_byte tile_type);
