@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/15 14:25:48 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/15 14:45:41 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@
 # define CLOCK_SCALE 20
 # define FPS 59.72750056960583
 # define WINDOW_NAME "Old Boy"
-# define RES_SCALE 4
+# define RES_SCALE 6
 # define SCR_H 144
 # define SCR_W 160
 # define WINDOW_H SCR_H * RES_SCALE

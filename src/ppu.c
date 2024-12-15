@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 17:42:59 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/14 12:58:52 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/15 15:37:55 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -174,8 +174,8 @@ void 	sort_obj_queue(t_emu *emu)
 		}
 		++i;
 	}
-	if (emu->ppu.num_obj_scanline > 10)
-		emu->ppu.num_obj_scanline = 10;
+	// if (emu->ppu.num_obj_scanline > 10)
+		// emu->ppu.num_obj_scanline = 10;
 }
 
 void	scan_obj(t_emu *emu)
