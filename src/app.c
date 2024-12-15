@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 13:14:12 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/14 13:18:06 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/14 15:22:07 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -184,6 +184,7 @@ int	run_app(t_app *app)
 	SDL_Event		event;
 
 	init_emu(&app->emu);
+	load_ram_sav(&app->emu);
 	while (OK)
 	{
 		tick(app);
@@ -208,6 +209,7 @@ int	run_app(t_app *app)
 		}
 		usleep(5);
 	}
+	save_ram_save(&app->emu);
 	// if (app->emu.serial.idx_out_buf)
 	// 	write_serial_buf_file(&app->emu);
 	SDL_DestroyWindow(app->window);

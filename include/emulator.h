@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/14 12:58:07 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/15 14:25:48 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,7 +84,7 @@ typedef struct s_rtc
 	t_byte	dh;
 	t_byte	last_latch_write;
 	t_byte	is_latched;
-	t_word	cycle;
+	t_ull	cycle;
 }	t_rtc;
 
 typedef struct s_cart
@@ -100,6 +100,7 @@ typedef struct s_cart
 	t_byte			rom_bank_id2;
 	t_byte			ram_bank_id;
 	t_byte			banking_mode;
+	char			*cart_file_name;
 	t_rtc			rtc;
 	t_cart_header	header;
 }	t_cart;
@@ -239,6 +240,8 @@ void	cart_write(t_emu *emu, t_word addr, t_byte data);
 t_byte	cart_read(t_emu *emu, t_word addr);
 void	init_cart(t_emu *emu);
 void	rtc_tick(t_emu *emu);
+void	load_ram_sav(t_emu *emu);
+void	save_ram_save(t_emu *emu);
 //app
 int		init_sdl(t_app *app);
 int		run_app(t_app *app);

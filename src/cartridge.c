@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 13:19:30 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/12 23:02:23 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/15 14:32:51 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@ void	init_cart(t_emu *emu)
 	emu->cart.rom_bank_id2 = 0;
 	emu->cart.ram_bank_id = 0;
 	bzero(&emu->cart.ram, 0x20000);
+	bzero(&emu->cart.rtc, sizeof(t_rtc));
 }
 
 void	print_byte_arr(t_byte *arr, size_t n, int in_char, int with_nl)
@@ -196,6 +197,7 @@ int	read_cartridge(char *path, t_cart *cart)
 	if (fd < 0)
 		return (fprintf(stderr, "Can't open file\n"), NOT_OK);
 	memset(cart, 0, sizeof(t_cart));
+	cart->cart_file_name = path;
 	read_size = 1;
 	while (read_size > 0)
 	{
@@ -214,6 +216,143 @@ int	read_cartridge(char *path, t_cart *cart)
 	}
 	close(fd);
 	return (OK);
+}
+
+t_byte	is_battery_power(t_emu *emu)
+{
+	t_byte	cart_type;
+
+	cart_type = emu->cart.header.cart_type;
+	return (cart_type == 0x3
+		|| cart_type == 0x6
+		|| cart_type == 0x9
+		|| cart_type == 0xD
+		|| cart_type == 0xF
+		|| cart_type == 0x10
+		|| cart_type == 0x13
+		|| cart_type == 0x1B
+		|| cart_type == 0x1E
+		|| cart_type == 0x22
+		|| cart_type == 0xFF);
+}
+
+t_byte	has_cart_ram(t_emu *emu)
+{
+	return (emu->cart.header.ram_size >= 2 && emu->cart.header.ram_size <= 5);
+}
+
+t_byte	has_cart_timer(t_emu *emu)
+{
+	return (emu->cart.header.cart_type == 0xF
+		|| emu->cart.header.cart_type == 0x10);
+}
+
+char	*get_sav_file_name(char *rom_name)
+{
+	char	*name_wo_ext;
+	Uint32	len_name_wo_ext;
+
+	if (!rom_name)
+		return (rom_name);
+	name_wo_ext = NULL;
+	if (!strrchr(rom_name, '.'))
+		name_wo_ext = strdup(rom_name);
+	else
+	{
+		len_name_wo_ext = strrchr(rom_name, '.') - rom_name;
+		name_wo_ext = malloc(sizeof(char) * (len_name_wo_ext + 5));
+		if (!name_wo_ext)
+			return (NULL);
+		bzero(name_wo_ext, sizeof(char) * (len_name_wo_ext + 5));
+		strncpy(name_wo_ext, rom_name, len_name_wo_ext);
+		strcpy(name_wo_ext + len_name_wo_ext, ".sav");
+	}
+	return (name_wo_ext);
+}
+
+Uint32	get_cart_ram_size(t_emu *emu)
+{
+	static Uint32	sizes[] = {0, 0, 0x2000, 0x8000, 0x20000, 0x10000};
+
+	if (emu->cart.header.ram_size <= 0x5)
+		return (sizes[emu->cart.header.ram_size]);
+	return (0);
+}
+
+void	load_rtc_sav(t_emu *emu, int fd)
+{
+	read(fd, &emu->cart.rtc.s, 1);
+	read(fd, &emu->cart.rtc.m, 1);
+	read(fd, &emu->cart.rtc.h, 1);
+	read(fd, &emu->cart.rtc.dl, 1);
+	read(fd, &emu->cart.rtc.dh, 1);
+	printf("loading s:%X m:%X h:%X dl:%X dh:%X\n", emu->cart.rtc.s, emu->cart.rtc.m, emu->cart.rtc.h, emu->cart.rtc.dl, emu->cart.rtc.dh);
+}
+
+void	save_rtc_sav(t_emu *emu, int fd)
+{
+	write(fd, &emu->cart.rtc.s, 1);
+	write(fd, &emu->cart.rtc.m, 1);
+	write(fd, &emu->cart.rtc.h, 1);
+	write(fd, &emu->cart.rtc.dl, 1);
+	write(fd, &emu->cart.rtc.dh, 1);
+	printf("saving s:%X m:%X h:%X dl:%X dh:%X\n", emu->cart.rtc.s, emu->cart.rtc.m, emu->cart.rtc.h, emu->cart.rtc.dl, emu->cart.rtc.dh);
+}
+
+void	load_ram_sav(t_emu *emu)
+{
+	char	*sav_file_name;
+	int		fd;
+	Uint32	ram_size;
+
+	if (!is_battery_power(emu))
+		return ;
+	sav_file_name = get_sav_file_name(emu->cart.cart_file_name);
+	if (!sav_file_name)
+		return ;
+	if (access(sav_file_name, F_OK) == -1)
+		return ;
+	if (access(sav_file_name, R_OK) == 0)
+	{
+		fd = open(sav_file_name, O_RDONLY);
+		if (fd >= 0)
+		{
+			ram_size = get_cart_ram_size(emu);
+			read(fd, &emu->cart.ram, ram_size);
+			if (has_cart_timer(emu))
+				load_rtc_sav(emu, fd);
+			close(fd);
+			return ;
+		}
+	}
+	fprintf(stderr, "Can't load save file..\n");
+}
+
+void	save_ram_save(t_emu *emu)
+{
+	char	*sav_file_name;
+	int		fd;
+	Uint32	ram_size;
+
+	if (!is_battery_power(emu))
+		return ;
+	sav_file_name = get_sav_file_name(emu->cart.cart_file_name);
+	if (!sav_file_name)
+		return ;
+	if (access(sav_file_name, F_OK) == -1)
+		fd = open(sav_file_name, O_WRONLY | O_CREAT);
+	else if (access(sav_file_name, W_OK) == 0)
+		fd = open(sav_file_name, O_WRONLY | O_TRUNC);
+	if (fd >= 0)
+	{
+		ram_size = get_cart_ram_size(emu);
+		write(fd, &emu->cart.ram, ram_size);
+		if (has_cart_timer(emu))
+			save_rtc_sav(emu, fd);
+		close(fd);
+		return ;
+	}
+	fprintf(stderr, "Can't write save file..\n");
 }
 
 uint32_t	n_rom_bank_bit_mask(t_emu *emu)
@@ -237,17 +376,6 @@ t_byte	n_ram_bank_bit_mask(t_emu *emu)
 	if (ram_bank_type <= 5)
 		return (offsets[ram_bank_type]);
 	return (0);
-}
-
-t_byte	has_cart_ram(t_emu *emu)
-{
-	return (emu->cart.header.ram_size >= 2 && emu->cart.header.ram_size <= 5);
-}
-
-t_byte	has_cart_timer(t_emu *emu)
-{
-	return (emu->cart.header.cart_type == 0xF
-		|| emu->cart.header.cart_type == 0x10);
 }
 
 void	update_cart_mbc1_ptr_offset(t_emu *emu)
@@ -289,8 +417,10 @@ void	update_cart_mbc3_ptr_offset(t_emu *emu)
 		emu->cart.ram_bank_ptr = emu->cart.ram + 0x2000
 			* (n_ram_bank_bit_mask(emu) & emu->cart.ram_bank_id);
 	if (!mbc3_is_pointing_ram(emu))
-		emu->cart.ram_bank_ptr = (t_byte *)&(emu->cart.rtc)
+		emu->cart.ram_bank_ptr = ((t_byte *)&(emu->cart.rtc))
 			+ (emu->cart.ram_bank_id - 0x8);
+		// {emu->cart.ram_bank_ptr = ((t_byte *)&(emu->cart.rtc))
+			// + (emu->cart.ram_bank_id - 0x8);printf("pointing to rtc %p v:%X\n", emu->cart.ram_bank_ptr, emu->cart.ram_bank_ptr[0]);}
 }
 
 void	update_cart_mbc5_ptr_offset(t_emu *emu)
@@ -378,9 +508,15 @@ t_byte	get_rtc_reg_data(t_emu *emu)
 
 void	mbc3_write_rtc_reg(t_emu *emu, t_byte data)
 {
-	static t_byte	modu[5] = {60, 60, 24, 255, 255};
+	static t_byte	modu[5] = {60, 60, 24, 0, 0};
 
-	emu->cart.ram_bank_ptr[0] = data % modu[emu->cart.ram_bank_id - 0x8];
+	if (data >= modu[emu->cart.ram_bank_id - 0x8])
+		data -= modu[emu->cart.ram_bank_id - 0x8];
+	// (void)modu;
+	// printf("before %X\n", emu->cart.ram_bank_ptr[0]);
+	*(emu->cart.ram_bank_ptr) = data;
+	// printf("after %X\n", emu->cart.ram_bank_ptr[0]);
+	// % modu[emu->cart.ram_bank_id - 0x8];
 }
 
 void	mbc3_write(t_emu *emu, t_word addr, t_byte data)
@@ -395,6 +531,7 @@ void	mbc3_write(t_emu *emu, t_word addr, t_byte data)
 	else if (addr >= 0x4000 && addr <= 0x5FFF
 		&& (data <= 0x3 || (data >= 0x8 && data <= 0xC)))
 		emu->cart.ram_bank_id = data;
+		// {emu->cart.ram_bank_id = data;printf("updating ram_bank_id data:%X\n", data);}
 	else if (addr >= 0x6000 && addr <= 0x7FFF)
 	{
 		if (data == 1 && emu->cart.rtc.last_latch_write == 0)
@@ -407,6 +544,8 @@ void	mbc3_write(t_emu *emu, t_word addr, t_byte data)
 	else if (addr >= 0xA000 && addr <= 0xBFFF && emu->cart.ram_timer_enbaled
 		&& !mbc3_is_pointing_ram(emu))
 		mbc3_write_rtc_reg(emu, data);
+	// if (addr >= 0xA000 && addr <= 0xBFFF)
+		// printf("writing to rtc or ram --addr:%X ram_ptr_data:%X ram_bank_id:%X\n", addr, emu->cart.ram_bank_ptr[0], emu->cart.ram_bank_id);
 	update_cart_mbc3_ptr_offset(emu);
 }
 
@@ -440,29 +579,33 @@ void	cart_write(t_emu *emu, t_word addr, t_byte data)
 
 t_byte	cart_read(t_emu *emu, t_word addr)
 {
+	// if (addr >= 0xA000 && addr <= 0xBFFF)
+		// printf("reading from rtc or ram --addr:%X ram_ptr_data:%X ram_bank_id:%X\n", addr, emu->cart.ram_bank_ptr[0], emu->cart.ram_bank_id);
 	if (addr <= 0x3FFF)
 		return (emu->cart.rom_bank0_ptr[addr]);
 	if (addr >= 0x4000 && addr <= 0x7FFF)
 		return (emu->cart.rom_bankx_ptr[addr - 0x4000]);
 	if (addr >= 0xA000 && addr <= 0xBFFF && emu->cart.ram_bank_ptr
-		&& emu->cart.ram_timer_enbaled)
-		return (emu->cart.ram_bank_ptr[addr - 0xA000]);
-	if (addr >= 0xA000 && addr <= 0xBFFF && emu->cart.ram_bank_ptr
 		&& emu->cart.ram_timer_enbaled
 		&& is_mbc3(emu) && !mbc3_is_pointing_ram(emu))
 		return (emu->cart.ram_bank_ptr[0]);
+	if (addr >= 0xA000 && addr <= 0xBFFF && emu->cart.ram_bank_ptr
+		&& emu->cart.ram_timer_enbaled)
+		return (emu->cart.ram_bank_ptr[addr - 0xA000]);
 	return (0xFF);
 }
 
 void	rtc_tick(t_emu *emu)
 {
 	t_word	day;
+	t_ull	p_cycle;
 
 	if (!(emu->cart.rtc.dh & 64))
 		++(emu->cart.rtc.cycle);
 	if ((emu->cart.rtc.dh & 64) || emu->cart.rtc.is_latched)
 		return ;
-	if (!(emu->cart.rtc.cycle % 32768))
+	p_cycle = emu->cart.rtc.cycle - 1;
+	if (((emu->cart.rtc.cycle ^ p_cycle) & FREQUENCY))
 		++(emu->cart.rtc.s);
 	emu->cart.rtc.m += emu->cart.rtc.s / 60;
 	emu->cart.rtc.s %= 60;
@@ -474,6 +617,6 @@ void	rtc_tick(t_emu *emu)
 	if (day > 0x1FFF)
 		emu->cart.rtc.dh |= 0x80;
 	emu->cart.rtc.dl = day & 0xFF;
-	emu->cart.rtc.dh = ~1;
+	emu->cart.rtc.dh &= ~1;
 	emu->cart.rtc.dh |= day & 1;
 }
