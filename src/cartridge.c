@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 13:19:30 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/15 14:32:51 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/15 15:57:00 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -286,7 +286,7 @@ void	load_rtc_sav(t_emu *emu, int fd)
 	read(fd, &emu->cart.rtc.h, 1);
 	read(fd, &emu->cart.rtc.dl, 1);
 	read(fd, &emu->cart.rtc.dh, 1);
-	printf("loading s:%X m:%X h:%X dl:%X dh:%X\n", emu->cart.rtc.s, emu->cart.rtc.m, emu->cart.rtc.h, emu->cart.rtc.dl, emu->cart.rtc.dh);
+	// printf("loading s:%X m:%X h:%X dl:%X dh:%X\n", emu->cart.rtc.s, emu->cart.rtc.m, emu->cart.rtc.h, emu->cart.rtc.dl, emu->cart.rtc.dh);
 }
 
 void	save_rtc_sav(t_emu *emu, int fd)
@@ -296,7 +296,7 @@ void	save_rtc_sav(t_emu *emu, int fd)
 	write(fd, &emu->cart.rtc.h, 1);
 	write(fd, &emu->cart.rtc.dl, 1);
 	write(fd, &emu->cart.rtc.dh, 1);
-	printf("saving s:%X m:%X h:%X dl:%X dh:%X\n", emu->cart.rtc.s, emu->cart.rtc.m, emu->cart.rtc.h, emu->cart.rtc.dl, emu->cart.rtc.dh);
+	// printf("saving s:%X m:%X h:%X dl:%X dh:%X\n", emu->cart.rtc.s, emu->cart.rtc.m, emu->cart.rtc.h, emu->cart.rtc.dl, emu->cart.rtc.dh);
 }
 
 void	load_ram_sav(t_emu *emu)
@@ -308,11 +308,8 @@ void	load_ram_sav(t_emu *emu)
 	if (!is_battery_power(emu))
 		return ;
 	sav_file_name = get_sav_file_name(emu->cart.cart_file_name);
-	if (!sav_file_name)
-		return ;
-	if (access(sav_file_name, F_OK) == -1)
-		return ;
-	if (access(sav_file_name, R_OK) == 0)
+	if (sav_file_name && access(sav_file_name, F_OK) == 0
+		&& access(sav_file_name, R_OK) == 0)
 	{
 		fd = open(sav_file_name, O_RDONLY);
 		if (fd >= 0)
@@ -322,10 +319,12 @@ void	load_ram_sav(t_emu *emu)
 			if (has_cart_timer(emu))
 				load_rtc_sav(emu, fd);
 			close(fd);
-			return ;
 		}
 	}
-	fprintf(stderr, "Can't load save file..\n");
+	else if (!sav_file_name || (access(sav_file_name, F_OK) == 0
+			&& access(sav_file_name, R_OK) == -1))
+		fprintf(stderr, "Can't load save file..\n");
+	free(sav_file_name);
 }
 
 void	save_ram_save(t_emu *emu)
@@ -339,6 +338,7 @@ void	save_ram_save(t_emu *emu)
 	sav_file_name = get_sav_file_name(emu->cart.cart_file_name);
 	if (!sav_file_name)
 		return ;
+	fd = -1;
 	if (access(sav_file_name, F_OK) == -1)
 		fd = open(sav_file_name, O_WRONLY | O_CREAT);
 	else if (access(sav_file_name, W_OK) == 0)
@@ -350,9 +350,10 @@ void	save_ram_save(t_emu *emu)
 		if (has_cart_timer(emu))
 			save_rtc_sav(emu, fd);
 		close(fd);
-		return ;
 	}
-	fprintf(stderr, "Can't write save file..\n");
+	else
+		fprintf(stderr, "Can't write save file..\n");
+	free(sav_file_name);
 }
 
 uint32_t	n_rom_bank_bit_mask(t_emu *emu)
