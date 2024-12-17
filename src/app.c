@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 13:14:12 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/14 15:22:07 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/17 21:57:27 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -191,7 +191,7 @@ int	run_app(t_app *app)
 		if (SDL_PollEvent(&event))
 		{
 			if (event.type == SDL_EVENT_QUIT || (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_Q))
-				break;
+				break ;
 			else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_P)
 				print_tile_map(&app->emu);
 			else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_M)

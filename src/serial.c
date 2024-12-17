@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/28 23:02:06 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/13 21:12:36 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/17 21:53:56 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,7 +73,6 @@ void	serial_tick(t_emu *emu)
 	{
 		emu->serial.io_byte <<= 1;
 		emu->serial.io_byte |= 1;
-		// emu->serial.io_byte |= (1 << emu->serial.io_byte_bit_idx);
 		++(emu->serial.io_byte_bit_idx);
 		if (emu->serial.io_byte_bit_idx == 8)
 		{

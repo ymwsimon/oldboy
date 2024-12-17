@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/28 21:44:44 by mayeung           #+#    #+#             */
-/*   Updated: 2024/11/27 12:14:01 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/17 21:54:32 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,7 @@ int	is_timer_enabled(t_emu *emu)
 	return (emu->timer.tac & 4);
 }
 
-int	need_to_add_tima(t_emu *emu)//, t_word p_div, t_word div)
+int	need_to_add_tima(t_emu *emu)
 {
 	static t_word	bit_pos[4] = {10, 4, 6, 8};
 	t_word			p_div;
@@ -79,12 +79,6 @@ int	need_to_add_tima(t_emu *emu)//, t_word p_div, t_word div)
 void	timer_tick(t_emu *emu)
 {
 	++(emu->timer.div);
-	// if (emu->timer.interrupt_countdown)
-	// {
-	// 	--(emu->timer.interrupt_countdown);
-	// 	if (!emu->timer.interrupt_countdown)
-	// 		emu->interrupt_flag |= 4;
-	// }
 	if (is_timer_enabled(emu))
 	{
 		if (need_to_add_tima(emu))
@@ -93,104 +87,8 @@ void	timer_tick(t_emu *emu)
 			if (emu->timer.tima == 0)
 			{
 				emu->timer.tima = emu->timer.tma;
-				// emu->timer.interrupt_countdown = 4;
 				emu->interrupt_flag |= 4;
 			}
 		}
 	}
 }
-
-	// t_word			p_div;
-	// t_word			div;
-	// t_byte			clock_setting;
-	// static t_byte	n_bit_shift[4] = {9, 3, 5, 7};
-	// int				need_update_tima;
-
-	// p_div = emu->timer.div;
-	// ++(emu->timer.div);
-	// div = emu->timer.div;
-	// if (is_timer_enabled(emu))
-	// {
-	// 	clock_setting = emu->timer.tac & 3;
-	// 	need_update_tima = (p_div & (1 << n_bit_shift[clock_setting]))
-	// 		&& (!(div & (1 << n_bit_shift[clock_setting])));
-	// 	if (need_update_tima)
-	// 	{
-	// 		if (emu->timer.tima == 0xFF)
-	// 		{
-	// 			emu->interrupt_flag |= 4;
-	// 			emu->timer.tima = emu->timer.tma;
-	// 		}
-	// 		else
-	// 			++(emu->timer.tima);
-	// 	}
-	// }
-
-	// static t_word	freq_divider[] = {1024, 16, 64, 256};
-	// static t_byte	tima_overflow = FALSE;
-	// t_word			div;
-	// t_word			freq;
-	// t_byte			increase_tima;
-
-	// div = emu->timer.div;
-	// ++(emu->timer.div);
-	// if (tima_overflow)
-	// {
-	// 	tima_overflow = FALSE;
-	// 	emu->interrupt_flag |= 4;
-	// 	emu->timer.tima = emu->timer.tma;
-	// }
-	// freq = freq_divider[emu->timer.tac & 3] / 4;
-	// increase_tima = ((div + 1) / freq) - (div / freq);
-	// if (increase_tima && (emu->timer.tac & 4))
-	// {
-	// 	if (emu->timer.tima == 0xFF)
-	// 	{
-	// 		emu->timer.tima = 0;
-	// 		tima_overflow = TRUE;
-	// 	}
-	// 	else
-	// 		++(emu->timer.tima);
-	// }
-// void timer_ticks(u8 ticks)
-// {
-//     u16 div = g_timer.div;
-//     u8 tac = read_timer(TIMER_TAC);
-
-//     // update DIV's 16bit value
-//     g_timer.div += ticks;
-
-//     // delayed IE
-//     if (g_cpu.ime_scheduled) {
-//         interrupt_set_ime(true);
-//         g_cpu.ime_scheduled = false;
-//     }
-
-//     // TIMA overflowed during the last cycle
-//     if (g_tima_overflow) {
-//         g_tima_overflow = false;
-//         interrupt_request(IV_TIMA);
-//         g_timer.tima = g_timer.tma;
-//     }
-
-//     // We only update the timer's value at certain frequencies (freq_divider)
-//     // Here we compute the number of 'freq' between the old div and the new div
-//     // (in clocks, no cycles ! Hence we divide by 4)
-//     u16 freq = g_freq_divider[tac & 0x03] / 4;
-//     u8 increase_tima = ((div + ticks) / freq) - (div / freq);
-
-//     // If bit 2 of TAC is set to 0 then the timer is disabled
-//     if (increase_tima && tac & 0x4) {
-//         u8 tima = read_timer(TIMER_TIMA);
-
-//         if (tima == 0xFF) { // overflow
-//             // Timer interrupt is delayed 1 cycle (4 clocks) from the TIMA
-//             // overflow. The TMA reload to TIMA is also delayed. For one cycle,
-//             // after overflowing TIMA, the value in TIMA is 00h, not TMA.
-//             write_timer(TIMER_TIMA, 0x00);
-//             g_tima_overflow = true;
-//         } else {
-//             write_timer(TIMER_TIMA, tima + increase_tima);
-//         }
-//     }
-// }

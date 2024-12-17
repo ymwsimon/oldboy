@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 15:45:49 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/13 21:08:49 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/17 21:52:01 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,9 +21,7 @@ int	update_frame(t_emu *emu, double delta_time)
 	i = 0;
 	while (i < num_clock_cycle)
 	{
-		// if (!(emu->clock_cycle % 4))
 		cpu_step(emu);
-		// ++(emu->clock_cycle);
 		++i;
 	}
 	return (OK);

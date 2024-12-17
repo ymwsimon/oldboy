@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 17:42:59 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/17 20:28:23 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/17 21:56:11 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 int	not_in_dma(t_emu *emu)
 {
 	return ((emu->ppu.dma_write_counter == 0
-		|| emu->ppu.dma_write_counter > 640)
+			|| emu->ppu.dma_write_counter > 640)
 		&& !emu->ppu.dma_cancelled);
 }
 
@@ -67,7 +67,6 @@ void	ppu_write(t_emu *emu, t_word addr, t_byte data)
 		{
 			emu->ppu.ly = 0;
 			emu->ppu.lx = 0;
-			// emu->ppu.ppu_mode = OAM_SCAN;
 		}
 	}
 	if (addr == 0xFF41)
@@ -85,11 +84,8 @@ void	ppu_write(t_emu *emu, t_word addr, t_byte data)
 		emu->ppu.dma = data;
 		if (emu->ppu.dma_write_counter)
 			emu->ppu.dma_cancelled = 8;
-			// {emu->ppu.dma_cancelled = 8;printf("dma cancelled\n");}
 		emu->ppu.dma_write_counter = 648;
 	}
-	// if (addr == 0xFF46 && !not_in_dma(emu))
-		// printf("in dma-- counter:%d pc:%X\n", emu->ppu.dma_write_counter, emu->cpu.pc);
 	if (addr == 0xFF47)
 		emu->ppu.bgp = data;
 	if (addr == 0xFF48)
@@ -140,8 +136,6 @@ t_byte	ppu_read(t_emu *emu, t_word addr)
 		return (emu->ppu.wy);
 	if (addr == 0xFF4B)
 		return (emu->ppu.wx);
-	// if (addr >= 0xFE00 && addr <= 0xFE9F)
-		// printf("reading from oam-- dma counter:%d addr:%X data:%X\n", emu->ppu.dma_write_counter, addr, emu->ppu.oam[addr - 0xFE00]);
 	if (addr >= 0xFE00 && addr <= 0xFE9F
 		&& (emu->ppu.ppu_mode == HBLANK || emu->ppu.ppu_mode == VBLANK)
 		&& not_in_dma(emu))
@@ -165,7 +159,7 @@ void	swap_elem(t_emu *emu, t_byte i, t_byte j)
 	emu->ppu.object_queue[j] = temp;
 }
 
-void 	sort_obj_queue(t_emu *emu)
+void	sort_obj_queue(t_emu *emu)
 {
 	t_byte	i;
 	t_byte	j;
@@ -186,9 +180,9 @@ void 	sort_obj_queue(t_emu *emu)
 		}
 		++i;
 	}
+}
 	// if (emu->ppu.num_obj_scanline > 10)
 		// emu->ppu.num_obj_scanline = 10;
-}
 
 void	scan_obj(t_emu *emu)
 {
@@ -524,10 +518,12 @@ void	update_ly_eq_lyc(t_emu *emu)
 
 void	check_ppu_stat_interrupt(t_emu *emu)
 {
-	if (is_ppu_enabled(emu) && ((emu->ppu.ly < 144 && ((emu->ppu.lx == 0 && (emu->ppu.stat & 32))
-				|| (emu->ppu.lx == 252 && (emu->ppu.stat & 8))))
-		|| (is_switching_to_vblank(emu) && (emu->ppu.stat & 16))
-		|| ((emu->ppu.stat & 4) && (emu->ppu.stat & 64) && emu->ppu.lx == 0)))
+	if (is_ppu_enabled(emu) && ((emu->ppu.ly < 144
+				&& ((emu->ppu.lx == 0 && (emu->ppu.stat & 32))
+					|| (emu->ppu.lx == 252 && (emu->ppu.stat & 8))))
+			|| (is_switching_to_vblank(emu) && (emu->ppu.stat & 16))
+			|| ((emu->ppu.stat & 4) && (emu->ppu.stat & 64)
+				&& emu->ppu.lx == 0)))
 		emu->interrupt_flag |= 2;
 }
 

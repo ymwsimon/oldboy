@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 13:19:30 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/15 15:57:00 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/17 21:56:43 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -206,7 +206,8 @@ int	read_cartridge(char *path, t_cart *cart)
 		{
 			new_data = malloc(sizeof(t_byte) * (cart->file_size + read_size));
 			if (!new_data)
-				return (fprintf(stderr, "Allocate memory fail\n"), free(cart->data), close(fd), NOT_OK);
+				return (fprintf(stderr, "Allocate memory fail\n"),
+					free(cart->data), close(fd), NOT_OK);
 			memcpy(new_data, cart->data, cart->file_size);
 			memcpy(new_data + cart->file_size, buffer, read_size);
 			free(cart->data);
@@ -286,7 +287,6 @@ void	load_rtc_sav(t_emu *emu, int fd)
 	read(fd, &emu->cart.rtc.h, 1);
 	read(fd, &emu->cart.rtc.dl, 1);
 	read(fd, &emu->cart.rtc.dh, 1);
-	// printf("loading s:%X m:%X h:%X dl:%X dh:%X\n", emu->cart.rtc.s, emu->cart.rtc.m, emu->cart.rtc.h, emu->cart.rtc.dl, emu->cart.rtc.dh);
 }
 
 void	save_rtc_sav(t_emu *emu, int fd)
@@ -296,7 +296,6 @@ void	save_rtc_sav(t_emu *emu, int fd)
 	write(fd, &emu->cart.rtc.h, 1);
 	write(fd, &emu->cart.rtc.dl, 1);
 	write(fd, &emu->cart.rtc.dh, 1);
-	// printf("saving s:%X m:%X h:%X dl:%X dh:%X\n", emu->cart.rtc.s, emu->cart.rtc.m, emu->cart.rtc.h, emu->cart.rtc.dl, emu->cart.rtc.dh);
 }
 
 void	load_ram_sav(t_emu *emu)
@@ -420,8 +419,6 @@ void	update_cart_mbc3_ptr_offset(t_emu *emu)
 	if (!mbc3_is_pointing_ram(emu))
 		emu->cart.ram_bank_ptr = ((t_byte *)&(emu->cart.rtc))
 			+ (emu->cart.ram_bank_id - 0x8);
-		// {emu->cart.ram_bank_ptr = ((t_byte *)&(emu->cart.rtc))
-			// + (emu->cart.ram_bank_id - 0x8);printf("pointing to rtc %p v:%X\n", emu->cart.ram_bank_ptr, emu->cart.ram_bank_ptr[0]);}
 }
 
 void	update_cart_mbc5_ptr_offset(t_emu *emu)
@@ -513,11 +510,7 @@ void	mbc3_write_rtc_reg(t_emu *emu, t_byte data)
 
 	if (data >= modu[emu->cart.ram_bank_id - 0x8])
 		data -= modu[emu->cart.ram_bank_id - 0x8];
-	// (void)modu;
-	// printf("before %X\n", emu->cart.ram_bank_ptr[0]);
 	*(emu->cart.ram_bank_ptr) = data;
-	// printf("after %X\n", emu->cart.ram_bank_ptr[0]);
-	// % modu[emu->cart.ram_bank_id - 0x8];
 }
 
 void	mbc3_write(t_emu *emu, t_word addr, t_byte data)
@@ -532,7 +525,6 @@ void	mbc3_write(t_emu *emu, t_word addr, t_byte data)
 	else if (addr >= 0x4000 && addr <= 0x5FFF
 		&& (data <= 0x3 || (data >= 0x8 && data <= 0xC)))
 		emu->cart.ram_bank_id = data;
-		// {emu->cart.ram_bank_id = data;printf("updating ram_bank_id data:%X\n", data);}
 	else if (addr >= 0x6000 && addr <= 0x7FFF)
 	{
 		if (data == 1 && emu->cart.rtc.last_latch_write == 0)
@@ -545,8 +537,6 @@ void	mbc3_write(t_emu *emu, t_word addr, t_byte data)
 	else if (addr >= 0xA000 && addr <= 0xBFFF && emu->cart.ram_timer_enbaled
 		&& !mbc3_is_pointing_ram(emu))
 		mbc3_write_rtc_reg(emu, data);
-	// if (addr >= 0xA000 && addr <= 0xBFFF)
-		// printf("writing to rtc or ram --addr:%X ram_ptr_data:%X ram_bank_id:%X\n", addr, emu->cart.ram_bank_ptr[0], emu->cart.ram_bank_id);
 	update_cart_mbc3_ptr_offset(emu);
 }
 
@@ -580,8 +570,6 @@ void	cart_write(t_emu *emu, t_word addr, t_byte data)
 
 t_byte	cart_read(t_emu *emu, t_word addr)
 {
-	// if (addr >= 0xA000 && addr <= 0xBFFF)
-		// printf("reading from rtc or ram --addr:%X ram_ptr_data:%X ram_bank_id:%X\n", addr, emu->cart.ram_bank_ptr[0], emu->cart.ram_bank_id);
 	if (addr <= 0x3FFF)
 		return (emu->cart.rom_bank0_ptr[addr]);
 	if (addr >= 0x4000 && addr <= 0x7FFF)

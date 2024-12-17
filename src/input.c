@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/12 15:14:26 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/13 21:03:53 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/17 21:52:17 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,53 +49,6 @@ t_byte	get_key_state(t_emu *emu)
 	}
 	return (pad_status);
 }
-
-// void	input_tick_state(t_emu *emu)
-// {
-// 	t_byte	pad_status;
-
-// 	pad_status = 0xFF;
-// 	if (!(emu->joypad.joyp & 0x10))
-// 	{
-// 		if (emu->joypad.right)
-// 			pad_status &= ~1;
-// 		if (emu->joypad.left)
-// 			pad_status &= ~2;
-// 		if (emu->joypad.up)
-// 			pad_status &= ~4;
-// 		if (emu->joypad.down)
-// 			pad_status &= ~8;
-// 		// if ((emu->joypad.right && (emu->joypad.joyp & 1))
-// 		// 	|| (emu->joypad.left && (emu->joypad.joyp & 2))
-// 		// 	|| (emu->joypad.up && (emu->joypad.joyp & 4))
-// 		// 	|| (emu->joypad.down && (emu->joypad.joyp & 8)))
-// 		// 	interrupt = TRUE;
-// 		pad_status &= ~0x10;
-// 	}
-// 	if (!(emu->joypad.joyp & 0x20))
-// 	{
-// 		if (emu->joypad.a)
-// 			pad_status &= ~1;
-// 		if (emu->joypad.b)
-// 			pad_status &= ~2;
-// 		if (emu->joypad.select)
-// 			pad_status &= ~4;
-// 		if (emu->joypad.start)
-// 			pad_status &= ~8;
-// 		// if ((emu->joypad.a && (emu->joypad.joyp & 1))
-// 		// 	|| (emu->joypad.b && (emu->joypad.joyp & 2))
-// 		// 	|| (emu->joypad.select && (emu->joypad.joyp & 4))
-// 		// 	|| (emu->joypad.start && (emu->joypad.joyp & 8)))
-// 		// 	interrupt = TRUE;
-// 		pad_status &= ~0x20;
-// 	}
-// 	if ((!(pad_status & 1) && (emu->joypad.joyp & 1))
-// 			|| (!(pad_status & 2) && (emu->joypad.joyp & 2))
-// 			|| (!(pad_status & 4) && (emu->joypad.joyp & 4))
-// 			|| (!(pad_status & 8) && (emu->joypad.joyp & 8)))
-// 		emu->interrupt_flag |= 16;
-// 	emu->joypad.joyp = pad_status;
-// }
 
 void	input_tick(t_emu *emu)
 {
