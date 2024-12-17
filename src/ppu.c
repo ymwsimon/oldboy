@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 17:42:59 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/17 13:55:11 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/17 20:28:23 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,6 +80,8 @@ void	ppu_write(t_emu *emu, t_word addr, t_byte data)
 		emu->ppu.lyc = data;
 	if (addr == 0xFF46)
 	{
+		if (data > 0xDF)
+			data &= ~0x20;
 		emu->ppu.dma = data;
 		if (emu->ppu.dma_write_counter)
 			emu->ppu.dma_cancelled = 8;
