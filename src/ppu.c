@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 17:42:59 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/15 15:37:55 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/17 13:55:11 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ void	init_ppu(t_emu *emu)
 	emu->ppu.ppu_mode = OAM_SCAN;
 	emu->ppu.scx = 0;
 	emu->ppu.scy = 0;
-	emu->ppu.stat = 0;
+	emu->ppu.stat = 0x80;
 	emu->ppu.lcdc = 0x91;
 	emu->ppu.lyc = 0;
 	emu->ppu.dma_write_counter = 0;
@@ -57,12 +57,18 @@ void	print_oam(t_emu *emu)
 
 void	ppu_write(t_emu *emu, t_word addr, t_byte data)
 {
-	if (addr == 0xFF40 && (emu->ppu.ppu_mode == VBLANK || (data & 0x80)))
-		emu->ppu.lcdc = data;
-	if (addr == 0xFF40 && emu->ppu.ppu_mode != VBLANK && !(data & 0x80))
+	if (addr == 0xFF40)
 	{
-		emu->ppu.lcdc = 0x80 | (data & ~0x80);
-		emu->ppu.ly = 0;
+		if (emu->ppu.ppu_mode != VBLANK)
+			emu->ppu.lcdc = 0x80 | (data & ~0x80);
+		else
+			emu->ppu.lcdc = data;
+		if (!is_ppu_enabled(emu))
+		{
+			emu->ppu.ly = 0;
+			emu->ppu.lx = 0;
+			// emu->ppu.ppu_mode = OAM_SCAN;
+		}
 	}
 	if (addr == 0xFF41)
 		emu->ppu.stat = (data & ~7) | (emu->ppu.stat & 7);
@@ -111,7 +117,11 @@ t_byte	ppu_read(t_emu *emu, t_word addr)
 	if (addr == 0xFF43)
 		return (emu->ppu.scx);
 	if (addr == 0xFF44 && is_ppu_enabled(emu))
+	{
+		if (emu->ppu.lx == 452)
+			return ((emu->ppu.ly + 1) % 154);
 		return (emu->ppu.ly);
+	}
 	if (addr == 0xFF44 && !is_ppu_enabled(emu))
 		return (0x00);
 	if (addr == 0xFF45)
@@ -394,6 +404,8 @@ void	ppu_draw_pix(t_emu *emu)
 	t_byte			cid;
 	SDL_Surface		*s;
 
+	if (emu->ppu.lx >= 240)
+		return ;
 	cid = get_bg_cid(emu);
 	if (is_window_covered(emu))
 		cid = get_win_cid(emu);
@@ -425,7 +437,7 @@ void	non_vblank(t_emu *emu)
 			emu->ppu.ppu_mode = OAM_SCAN;
 			++(emu->ppu.ly);
 		}
-		else if (emu->ppu.lx == 240)
+		else if (emu->ppu.lx == 252)
 			emu->ppu.ppu_mode = HBLANK;
 		else if (emu->ppu.lx == 80)
 			emu->ppu.ppu_mode = DRAWING;
@@ -511,7 +523,7 @@ void	update_ly_eq_lyc(t_emu *emu)
 void	check_ppu_stat_interrupt(t_emu *emu)
 {
 	if (is_ppu_enabled(emu) && ((emu->ppu.ly < 144 && ((emu->ppu.lx == 0 && (emu->ppu.stat & 32))
-				|| (emu->ppu.lx == 240 && (emu->ppu.stat & 8))))
+				|| (emu->ppu.lx == 252 && (emu->ppu.stat & 8))))
 		|| (is_switching_to_vblank(emu) && (emu->ppu.stat & 16))
 		|| ((emu->ppu.stat & 4) && (emu->ppu.stat & 64) && emu->ppu.lx == 0)))
 		emu->interrupt_flag |= 2;
@@ -528,6 +540,11 @@ void	ppu_tick(t_emu *emu)
 	dma_transfer(emu);
 	if (!is_ppu_enabled(emu))
 		return ;
+	if (emu->ppu.ppu_mode == OAM_SCAN && emu->ppu.lx == 0)
+		scan_obj(emu);
+	if (emu->ppu.ppu_mode == DRAWING && is_ppu_enabled(emu))
+		ppu_draw_pix(emu);
+	++(emu->ppu.lx);
 	non_vblank(emu);
 	check_last_dot_of_line(emu);
 	check_last_line_of_screen(emu);
@@ -536,9 +553,4 @@ void	ppu_tick(t_emu *emu)
 	update_ly_eq_lyc(emu);
 	check_ppu_stat_interrupt(emu);
 	check_ppu_vblank_interrupt(emu);
-	if (emu->ppu.ppu_mode == OAM_SCAN && emu->ppu.lx == 0)
-		scan_obj(emu);
-	if (emu->ppu.ppu_mode == DRAWING && is_ppu_enabled(emu))
-		ppu_draw_pix(emu);
-	++(emu->ppu.lx);
 }
