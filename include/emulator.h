@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/15 14:45:41 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/19 13:05:19 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,9 @@
 # define BG_WIN_TILE 0
 # define OBJ0_TILE 1
 # define OBJ1_TILE 2
+# define M_PI 3.1415926535
 # include <SDL3/SDL.h>
+# include <SDL3/SDL_audio.h>
 # include <SDL3/SDL_keycode.h>
 # include <unistd.h>
 # include <stdlib.h>
@@ -49,6 +51,7 @@
 # include <string.h>
 # include <fcntl.h>
 # include <stdbool.h>
+# include <math.h>
 # include <sys/time.h>
 
 typedef unsigned char		t_byte;
@@ -183,6 +186,32 @@ typedef struct s_ppu
 	t_byte	dma_cancelled;
 	t_mode	ppu_mode;
 }	t_ppu;
+
+typedef struct s_apu
+{
+	t_byte	nr10_c1_sweep;
+	t_byte	nr11_c1_timer_duty;
+	t_byte	nr12_c1_vol_env;
+	t_byte	nr13_c1_per_low;
+	t_byte	nr14_c1_per_high_ctrl;
+	t_byte	nr21_c2_timer_duty;
+	t_byte	nr22_c2_vol_env;
+	t_byte	nr23_c2_per_low;
+	t_byte	nr24_c2_per_high_ctrl;
+	t_byte	nr30_c3_dac;
+	t_byte	nr31_c3_timer;
+	t_byte	nr32_c3_out_lvl;
+	t_byte	nr33_c3_per_low;
+	t_byte	nr34_c3_per_high_ctrl;
+	t_byte	nr41_c4_timer;
+	t_byte	nr42_c4_vol_env;
+	t_byte	nr43_c4_freq_ran;
+	t_byte	nr44_c4_ctrl;
+	t_byte	nr50_mas_vol_vin_pan;
+	t_byte	nr51_sound_pan;
+	t_byte	nr52_mas_ctrl;
+	t_byte	wave_ram[0x10];
+}	t_apu;
 
 typedef struct s_joypad
 {

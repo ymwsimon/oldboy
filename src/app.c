@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 13:14:12 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/17 21:57:27 by mayeung          ###   ########.fr       */
+/*   Updated: 2024/12/19 13:09:32 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -178,6 +178,99 @@ void	print_oam_content(t_emu *emu)
 			printf("\n");
 	}
 }
+typedef struct {
+  float current_step;
+  float step_size;
+  float volume;
+} oscillator;
+
+oscillator oscillate(float rate, float volume) {
+  oscillator o = {
+      .current_step = 0,
+      .volume = volume,
+      .step_size = (2 * M_PI) / rate,
+  };
+  return o;
+}
+
+float next(oscillator *os) {
+  os->current_step += os->step_size;
+  return sinf(os->current_step) * os->volume;
+}
+
+// void oscillator_callback(void *userdata, Uint8 *stream, int len) {
+//   float *fstream = (float *)stream;
+//   for (int i = 0; i < BUFFER_SIZE; i++) {
+//     float v = next(A4_oscillator);
+//     fstream[i] = v;
+//   }
+// }
+void	ascb(void *userdata, SDL_AudioStream *stream,
+	int additional_amount, int total_amount)
+{
+	(void)userdata;
+	(void)stream;
+	(void)additional_amount;
+	(void)total_amount;
+	// return (NULL);
+}
+
+float	*alloc_fill_buff(float pitch)
+{
+	float	*buf;
+	t_word	i;
+	oscillator	o;
+
+	buf = malloc(sizeof(float) * BUFFER_SIZE);
+	if (!buf)
+		return (buf);
+	i = 0;
+	o = oscillate((2 * M_PI / pitch), 5);
+	while (i < BUFFER_SIZE)
+	{
+		buf[i] = next(&o);
+		++i;
+	}
+	return (buf);
+}
+
+void	make_noise(t_emu *emu)
+{
+	const int				sample_rate = 44100;
+	const int				buffer_size = 4096;
+	const double			a4_osc = sample_rate / 442.0;
+	SDL_AudioSpec			a_spec;
+	SDL_AudioSpec			d_spec;
+	SDL_AudioStream			*s;
+	// SDL_AudioDeviceID		id;
+	float					*buf;
+
+	(void)emu;
+	(void)buffer_size;
+	(void)sample_rate;
+	(void)a4_osc;
+	(void)a_spec;
+	(void)d_spec;
+	a_spec.channels = 2;
+	a_spec.freq = sample_rate;
+	// s = SDL_CreateAudioStream(&a_spec, &d_spec);
+	// SDL_DestroyAudioStream(s);
+	// id = SDL_OpenAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, NULL);
+	s = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, NULL, ascb, NULL);
+	buf = alloc_fill_buff(442);
+	if (buf && s)
+	{
+		SDL_PutAudioStreamData(s, buf, BUFFER_SIZE);
+		SDL_ResumeAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK);
+	}
+	else
+		printf("Can't allocate memory or open audio device\n");
+	free(buf);
+	SDL_DestroyAudioStream(s);
+	// SDL_CloseAudioDevice(id);
+	// a_spec.
+	// a_spec.format = sdl_aud
+}
 
 int	run_app(t_app *app)
 {
@@ -202,6 +295,8 @@ int	run_app(t_app *app)
 				print_oam_content(&app->emu);
 			else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_L)
 				app->emu.print_log = !app->emu.print_log;
+			else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_N)
+				make_noise(&app->emu);
 			else if (event.type == SDL_EVENT_KEY_DOWN)
 				handle_input_down(&app->emu, event);
 			else if (event.type == SDL_EVENT_KEY_UP)

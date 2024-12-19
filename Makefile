@@ -1,6 +1,6 @@
 NAME = emu
 
-SRC = main cartridge app cpu bus emu instruction interrupt timer serial ppu input
+SRC = main cartridge app cpu bus emu instruction interrupt timer serial ppu input apu
 
 SRC_DIR = src
 
@@ -12,7 +12,7 @@ INC_DIR = include
 
 FLAGS = -Wall -Werror -Wextra -g
 
-LIB = -lSDL3
+LIB = -lSDL3 -lm
 
 INCLUDE_PATH = -I/home/$(USER)/SDL/include
 
