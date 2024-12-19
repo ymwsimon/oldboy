@@ -245,6 +245,7 @@ typedef struct s_emu
 	t_ppu			ppu;
 	SDL_Window		*window;
 	SDL_Renderer	*renderer;
+	SDL_AudioStream	*audio_stream;
 	struct timeval	last_tick;
 	t_byte			print_log;
 }	t_emu;
