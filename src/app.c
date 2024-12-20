@@ -234,56 +234,32 @@ float	*alloc_fill_buff(float pitch)
 	return (buf);
 }
 
-void	make_noise(t_emu *emu)
+void	make_noise(t_emu *emu, SDL_Keycode code)
 {
-	const int				sample_rate = 44100;
-	const int				buffer_size = 4096;
-	const double			a4_osc = sample_rate / 442.0;
 	static int total_samples_generated = 0;
-	float					*buf;
-	const int minimum_audio = (8000 * sizeof (float)) / 2;
-	static float samples[BUFFER_SIZE];
+	const int minimum_audio = (SAMPLING_RATE * sizeof (float)) / 2;
+	static float samples[BUFFER_SIZE * 10];
+    float sine_freq;
+	float	time;
 	int i;
 
 	printf("Current stream buffer:%d\n", SDL_GetAudioStreamAvailable(emu->audio_stream));
-    if (SDL_GetAudioStreamAvailable(emu->audio_stream) < minimum_audio) {
-
-        for (i = 0; i < BUFFER_SIZE; i++) {
-            const float time = total_samples_generated / 8000.0f;
-            const float sine_freq = 442;
-            samples[i] = SDL_sinf(6.283185f * sine_freq * time);
-            total_samples_generated++;
+	i = 0;
+    if (SDL_GetAudioStreamAvailable(emu->audio_stream) < minimum_audio)
+	{
+		while (i < BUFFER_SIZE * 10)
+		{
+			sine_freq = 65;
+			if (code == SDLK_U)
+				sine_freq *= 1.5;
+            time = (float)total_samples_generated / SAMPLING_RATE;
+            samples[i] = sinf(2 * M_PI * sine_freq * time) * 20;
+			printf("sample:%f\n", samples[i]);
+            ++total_samples_generated;
+			++i;
         }
         SDL_PutAudioStreamData(emu->audio_stream, samples, sizeof (samples));
     }
-	(void)emu;
-	(void)buffer_size;
-	(void)sample_rate;
-	(void)a4_osc;
-	(void)buf;
-	// (void)a_spec;
-	// (void)d_spec;
-	// a_spec.channels = 2;
-	// a_spec.freq = sample_rate;
-	// s = SDL_CreateAudioStream(&a_spec, &d_spec);
-	// SDL_DestroyAudioStream(s);
-	// id = SDL_OpenAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, NULL);
-	// s = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, NULL, NULL, NULL);
-	// buf = alloc_fill_buff(442);
-	// if (buf)
-	// {
-	// 	printf("try to make noise\n");
-	// 	SDL_ResumeAudioStreamDevice(emu->audio_stream);
-	// 	SDL_PutAudioStreamData(emu->audio_stream, buf, BUFFER_SIZE);
-	// 	// SDL_ResumeAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK);
-	// }
-	// else
-	// 	printf("Can't allocate memory or open audio device\n");
-	// free(buf);
-	// SDL_DestroyAudioStream(s);
-	// SDL_CloseAudioDevice(id);
-	// a_spec.
-	// a_spec.format = sdl_aud
 }
 
 int	run_app(t_app *app)
@@ -309,13 +285,14 @@ int	run_app(t_app *app)
 				print_oam_content(&app->emu);
 			else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_L)
 				app->emu.print_log = !app->emu.print_log;
-			else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_N)
-				make_noise(&app->emu);
+			else if (event.type == SDL_EVENT_KEY_DOWN && (event.key.key == SDLK_N || event.key.key == SDLK_U))
+				make_noise(&app->emu, event.key.key);
 			else if (event.type == SDL_EVENT_KEY_DOWN)
 				handle_input_down(&app->emu, event);
 			else if (event.type == SDL_EVENT_KEY_UP)
 				handle_input_up(&app->emu, event);
 		}
+		// make_noise(&app->emu, event.key.key);
 		usleep(5);
 	}
 	save_ram_save(&app->emu);
@@ -333,7 +310,7 @@ int	init_sdl(t_app *app)
 
 	spec.channels = 1;
     spec.format = SDL_AUDIO_F32;
-    spec.freq = 8000;
+    spec.freq = SAMPLING_RATE;
 	if (!SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS))
 		return (fprintf(stderr, "Can't init sdl\n"), NOT_OK);
 	app->window = SDL_CreateWindow(WINDOW_NAME, WINDOW_W, WINDOW_H, 0);

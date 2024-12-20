@@ -39,6 +39,7 @@ void	emu_tick(t_emu *emu, t_ull clock_cycle)
 		serial_tick(emu);
 		input_tick(emu);
 		rtc_tick(emu);
+		apu_tick(emu);
 		++(emu->clock_cycle);
 		++i;
 	}
@@ -60,6 +61,7 @@ int	init_emu(t_emu *emu)
 	init_serial(emu);
 	init_input(emu);
 	init_cart(emu);
+	init_apu(emu);
 	bzero(&emu->vram, 0x2000);
 	bzero(&emu->wram, 0x2000);
 	bzero(&emu->hram, 0x7F);

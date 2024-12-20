@@ -42,6 +42,7 @@
 # define OBJ0_TILE 1
 # define OBJ1_TILE 2
 # define M_PI 3.1415926535
+# define SAMPLING_RATE 44100
 # include <SDL3/SDL.h>
 # include <SDL3/SDL_audio.h>
 # include <SDL3/SDL_keycode.h>
@@ -243,6 +244,7 @@ typedef struct s_emu
 	t_timer			timer;
 	t_serial		serial;
 	t_ppu			ppu;
+	t_apu			apu;
 	SDL_Window		*window;
 	SDL_Renderer	*renderer;
 	SDL_AudioStream	*audio_stream;
@@ -364,5 +366,9 @@ void	input_write(t_emu *emu, t_byte data);
 void	input_tick(t_emu *emu);
 t_byte	input_read(t_emu *emu);
 void	init_input(t_emu *emu);
-
+//apu
+void	init_apu(t_emu *emu);
+void	apu_write(t_emu *emu, t_word addr, t_byte data);
+t_byte	apu_read(t_emu *emu, t_word addr);
+void	apu_tick(t_emu *emu);
 #endif

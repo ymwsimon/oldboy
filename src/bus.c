@@ -39,6 +39,8 @@ t_byte	bus_read(t_emu *emu, t_word addr)
 		return (ppu_read(emu, addr));
 	if (addr == 0xFF00)
 		return (input_read(emu));
+	if (addr >= 0xFF10 && addr <= 0xFF3F)
+		return (apu_read(emu, addr));
 	// printf("Unknown read addr for bus (%4X)\n", addr);
 	return (0xFF);
 }
@@ -70,6 +72,8 @@ void	bus_write(t_emu *emu, t_word addr, t_byte data)
 		ppu_write(emu, addr, data);
 	else if (addr == 0xFF00)
 		input_write(emu, data);
+	else if (addr >= 0xFF10 && addr <= 0xFF3F)
+		apu_write(emu, addr, data);
 	// else if (addr >= 0xE000 && addr < 0xFF80)
 		// printf("Unknow write addr for bus (%4X) data:%2X\n", addr, data);
 }
