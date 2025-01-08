@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/19 13:05:19 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/01/08 17:59:03 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@
 # define CLOCK_SCALE 20
 # define FPS 59.72750056960583
 # define WINDOW_NAME "Old Boy"
-# define RES_SCALE 6
+# define RES_SCALE 3
 # define SCR_H 144
 # define SCR_W 160
 # define WINDOW_H SCR_H * RES_SCALE
@@ -212,6 +212,19 @@ typedef struct s_apu
 	t_byte	nr51_sound_pan;
 	t_byte	nr52_mas_ctrl;
 	t_byte	wave_ram[0x10];
+	t_byte	apu_div;
+	t_word	ch1_period_counter;
+	t_byte	ch1_sample_idx;
+	t_byte	ch1_vol;
+	t_word	ch1_sweep_counter;
+	t_word	ch1_length_timer;
+	float	ch1_value;
+	t_word	ch2_period_counter;
+	t_byte	ch2_sample_idx;
+	t_byte	ch2_vol;
+	t_word	ch2_sweep_counter;
+	t_word	ch2_length_timer;
+	float	ch2_value;
 }	t_apu;
 
 typedef struct s_joypad
@@ -371,4 +384,14 @@ void	init_apu(t_emu *emu);
 void	apu_write(t_emu *emu, t_word addr, t_byte data);
 t_byte	apu_read(t_emu *emu, t_word addr);
 void	apu_tick(t_emu *emu);
+void	apu_enable_ch1(t_emu *emu);
+void	apu_enable_ch2(t_emu *emu);
+void	apu_enable_ch3(t_emu *emu);
+void	apu_enable_ch4(t_emu *emu);
+t_word	apu_get_ch1_period(t_emu *emu);
+t_word	apu_get_ch2_period(t_emu *emu);
+void	apu_disable_ch1(t_emu *emu);
+void	apu_disable_ch2(t_emu *emu);
+void	apu_disable_ch3(t_emu *emu);
+void	apu_disable_ch4(t_emu *emu);
 #endif

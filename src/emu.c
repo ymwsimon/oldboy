@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 15:45:49 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/17 21:52:01 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/01/06 03:08:25 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,8 @@ void	emu_tick(t_emu *emu, t_ull clock_cycle)
 		rtc_tick(emu);
 		apu_tick(emu);
 		++(emu->clock_cycle);
+		if (emu->clock_cycle >= FREQUENCY)
+			emu->clock_cycle = 0;
 		++i;
 	}
 }

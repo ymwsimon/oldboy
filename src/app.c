@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 13:14:12 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/19 13:09:32 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/01/08 20:22:28 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,8 @@ int	tick(t_app *app)
 	time_diff = calculate_time_diff(app->emu.last_tick);
 	// printf("curr_time_sec:%lu - last_tick_sec:%lu - curr_time_usec:%lu - last_tick_usec:%lu - ", curr_time.tv_sec, app->emu.last_tick.tv_sec, curr_time.tv_usec, app->emu.last_tick.tv_usec);
 	// printf("time_diff:%f\n", time_diff);
-	if (time_diff + app->emu.last_render_time > 1.0 / FPS)
+	// if (time_diff > 1.0 / FPS)
+	if ((time_diff + app->emu.last_render_time) >= 1.0 / FPS)
 	{
 		// printf("time to tick cpu - %f - %f - %f\n", time_diff, app->emu.last_render_time, 1.0 / FPS);
 		// app->emu.clock_cycle++;
@@ -178,25 +179,25 @@ void	print_oam_content(t_emu *emu)
 			printf("\n");
 	}
 }
-typedef struct {
-  float current_step;
-  float step_size;
-  float volume;
-} oscillator;
+// typedef struct {
+//   float current_step;
+//   float step_size;
+//   float volume;
+// } oscillator;
 
-oscillator oscillate(float rate, float volume) {
-  oscillator o = {
-      .current_step = 0,
-      .volume = volume,
-      .step_size = (2 * M_PI) / rate,
-  };
-  return o;
-}
+// oscillator oscillate(float rate, float volume) {
+//   oscillator o = {
+//       .current_step = 0,
+//       .volume = volume,
+//       .step_size = (2 * M_PI) / rate,
+//   };
+//   return o;
+// }
 
-float next(oscillator *os) {
-  os->current_step += os->step_size;
-  return sinf(os->current_step) * os->volume;
-}
+// float next(oscillator *os) {
+//   os->current_step += os->step_size;
+//   return sinf(os->current_step) * os->volume;
+// }
 
 // void oscillator_callback(void *userdata, Uint8 *stream, int len) {
 //   float *fstream = (float *)stream;
@@ -205,62 +206,67 @@ float next(oscillator *os) {
 //     fstream[i] = v;
 //   }
 // }
-void	ascb(void *userdata, SDL_AudioStream *stream,
-	int additional_amount, int total_amount)
-{
-	(void)userdata;
-	(void)stream;
-	(void)additional_amount;
-	(void)total_amount;
-	// return (NULL);
-}
+// void	ascb(void *userdata, SDL_AudioStream *stream,
+// 	int additional_amount, int total_amount)
+// {
+// 	(void)userdata;
+// 	(void)stream;
+// 	(void)additional_amount;
+// 	(void)total_amount;
+// 	// return (NULL);
+// }
 
-float	*alloc_fill_buff(float pitch)
-{
-	float	*buf;
-	t_word	i;
-	oscillator	o;
+// float	*alloc_fill_buff(float pitch)
+// {
+// 	float	*buf;
+// 	t_word	i;
+// 	oscillator	o;
 
-	buf = malloc(sizeof(float) * BUFFER_SIZE);
-	if (!buf)
-		return (buf);
-	i = 0;
-	o = oscillate((2 * M_PI / pitch), 200);
-	while (i < BUFFER_SIZE)
-	{
-		buf[i] = next(&o);
-		++i;
-	}
-	return (buf);
-}
+// 	buf = malloc(sizeof(float) * BUFFER_SIZE);
+// 	if (!buf)
+// 		return (buf);
+// 	i = 0;
+// 	o = oscillate((2 * M_PI / pitch), 200);
+// 	while (i < BUFFER_SIZE)
+// 	{
+// 		buf[i] = next(&o);
+// 		++i;
+// 	}
+// 	return (buf);
+// }
 
-void	make_noise(t_emu *emu, SDL_Keycode code)
-{
-	static int total_samples_generated = 0;
-	const int minimum_audio = (SAMPLING_RATE * sizeof (float)) / 2;
-	static float samples[BUFFER_SIZE * 10];
-    float sine_freq;
-	float	time;
-	int i;
+// void	make_noise(t_emu *emu, SDL_Keycode code)
+// {
+// 	static t_ull total_samples_generated = 0;
+// 	const int minimum_audio = (SAMPLING_RATE * sizeof (float));
+// 	static float samples[BUFFER_SIZE];
+//     float sine_freq;
+// 	float	time;
+// 	int i;
 
-	printf("Current stream buffer:%d\n", SDL_GetAudioStreamAvailable(emu->audio_stream));
-	i = 0;
-    if (SDL_GetAudioStreamAvailable(emu->audio_stream) < minimum_audio)
-	{
-		while (i < BUFFER_SIZE * 10)
-		{
-			sine_freq = 65;
-			if (code == SDLK_U)
-				sine_freq *= 1.5;
-            time = (float)total_samples_generated / SAMPLING_RATE;
-            samples[i] = sinf(2 * M_PI * sine_freq * time) * 20;
-			printf("sample:%f\n", samples[i]);
-            ++total_samples_generated;
-			++i;
-        }
-        SDL_PutAudioStreamData(emu->audio_stream, samples, sizeof (samples));
-    }
-}
+// 	// printf("Current stream buffer:%d\n", SDL_GetAudioStreamAvailable(emu->audio_stream));
+// 	i = 0;
+// 	if (SDL_GetAudioStreamAvailable(emu->audio_stream) < minimum_audio)
+// 	{
+// 		while (i < BUFFER_SIZE)
+// 		{
+// 			sine_freq = 98;
+// 			if (code == SDLK_U)
+// 				sine_freq *= 1.5;
+// 			// time = fmod(((float)(i + total_samples_generated) / SAMPLING_RATE), SAMPLING_RATE);
+// 			time = (float)(i + total_samples_generated) / SAMPLING_RATE;
+// 			samples[i] = sinf(2 * M_PI * sine_freq * time) * 0.2;
+// 			if (samples[i] > 0 || fmodf(time * sine_freq, 2 * M_PI) < fmodf(time * sine_freq, 2 * M_PI) * 0.3)
+// 				samples[i] = 1 * 0.2;
+// 			else
+// 				samples[i] = -1 * 0.2;
+// 			// printf("time:%f fmodf:%f sample:%f\n", time, fmodf(time, 2 * M_PI), samples[i]);
+// 			++i;
+// 		}
+// 		total_samples_generated += i;
+// 		SDL_PutAudioStreamData(emu->audio_stream, samples, sizeof(samples));
+// 	}
+// }
 
 int	run_app(t_app *app)
 {
@@ -285,8 +291,8 @@ int	run_app(t_app *app)
 				print_oam_content(&app->emu);
 			else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_L)
 				app->emu.print_log = !app->emu.print_log;
-			else if (event.type == SDL_EVENT_KEY_DOWN && (event.key.key == SDLK_N || event.key.key == SDLK_U))
-				make_noise(&app->emu, event.key.key);
+			// else if (event.type == SDL_EVENT_KEY_DOWN && (event.key.key == SDLK_N || event.key.key == SDLK_U))
+			// 	make_noise(&app->emu, event.key.key);
 			else if (event.type == SDL_EVENT_KEY_DOWN)
 				handle_input_down(&app->emu, event);
 			else if (event.type == SDL_EVENT_KEY_UP)
