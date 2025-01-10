@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 15:45:49 by mayeung           #+#    #+#             */
-/*   Updated: 2025/01/06 03:08:25 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/01/10 19:38:57 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,16 +14,16 @@
 
 int	update_frame(t_emu *emu, double delta_time)
 {
-	t_ull	num_clock_cycle;
-	t_ull	i;
+	static t_ull	n_instr = 0;
+	t_ull			num_clock_cycle;
 
-	num_clock_cycle = FREQUENCY / 4 * delta_time * emu->clock_scale;
-	i = 0;
-	while (i < num_clock_cycle)
-	{
-		cpu_step(emu);
-		++i;
-	}
+	num_clock_cycle = (FREQUENCY / 4) * delta_time * emu->clock_scale;
+	// n_instr = 0;
+	while (n_instr < num_clock_cycle)
+		n_instr += cpu_step(emu);
+	n_instr = n_instr - num_clock_cycle;
+	// printf("n_instr:%llu %llu\n", n_instr, n_instr - num_clock_cycle);
+	// printf("n cycle:%llu n_instr:%llu\n", num_clock_cycle, n_instr);
 	return (OK);
 }
 

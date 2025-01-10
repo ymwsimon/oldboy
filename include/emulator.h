@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2025/01/08 17:59:03 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/01/10 16:58:12 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@
 # define CLOCK_SCALE 20
 # define FPS 59.72750056960583
 # define WINDOW_NAME "Old Boy"
-# define RES_SCALE 3
+# define RES_SCALE 4
 # define SCR_H 144
 # define SCR_W 160
 # define WINDOW_H SCR_H * RES_SCALE
@@ -272,7 +272,7 @@ typedef struct s_app
 	t_emu			emu;
 }	t_app;
 
-typedef void		(t_inst)(t_emu *, t_byte);
+typedef t_byte		(t_inst)(t_emu *, t_byte);
 typedef	void		(t_setw)(t_cpu *, t_word);
 typedef	t_word	(t_getw)(t_cpu);
 extern t_inst	*g_op_map[256];
@@ -341,8 +341,8 @@ void	init_cpu(t_cpu *cpu);
 void	print_cpu_register(t_emu *emu);
 int		cpu_step(t_emu *emu);
 //instruction
-void	di(t_emu *emu, t_byte op_code);
-void	ei(t_emu *emu, t_byte op_code);
+t_byte	di(t_emu *emu, t_byte op_code);
+t_byte	ei(t_emu *emu, t_byte op_code);
 void	push_word(t_emu *emu, t_word data);
 //bus
 t_byte	bus_read(t_emu *emu, t_word addr);

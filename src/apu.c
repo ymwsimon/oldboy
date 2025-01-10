@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/17 22:10:16 by mayeung           #+#    #+#             */
-/*   Updated: 2025/01/08 18:40:13 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/01/10 17:56:48 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -154,12 +154,18 @@ t_byte	is_apu_enabled(t_emu *emu)
 
 t_word	need_add_apu_div(t_emu *emu)
 {
-	t_word			p_div;
+	static t_word	p_div = 0;
 	t_word			div;
+	t_word			res;
 
-	div = emu->timer.div;// / 256;
-	p_div = div - 1;
-	return ((div ^ p_div) & (1 << 4) && (div & (1 << 4)));
+	res = FALSE;
+	div = emu->timer.div / 256;
+	if ((p_div & 16) && !(div & 16))
+		res = TRUE;
+	p_div = div;
+	return (res);
+	// (void)p_div;
+	// return (((div ^ p_div) & ((1 << 13))) && (div & (1 << 13)));
 }
 
 t_byte	is_apu_ch1_on(t_emu *emu)
@@ -375,8 +381,11 @@ void	apu_tick(t_emu *emu)
 		if (is_apu_ch2_on(emu))
 			apu_step_ch2(emu);
 	}
-	if (!((emu->clock_cycle * 10) % (950)))
+	// if (emu->clock_cycle / 95.10893 >= idx)
+	// if (emu->clock_cycle / 95.0 >= idx)
+	if (!(emu->clock_cycle % 95))
 	{
+		// printf("%llu %llu\n", emu->clock_cycle, idx);
 		data = 0;
 		if (is_apu_ch1_on(emu))
 			data += emu->apu.ch1_value;
@@ -392,17 +401,8 @@ void	apu_tick(t_emu *emu)
 		++idx;
 		if (idx == SAMPLING_RATE)
 		{
-			// printf("1s %f\n", emu->last_render_time);
+			printf("1s %f\n", emu->last_render_time);
 			idx = 0;
 		}
-		// SDL_PutAudioStreamData(emu->audio_stream,
-		// 	&data, sizeof(float));
-		// SDL_PutAudioStreamData(emu->audio_stream,
-			// &emu->apu.ch1_value, sizeof(float));
-		// int	s;
-		// SDL_AudioSpec	as;
-		// SDL_GetAudioDeviceFormat(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &as, &s);
-		// printf("channel%i, freq%i, sr%i\n", as.channels, as.freq, s);
-		// printf("writing sound in cycle%llu\n", emu->clock_cycle);
 	}
 }

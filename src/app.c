@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 13:14:12 by mayeung           #+#    #+#             */
-/*   Updated: 2025/01/08 20:22:28 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/01/10 16:45:35 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,16 +36,18 @@ int	tick(t_app *app)
 	time_diff = calculate_time_diff(app->emu.last_tick);
 	// printf("curr_time_sec:%lu - last_tick_sec:%lu - curr_time_usec:%lu - last_tick_usec:%lu - ", curr_time.tv_sec, app->emu.last_tick.tv_sec, curr_time.tv_usec, app->emu.last_tick.tv_usec);
 	// printf("time_diff:%f\n", time_diff);
-	// if (time_diff > 1.0 / FPS)
-	if ((time_diff + app->emu.last_render_time) >= 1.0 / FPS)
+	if (time_diff > 1.0 / FPS)
+	// if ((time_diff + app->emu.last_render_time) >= 1.0 / FPS)
 	{
-		// printf("time to tick cpu - %f - %f - %f\n", time_diff, app->emu.last_render_time, 1.0 / FPS);
+		// if (!(app->emu.clock_cycle % 20))
+			// printf("time to tick cpu - %f - %f - %f\n", time_diff, app->emu.last_render_time, 1.0 / FPS);
 		// app->emu.clock_cycle++;
 		// cpu_step(&app->emu);
+		gettimeofday(&app->emu.last_tick, NULL);
 		update_frame(&app->emu, time_diff);
 		// print_vram_tile(app);
 		app->emu.last_render_time = calculate_time_diff(app->emu.last_tick) - time_diff;
-		gettimeofday(&app->emu.last_tick, NULL);
+		// gettimeofday(&app->emu.last_tick, NULL);
 		// app->emu.last_tick = curr_time;
 	}
 	// if (time_diff > (1.0 / FPS))
@@ -179,104 +181,24 @@ void	print_oam_content(t_emu *emu)
 			printf("\n");
 	}
 }
-// typedef struct {
-//   float current_step;
-//   float step_size;
-//   float volume;
-// } oscillator;
-
-// oscillator oscillate(float rate, float volume) {
-//   oscillator o = {
-//       .current_step = 0,
-//       .volume = volume,
-//       .step_size = (2 * M_PI) / rate,
-//   };
-//   return o;
-// }
-
-// float next(oscillator *os) {
-//   os->current_step += os->step_size;
-//   return sinf(os->current_step) * os->volume;
-// }
-
-// void oscillator_callback(void *userdata, Uint8 *stream, int len) {
-//   float *fstream = (float *)stream;
-//   for (int i = 0; i < BUFFER_SIZE; i++) {
-//     float v = next(A4_oscillator);
-//     fstream[i] = v;
-//   }
-// }
-// void	ascb(void *userdata, SDL_AudioStream *stream,
-// 	int additional_amount, int total_amount)
-// {
-// 	(void)userdata;
-// 	(void)stream;
-// 	(void)additional_amount;
-// 	(void)total_amount;
-// 	// return (NULL);
-// }
-
-// float	*alloc_fill_buff(float pitch)
-// {
-// 	float	*buf;
-// 	t_word	i;
-// 	oscillator	o;
-
-// 	buf = malloc(sizeof(float) * BUFFER_SIZE);
-// 	if (!buf)
-// 		return (buf);
-// 	i = 0;
-// 	o = oscillate((2 * M_PI / pitch), 200);
-// 	while (i < BUFFER_SIZE)
-// 	{
-// 		buf[i] = next(&o);
-// 		++i;
-// 	}
-// 	return (buf);
-// }
-
-// void	make_noise(t_emu *emu, SDL_Keycode code)
-// {
-// 	static t_ull total_samples_generated = 0;
-// 	const int minimum_audio = (SAMPLING_RATE * sizeof (float));
-// 	static float samples[BUFFER_SIZE];
-//     float sine_freq;
-// 	float	time;
-// 	int i;
-
-// 	// printf("Current stream buffer:%d\n", SDL_GetAudioStreamAvailable(emu->audio_stream));
-// 	i = 0;
-// 	if (SDL_GetAudioStreamAvailable(emu->audio_stream) < minimum_audio)
-// 	{
-// 		while (i < BUFFER_SIZE)
-// 		{
-// 			sine_freq = 98;
-// 			if (code == SDLK_U)
-// 				sine_freq *= 1.5;
-// 			// time = fmod(((float)(i + total_samples_generated) / SAMPLING_RATE), SAMPLING_RATE);
-// 			time = (float)(i + total_samples_generated) / SAMPLING_RATE;
-// 			samples[i] = sinf(2 * M_PI * sine_freq * time) * 0.2;
-// 			if (samples[i] > 0 || fmodf(time * sine_freq, 2 * M_PI) < fmodf(time * sine_freq, 2 * M_PI) * 0.3)
-// 				samples[i] = 1 * 0.2;
-// 			else
-// 				samples[i] = -1 * 0.2;
-// 			// printf("time:%f fmodf:%f sample:%f\n", time, fmodf(time, 2 * M_PI), samples[i]);
-// 			++i;
-// 		}
-// 		total_samples_generated += i;
-// 		SDL_PutAudioStreamData(emu->audio_stream, samples, sizeof(samples));
-// 	}
-// }
 
 int	run_app(t_app *app)
 {
 	SDL_Event		event;
+	double			time_diff;
 
 	init_emu(&app->emu);
 	load_ram_sav(&app->emu);
 	while (OK)
 	{
-		tick(app);
+		// tick(app);
+		time_diff = calculate_time_diff(app->emu.last_tick);
+		if (time_diff > 1.0 / FPS)
+		{
+			gettimeofday(&app->emu.last_tick, NULL);
+			update_frame(&app->emu, time_diff);
+			app->emu.last_render_time = calculate_time_diff(app->emu.last_tick) - time_diff;
+		}
 		if (SDL_PollEvent(&event))
 		{
 			if (event.type == SDL_EVENT_QUIT || (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_Q))
@@ -291,15 +213,12 @@ int	run_app(t_app *app)
 				print_oam_content(&app->emu);
 			else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_L)
 				app->emu.print_log = !app->emu.print_log;
-			// else if (event.type == SDL_EVENT_KEY_DOWN && (event.key.key == SDLK_N || event.key.key == SDLK_U))
-			// 	make_noise(&app->emu, event.key.key);
 			else if (event.type == SDL_EVENT_KEY_DOWN)
 				handle_input_down(&app->emu, event);
 			else if (event.type == SDL_EVENT_KEY_UP)
 				handle_input_up(&app->emu, event);
 		}
-		// make_noise(&app->emu, event.key.key);
-		usleep(5);
+		usleep(1000);
 	}
 	save_ram_save(&app->emu);
 	// if (app->emu.serial.idx_out_buf)
