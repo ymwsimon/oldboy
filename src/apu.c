@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/17 22:10:16 by mayeung           #+#    #+#             */
-/*   Updated: 2025/01/10 17:56:48 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/01/10 19:45:14 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -401,7 +401,7 @@ void	apu_tick(t_emu *emu)
 		++idx;
 		if (idx == SAMPLING_RATE)
 		{
-			printf("1s %f\n", emu->last_render_time);
+			// printf("1s %f\n", emu->last_render_time);
 			idx = 0;
 		}
 	}
