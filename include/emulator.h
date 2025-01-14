@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2025/01/10 16:58:12 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/01/14 21:57:24 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,12 +16,13 @@
 #  define PRINT_CPU_LOG 0
 # endif
 # define BUFFER_SIZE 10000
+# define AUDIO_BUFFER_SIZE 100000
 # define FREQUENCY 4194304
 # define MS_PER_SECOND 1000000
 # define CLOCK_SCALE 20
 # define FPS 59.72750056960583
 # define WINDOW_NAME "Old Boy"
-# define RES_SCALE 4
+# define RES_SCALE 6
 # define SCR_H 144
 # define SCR_W 160
 # define WINDOW_H SCR_H * RES_SCALE
@@ -225,6 +226,9 @@ typedef struct s_apu
 	t_word	ch2_sweep_counter;
 	t_word	ch2_length_timer;
 	float	ch2_value;
+	float	audio_buff[AUDIO_BUFFER_SIZE];
+	t_word	audio_buff_idx;
+	t_word	audio_buff_len;
 }	t_apu;
 
 typedef struct s_joypad
@@ -394,4 +398,6 @@ void	apu_disable_ch1(t_emu *emu);
 void	apu_disable_ch2(t_emu *emu);
 void	apu_disable_ch3(t_emu *emu);
 void	apu_disable_ch4(t_emu *emu);
+void	apu_callback(void *userdata, SDL_AudioStream *stream,
+			int additional_amount, int total_amount);
 #endif

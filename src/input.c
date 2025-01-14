@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/12 15:14:26 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/17 21:52:17 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/01/13 20:54:31 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,13 +76,25 @@ t_byte	input_read(t_emu *emu)
 void	handle_input_down(t_emu *emu, SDL_Event event)
 {
 	if (event.key.key == SDLK_D)
+	{
 		emu->joypad.right = TRUE;
+		emu->joypad.left = FALSE;
+	}
 	if (event.key.key == SDLK_A)
+	{
 		emu->joypad.left = TRUE;
+		emu->joypad.right = FALSE;
+	}
 	if (event.key.key == SDLK_W)
+	{
 		emu->joypad.up = TRUE;
+		emu->joypad.down = FALSE;
+	}
 	if (event.key.key == SDLK_S)
+	{
 		emu->joypad.down = TRUE;
+		emu->joypad.up = FALSE;
+	}
 	if (event.key.key == SDLK_K)
 		emu->joypad.a = TRUE;
 	if (event.key.key == SDLK_J)

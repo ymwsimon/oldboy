@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 13:14:12 by mayeung           #+#    #+#             */
-/*   Updated: 2025/01/10 16:45:35 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/01/14 21:48:09 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -234,8 +234,8 @@ int	init_sdl(t_app *app)
 	SDL_AudioSpec	spec;
 
 	spec.channels = 1;
-    spec.format = SDL_AUDIO_F32;
-    spec.freq = SAMPLING_RATE;
+	spec.format = SDL_AUDIO_F32;
+	spec.freq = SAMPLING_RATE;
 	if (!SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS))
 		return (fprintf(stderr, "Can't init sdl\n"), NOT_OK);
 	app->window = SDL_CreateWindow(WINDOW_NAME, WINDOW_W, WINDOW_H, 0);
@@ -247,9 +247,12 @@ int	init_sdl(t_app *app)
 	gettimeofday(&app->emu.last_tick, NULL);
 	app->emu.window = app->window;
 	app->emu.renderer = app->renderer;
-	app->emu.audio_stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, NULL, NULL);
+	app->emu.audio_stream = SDL_OpenAudioDeviceStream
+		(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, NULL, NULL);
 	if (!app->emu.audio_stream)
 		return (fprintf(stderr, "Can't open audio device\n"), NOT_OK);
 	SDL_ResumeAudioStreamDevice(app->emu.audio_stream);
+	SDL_GetAudioStreamFormat(app->emu.audio_stream, NULL, &spec);
+	printf("%d %d %d %ld\n", spec.channels, spec.format, spec.freq, sizeof(float));
 	return (OK);
 }
