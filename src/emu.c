@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 15:45:49 by mayeung           #+#    #+#             */
-/*   Updated: 2025/01/14 20:22:33 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/01/16 19:42:27 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,14 +14,14 @@
 
 int	update_frame(t_emu *emu, double delta_time)
 {
-	static t_ull	n_instr = 0;
-	t_ull			num_clock_cycle;
+	t_ull	n_instr;
+	t_ull	num_clock_cycle;
 
 	num_clock_cycle = (FREQUENCY / 4) * delta_time * emu->clock_scale;
-	// n_instr = 0;
-	while (n_instr < num_clock_cycle)
+	n_instr = 0;
+	while (n_instr <= num_clock_cycle)
 		n_instr += cpu_step(emu);
-	n_instr = n_instr - num_clock_cycle;
+	// n_instr = n_instr - num_clock_cycle;
 	// printf("n_instr:%llu %llu\n", n_instr, n_instr - num_clock_cycle);
 	// printf("n cycle:%llu n_instr:%llu\n", num_clock_cycle, n_instr);
 	return (OK);
@@ -53,6 +53,7 @@ int	init_emu(t_emu *emu)
 	emu->clock_scale = 1;
 	gettimeofday(&emu->last_tick, NULL);
 	emu->paused = FALSE;
+	emu->quit = FALSE;
 	emu->interrupt_enable = 0;
 	emu->interrupt_flag = 0xE1;
 	emu->last_render_time = 0;
