@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 15:45:49 by mayeung           #+#    #+#             */
-/*   Updated: 2025/01/16 19:42:27 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/01/17 12:25:45 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,12 +34,12 @@ void	emu_tick(t_emu *emu, t_ull clock_cycle)
 	i = 0;
 	while (i < clock_cycle)
 	{
-		ppu_tick(emu);
+		apu_tick(emu);
 		timer_tick(emu);
 		serial_tick(emu);
 		input_tick(emu);
 		rtc_tick(emu);
-		apu_tick(emu);
+		ppu_tick(emu);
 		++(emu->clock_cycle);
 		if (emu->clock_cycle >= FREQUENCY)
 			emu->clock_cycle = 0;
