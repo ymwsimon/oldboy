@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 15:45:49 by mayeung           #+#    #+#             */
-/*   Updated: 2025/01/17 12:25:45 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/01/17 14:44:00 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,6 +68,6 @@ int	init_emu(t_emu *emu)
 	bzero(&emu->vram, 0x2000);
 	bzero(&emu->wram, 0x2000);
 	bzero(&emu->hram, 0x7F);
-	// SDL_SetAudioStreamGetCallback(emu->audio_stream, apu_callback, emu);
+	SDL_SetAudioStreamGetCallback(emu->audio_stream, apu_callback, emu);
 	return (OK);
 }

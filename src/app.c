@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 13:14:12 by mayeung           #+#    #+#             */
-/*   Updated: 2025/01/16 20:27:32 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/01/17 15:19:24 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -330,7 +330,7 @@ int	run_app(t_app *app)
 			else if (event.type == SDL_EVENT_KEY_UP)
 				handle_input_up(&app->emu, event);
 		}
-		usleep(100);
+		// usleep(100);
 	}
 	save_ram_save(&app->emu);
 	// if (app->emu.serial.idx_out_buf)
@@ -363,7 +363,7 @@ int	init_sdl(t_app *app)
 		(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, NULL, NULL);
 	if (!app->emu.audio_stream)
 		return (fprintf(stderr, "Can't open audio device\n"), NOT_OK);
-	SDL_SetAudioStreamFrequencyRatio(app->emu.audio_stream, 23.77723356);
+	// SDL_SetAudioStreamFrequencyRatio(app->emu.audio_stream, 23.77723356);
 	SDL_ResumeAudioStreamDevice(app->emu.audio_stream);
 	SDL_GetAudioStreamFormat(app->emu.audio_stream, NULL, &spec);
 	printf("%d %d %d %ld\n", spec.channels, spec.format, spec.freq, sizeof(float));
