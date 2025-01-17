@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2025/01/16 17:51:05 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/01/17 12:41:32 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,9 +44,9 @@
 # define OBJ1_TILE 2
 # define M_PI 3.1415926535
 # define SAMPLING_RATE 44100
-# include <SDL3/SDL.h>
-# include <SDL3/SDL_audio.h>
-# include <SDL3/SDL_keycode.h>
+# include <SDL2/SDL.h>
+# include <SDL2/SDL_audio.h>
+# include <SDL2/SDL_keycode.h>
 # include <unistd.h>
 # include <stdlib.h>
 # include <stdio.h>

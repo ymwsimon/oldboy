@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/12 15:14:26 by mayeung           #+#    #+#             */
-/*   Updated: 2025/01/13 20:54:31 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/01/17 13:04:39 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,52 +75,52 @@ t_byte	input_read(t_emu *emu)
 
 void	handle_input_down(t_emu *emu, SDL_Event event)
 {
-	if (event.key.key == SDLK_D)
+	if (event.key.keysym.sym== SDLK_d)
 	{
 		emu->joypad.right = TRUE;
 		emu->joypad.left = FALSE;
 	}
-	if (event.key.key == SDLK_A)
+	if (event.key.keysym.sym== SDLK_a)
 	{
 		emu->joypad.left = TRUE;
 		emu->joypad.right = FALSE;
 	}
-	if (event.key.key == SDLK_W)
+	if (event.key.keysym.sym== SDLK_w)
 	{
 		emu->joypad.up = TRUE;
 		emu->joypad.down = FALSE;
 	}
-	if (event.key.key == SDLK_S)
+	if (event.key.keysym.sym== SDLK_s)
 	{
 		emu->joypad.down = TRUE;
 		emu->joypad.up = FALSE;
 	}
-	if (event.key.key == SDLK_K)
+	if (event.key.keysym.sym== SDLK_k)
 		emu->joypad.a = TRUE;
-	if (event.key.key == SDLK_J)
+	if (event.key.keysym.sym== SDLK_j)
 		emu->joypad.b = TRUE;
-	if (event.key.key == SDLK_Z)
+	if (event.key.keysym.sym== SDLK_z)
 		emu->joypad.select = TRUE;
-	if (event.key.key == SDLK_X)
+	if (event.key.keysym.sym== SDLK_x)
 		emu->joypad.start = TRUE;
 }
 
 void	handle_input_up(t_emu *emu, SDL_Event event)
 {
-	if (event.key.key == SDLK_D)
+	if (event.key.keysym.sym== SDLK_d)
 		emu->joypad.right = FALSE;
-	if (event.key.key == SDLK_A)
+	if (event.key.keysym.sym== SDLK_a)
 		emu->joypad.left = FALSE;
-	if (event.key.key == SDLK_W)
+	if (event.key.keysym.sym== SDLK_w)
 		emu->joypad.up = FALSE;
-	if (event.key.key == SDLK_S)
+	if (event.key.keysym.sym== SDLK_s)
 		emu->joypad.down = FALSE;
-	if (event.key.key == SDLK_K)
+	if (event.key.keysym.sym== SDLK_k)
 		emu->joypad.a = FALSE;
-	if (event.key.key == SDLK_J)
+	if (event.key.keysym.sym== SDLK_j)
 		emu->joypad.b = FALSE;
-	if (event.key.key == SDLK_Z)
+	if (event.key.keysym.sym== SDLK_z)
 		emu->joypad.select = FALSE;
-	if (event.key.key == SDLK_X)
+	if (event.key.keysym.sym== SDLK_x)
 		emu->joypad.start = FALSE;
 }

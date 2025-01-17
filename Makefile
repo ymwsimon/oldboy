@@ -12,7 +12,7 @@ INC_DIR = include
 
 FLAGS = -Wall -Werror -Wextra -g
 
-LIB = -lSDL3 -lm
+LIB = -lSDL2 -lm
 
 INCLUDE_PATH = -I/home/$(USER)/SDL/include
 

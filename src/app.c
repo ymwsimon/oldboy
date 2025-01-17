@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 13:14:12 by mayeung           #+#    #+#             */
-/*   Updated: 2025/01/16 20:27:32 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/01/17 14:25:01 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,7 +84,7 @@ void	print_pixel(SDL_Surface *s, unsigned int colour, t_tile_pix_info t)
 	rect.w = RES_SCALE;
 	rect.x = t.ti * 8 * RES_SCALE + t.pi * RES_SCALE;
 	rect.y = t.tj * 8 * RES_SCALE + t.pj * RES_SCALE;
-	SDL_FillSurfaceRect(s, &rect, colour);
+	SDL_FillRect(s, &rect, colour);
 }
 
 void	print_tile(t_app *app, SDL_Surface *s, t_word ti, t_word tj)
@@ -196,79 +196,79 @@ void	print_time_60fps(void)
 	}
 }
 
-Uint64	timed_loop(void *userdata, SDL_TimerID timerID, Uint64 interval)
-{
-	// printf("%f\n", interval / (SDL_NS_PER_SECOND * 1.0));
-	t_emu			*emu;
-	SDL_Event		event;
-	struct timeval	start_time;
+// Uint64	timed_loop(void *userdata, SDL_TimerID timerID, Uint64 interval)
+// {
+// 	// printf("%f\n", interval / (SDL_NS_PER_SECOND * 1.0));
+// 	t_emu			*emu;
+// 	SDL_Event		event;
+// 	struct timeval	start_time;
 
-	gettimeofday(&start_time, NULL);
-	emu = (t_emu *)userdata;
-	(void)timerID;
-	if (emu->quit)
-		return (0);
-	update_frame(emu, interval / (SDL_NS_PER_SECOND * 1.0) * 1);
-	// printf("%d\n",interval);
-	if (SDL_PollEvent(&event))
-	{
-		if (event.type == SDL_EVENT_QUIT || (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_Q))
-			emu->quit = TRUE;
-		else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_P)
-			print_tile_map(emu);
-		else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_M)
-			print_gbmicro_result(emu);
-		else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_Y)
-			print_mooneye_result(emu);
-		else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_O)
-			print_oam_content(emu);
-		else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_L)
-			emu->print_log = !emu->print_log;
-		else if (event.type == SDL_EVENT_KEY_DOWN)
-			handle_input_down(emu, event);
-		else if (event.type == SDL_EVENT_KEY_UP)
-			handle_input_up(emu, event);
-	}
-	// printf("%f\n", (calculate_time_diff(start_time)));
-	// printf("%f\n", (1.0 / FPS - calculate_time_diff(start_time)));
-	// if (calculate_time_diff(start_time) >= 1.0 / FPS)
-	// 	return (1.0 / FPS * SDL_NS_PER_SECOND);
-	return (interval);
-	// return ((1.0 / FPS - calculate_time_diff(start_time)) * SDL_NS_PER_SECOND);
-}
+// 	gettimeofday(&start_time, NULL);
+// 	emu = (t_emu *)userdata;
+// 	(void)timerID;
+// 	if (emu->quit)
+// 		return (0);
+// 	update_frame(emu, interval / (SDL_NS_PER_SECOND * 1.0) * 1);
+// 	// printf("%d\n",interval);
+// 	if (SDL_PollEvent(&event))
+// 	{
+// 		if (event.type == SDL_EVENT_QUIT || (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_Q))
+// 			emu->quit = TRUE;
+// 		else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_P)
+// 			print_tile_map(emu);
+// 		else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_M)
+// 			print_gbmicro_result(emu);
+// 		else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_Y)
+// 			print_mooneye_result(emu);
+// 		else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_O)
+// 			print_oam_content(emu);
+// 		else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_L)
+// 			emu->print_log = !emu->print_log;
+// 		else if (event.type == SDL_EVENT_KEY_DOWN)
+// 			handle_input_down(emu, event);
+// 		else if (event.type == SDL_EVENT_KEY_UP)
+// 			handle_input_up(emu, event);
+// 	}
+// 	// printf("%f\n", (calculate_time_diff(start_time)));
+// 	// printf("%f\n", (1.0 / FPS - calculate_time_diff(start_time)));
+// 	// if (calculate_time_diff(start_time) >= 1.0 / FPS)
+// 	// 	return (1.0 / FPS * SDL_NS_PER_SECOND);
+// 	return (interval);
+// 	// return ((1.0 / FPS - calculate_time_diff(start_time)) * SDL_NS_PER_SECOND);
+// }
 
-Uint32	timed_loop_old(void *userdata, SDL_TimerID timerID, Uint32 interval)
-{
-	t_emu		*emu;
-	SDL_Event	event;
+// Uint32	timed_loop_old(void *userdata, SDL_TimerID timerID, Uint32 interval)
+// {
+// 	t_emu		*emu;
+// 	SDL_Event	event;
 
-	emu = (t_emu *)userdata;
-	(void)timerID;
-	if (emu->quit)
-		return (0);
-	update_frame(emu, interval / 1000.0);
-	// printf("%d\n",interval);
-	if (SDL_PollEvent(&event))
-	{
-		if (event.type == SDL_EVENT_QUIT || (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_Q))
-			emu->quit = TRUE;
-		else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_P)
-			print_tile_map(emu);
-		else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_M)
-			print_gbmicro_result(emu);
-		else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_Y)
-			print_mooneye_result(emu);
-		else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_O)
-			print_oam_content(emu);
-		else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_L)
-			emu->print_log = !emu->print_log;
-		else if (event.type == SDL_EVENT_KEY_DOWN)
-			handle_input_down(emu, event);
-		else if (event.type == SDL_EVENT_KEY_UP)
-			handle_input_up(emu, event);
-	}
-	return (interval);
-}
+// 	emu = (t_emu *)userdata;
+// 	(void)timerID;
+// 	if (emu->quit)
+// 		return (0);
+// 	update_frame(emu, interval / 1000.0);
+// 	// printf("%d\n",interval);
+// 	if (SDL_PollEvent(&event))
+// 	{
+// 		if (event.type == SDL_EVENT_QUIT || (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_Q))
+// 			emu->quit = TRUE;
+// 		else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_P)
+// 			print_tile_map(emu);
+// 		else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_M)
+// 			print_gbmicro_result(emu);
+// 		else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_Y)
+// 			print_mooneye_result(emu);
+// 		else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_O)
+// 			print_oam_content(emu);
+// 		else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_L)
+// 			emu->print_log = !emu->print_log;
+// 		else if (event.type == SDL_EVENT_KEY_DOWN)
+// 			handle_input_down(emu, event);
+// 		else if (event.type == SDL_EVENT_KEY_UP)
+// 			handle_input_up(emu, event);
+// 	}
+// 	return (interval);
+// }
 
 int	run_app(t_app *app)
 {
@@ -285,10 +285,10 @@ int	run_app(t_app *app)
 	(void)event;
 	(void)time_diff;
 	// SDL_AddTimer(1.0 / FPS * 1000, timed_loop_old, &app->emu);
-	SDL_AddTimerNS(1.0 / FPS * SDL_NS_PER_SECOND, timed_loop, &app->emu);
-	while (!app->emu.quit)
-		;
-	while (0 && OK)
+	// SDL_AddTimerNS(1.0 / FPS * SDL_NS_PER_SECOND, timed_loop, &app->emu);
+	// while (!app->emu.quit)
+	// 	;
+	while (OK)
 	{
 		// tick(app);
 		// printf("%lu\n", SDL_GetTicksNS());
@@ -299,38 +299,31 @@ int	run_app(t_app *app)
 		// 	last_time = SDL_GetTicks();
 		// }
 		time_diff = calculate_time_diff(app->emu.last_tick);
-		if (time_diff >= 1.0 / (FPS))
+		// if (time_diff >= 1.0 / (FPS))
 		// if (time_diff + app->emu.last_render_time >= 1.0 / (FPS))
 		{
 			// print_time_60fps();
 			// gettimeofday(&new_time, NULL);
 			// update_frame(&app->emu, time_diff);
 			gettimeofday(&app->emu.last_tick, NULL);
-			update_frame(&app->emu, time_diff * 1);
+			// update_frame(&app->emu, 1.0 / FPS);
+			update_frame(&app->emu, time_diff * 1.02);
 			// update_frame(&app->emu, calculate_time_diff(app->emu.last_tick));
 			// app->emu.last_tick = new_time;
 			// app->emu.last_render_time = calculate_time_diff(app->emu.last_tick);
 		}
 		if (SDL_PollEvent(&event))
 		{
-			if (event.type == SDL_EVENT_QUIT || (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_Q))
+			if (event.type == SDL_QUIT || (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_q))
 				break ;
-			else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_P)
-				print_tile_map(&app->emu);
-			else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_M)
-				print_gbmicro_result(&app->emu);
-			else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_Y)
-				print_mooneye_result(&app->emu);
-			else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_O)
-				print_oam_content(&app->emu);
-			else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_L)
+			else if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_l)
 				app->emu.print_log = !app->emu.print_log;
-			else if (event.type == SDL_EVENT_KEY_DOWN)
+			else if (event.type == SDL_KEYDOWN)
 				handle_input_down(&app->emu, event);
-			else if (event.type == SDL_EVENT_KEY_UP)
+			else if (event.type == SDL_KEYUP)
 				handle_input_up(&app->emu, event);
 		}
-		usleep(100);
+		// usleep(100);
 	}
 	save_ram_save(&app->emu);
 	// if (app->emu.serial.idx_out_buf)
@@ -345,27 +338,28 @@ int	init_sdl(t_app *app)
 {
 	SDL_AudioSpec	spec;
 
+	(void)spec;
 	spec.channels = 2;
-	spec.format = SDL_AUDIO_F32;
+	spec.format = AUDIO_F32;
 	spec.freq = SAMPLING_RATE;
-	if (!SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS))
+	if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS))
 		return (fprintf(stderr, "Can't init sdl\n"), NOT_OK);
-	app->window = SDL_CreateWindow(WINDOW_NAME, WINDOW_W, WINDOW_H, 0);
+	app->window = SDL_CreateWindow(WINDOW_NAME, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_W, WINDOW_H, 0);
 	if (!app->window)
 		return (fprintf(stderr, "Can't create window\n"), NOT_OK);
-	app->renderer = SDL_CreateRenderer(app->window, NULL);
+	app->renderer = SDL_CreateRenderer(app->window, -1, 0);
 	if (!app->renderer)
 		return (fprintf(stderr, "Can't create renderer\n"), NOT_OK);
 	gettimeofday(&app->emu.last_tick, NULL);
 	app->emu.window = app->window;
 	app->emu.renderer = app->renderer;
-	app->emu.audio_stream = SDL_OpenAudioDeviceStream
-		(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, NULL, NULL);
+	// app->emu.audio_stream = SDL_OpenAudioDeviceStream
+	// 	(, &spec, NULL, NULL);
 	if (!app->emu.audio_stream)
 		return (fprintf(stderr, "Can't open audio device\n"), NOT_OK);
-	SDL_SetAudioStreamFrequencyRatio(app->emu.audio_stream, 23.77723356);
-	SDL_ResumeAudioStreamDevice(app->emu.audio_stream);
-	SDL_GetAudioStreamFormat(app->emu.audio_stream, NULL, &spec);
-	printf("%d %d %d %ld\n", spec.channels, spec.format, spec.freq, sizeof(float));
+	// SDL_SetAudioStreamFrequencyRatio(app->emu.audio_stream, 23.77723356);
+	// SDL_ResumeAudioStreamDevice(app->emu.audio_stream);
+	// SDL_GetAudioStreamFormat(app->emu.audio_stream, NULL, &spec);
+	// printf("%d %d %d %ld\n", spec.channels, spec.format, spec.freq, sizeof(float));
 	return (OK);
 }

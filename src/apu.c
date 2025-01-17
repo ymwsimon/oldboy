@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/17 22:10:16 by mayeung           #+#    #+#             */
-/*   Updated: 2025/01/17 12:25:58 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/01/17 13:05:35 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -398,7 +398,7 @@ void apu_callback_old(void *userdata, SDL_AudioStream *stream,
 		used_sample += n_sample;
 		data[1] = data[0];
 		++clock_idx;
-		SDL_PutAudioStreamData(stream, &data, sizeof(float) * 2);
+		// SDL_PutAudioStreamData(stream, &data, sizeof(float) * 2);
 		++i;
 	}
 	(void)buf_idx;
@@ -423,6 +423,7 @@ void apu_callback(void *userdata, SDL_AudioStream *stream,
 	t_word	n_sample;
 	t_word	used_sample;
 
+	(void)stream;
 	i = 0;
 	emu = (t_emu *)userdata;
 	n_sample = 0;
@@ -458,7 +459,7 @@ void apu_callback(void *userdata, SDL_AudioStream *stream,
 		data[n_sample + 1] = data[n_sample];
 		++n_sample;
 	}
-	SDL_PutAudioStreamData(stream, data, n_sample * sizeof(float) * 2);
+	// SDL_PutAudioStreamData(stream, data, n_sample * sizeof(float) * 2);
 	emu->apu.audio_buff_idx = (emu->apu.audio_buff_idx + used_sample) % AUDIO_BUFFER_SIZE;
 	if (emu->apu.audio_buff_len > used_sample)
 		emu->apu.audio_buff_len -= used_sample;
@@ -496,8 +497,8 @@ void	write_data_to_stream(t_emu *emu)
 		}
 		emu->apu.audio_buff_idx = (emu->apu.audio_buff_idx + n_sample) % AUDIO_BUFFER_SIZE;
 		emu->apu.audio_buff_len -= n_sample;
-		SDL_PutAudioStreamData(emu->audio_stream,
-			&data, sizeof(float) * 32);
+		// SDL_PutAudioStreamData(emu->audio_stream,
+		// 	&data, sizeof(float) * 32);
 	}
 }
 
@@ -589,8 +590,8 @@ void	apu_tick(t_emu *emu)
 		// printf("data%f\n", data);
 		// if (is_apu_ch1_on(emu) || is_apu_ch2_dac_on(emu))
 		data[1] = data[0];
-		SDL_PutAudioStreamData(emu->audio_stream,
-			&data, sizeof(float) * 2);
+		// SDL_PutAudioStreamData(emu->audio_stream,
+		// 	&data, sizeof(float) * 2);
 		// data = 0;
 		// SDL_PutAudioStreamData(emu->audio_stream,
 		// 	&data, 4);
