@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 13:14:12 by mayeung           #+#    #+#             */
-/*   Updated: 2025/01/17 15:19:24 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/01/18 23:16:18 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -202,13 +202,52 @@ Uint64	timed_loop(void *userdata, SDL_TimerID timerID, Uint64 interval)
 	t_emu			*emu;
 	SDL_Event		event;
 	struct timeval	start_time;
+	float			factor;
+	double			render_time;
+	static t_ull	idx = 0;
+	static double	compensate = 0.0f;
 
 	gettimeofday(&start_time, NULL);
 	emu = (t_emu *)userdata;
 	(void)timerID;
 	if (emu->quit)
 		return (0);
-	update_frame(emu, interval / (SDL_NS_PER_SECOND * 1.0) * 1);
+	factor = 1.0;
+	// printf("%d %d\n", SDL_GetAudioStreamAvailable(emu->audio_stream), SDL_GetAudioStreamQueued(emu->audio_stream));
+		// if (SDL_GetAudioStreamAvailable(emu->audio_stream) < 6144)
+		// {
+		// 	// printf("need more data %d %d\n", SDL_GetAudioStreamAvailable(emu->audio_stream), SDL_GetAudioStreamQueued(emu->audio_stream));;
+		// 	factor = 1.05;
+		// }
+		// else
+		// 	factor = 0.9;
+	// else
+	// if (SDL_GetAudioStreamAvailable(emu->audio_stream) > 8192)
+		// SDL_ClearAudioStream(emu->audio_stream);
+		// SDL_FlushAudioStream(emu->audio_stream);
+		// factor = 0.95;
+
+		// printf("don't need \n");
+	update_frame(emu, interval / (SDL_NS_PER_SECOND * 1.0) * factor);
+	render_time = calculate_time_diff(start_time);
+	if (render_time >= 1.0 / FPS)
+	{
+		printf("too long %f %f %llu\n", render_time, compensate, ++idx);
+		compensate += render_time - 1.0 / FPS;
+		if (compensate / 10.0 < 1.0 / FPS / 5.0)
+		{
+			interval = (1.0 / FPS - compensate / 10.0) * SDL_NS_PER_SECOND;
+			compensate -= compensate / 10.0;
+		}
+		else
+		{
+			interval = (1.0 / FPS - 1.0 / FPS / 3.0) * SDL_NS_PER_SECOND;
+			compensate -= 1.0 / FPS / 5.0;
+		}
+	}
+	else
+		interval = 1.0 / FPS * SDL_NS_PER_SECOND;
+	// update_frame(emu, 1.0 / 60.0);
 	// printf("%d\n",interval);
 	if (SDL_PollEvent(&event))
 	{
@@ -276,6 +315,7 @@ int	run_app(t_app *app)
 	double			time_diff;
 	struct timeval	new_time;
 	t_ull			last_time;
+	float			factor;
 
 	(void)new_time;
 	init_emu(&app->emu);
@@ -299,14 +339,21 @@ int	run_app(t_app *app)
 		// 	last_time = SDL_GetTicks();
 		// }
 		time_diff = calculate_time_diff(app->emu.last_tick);
-		if (time_diff >= 1.0 / (FPS))
+		if (time_diff > 1.0 / (FPS))
 		// if (time_diff + app->emu.last_render_time >= 1.0 / (FPS))
 		{
+			factor = 1.0;
+			// if (SDL_GetAudioStreamAvailable(app->emu.audio_stream) < 6144)
+			// 	factor = 1.02;
+			// else
+			// 	factor = 0.5;
+			(void)factor;
 			// print_time_60fps();
 			// gettimeofday(&new_time, NULL);
 			// update_frame(&app->emu, time_diff);
 			gettimeofday(&app->emu.last_tick, NULL);
-			update_frame(&app->emu, time_diff * 1);
+			update_frame(&app->emu, 1.0 / FPS * factor);
+			// update_frame(&app->emu, time_diff * factor);
 			// update_frame(&app->emu, calculate_time_diff(app->emu.last_tick));
 			// app->emu.last_tick = new_time;
 			// app->emu.last_render_time = calculate_time_diff(app->emu.last_tick);
@@ -343,11 +390,15 @@ int	run_app(t_app *app)
 
 int	init_sdl(t_app *app)
 {
-	SDL_AudioSpec	spec;
+	SDL_AudioSpec	src_spec;
+	SDL_AudioSpec	dst_spec;
 
-	spec.channels = 2;
-	spec.format = SDL_AUDIO_F32;
-	spec.freq = SAMPLING_RATE;
+	dst_spec.channels = 2;
+	dst_spec.format = SDL_AUDIO_F32;
+	dst_spec.freq = SAMPLING_RATE;
+	src_spec.channels = 2;
+	src_spec.format = SDL_AUDIO_F32;
+	src_spec.freq = 65536;
 	if (!SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS))
 		return (fprintf(stderr, "Can't init sdl\n"), NOT_OK);
 	app->window = SDL_CreateWindow(WINDOW_NAME, WINDOW_W, WINDOW_H, 0);
@@ -359,13 +410,23 @@ int	init_sdl(t_app *app)
 	gettimeofday(&app->emu.last_tick, NULL);
 	app->emu.window = app->window;
 	app->emu.renderer = app->renderer;
-	app->emu.audio_stream = SDL_OpenAudioDeviceStream
-		(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, NULL, NULL);
-	if (!app->emu.audio_stream)
+	app->emu.audio_id = SDL_OpenAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &dst_spec);
+	if (!app->emu.audio_id)
 		return (fprintf(stderr, "Can't open audio device\n"), NOT_OK);
+	app->emu.audio_stream = SDL_CreateAudioStream(&src_spec, &dst_spec);
+	// app->emu.audio_stream = SDL_OpenAudioDeviceStream
+	// 	(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, NULL, NULL);
+	if (!app->emu.audio_stream)
+	{
+		printf("%s", SDL_GetError());
+		return (fprintf(stderr, "Can't create audio stream\n"), NOT_OK);
+	}
+	if (!SDL_BindAudioStream(app->emu.audio_id, app->emu.audio_stream))
+		return (fprintf(stderr, "Can't bind audio stream\n"), NOT_OK);
 	// SDL_SetAudioStreamFrequencyRatio(app->emu.audio_stream, 23.77723356);
-	SDL_ResumeAudioStreamDevice(app->emu.audio_stream);
-	SDL_GetAudioStreamFormat(app->emu.audio_stream, NULL, &spec);
-	printf("%d %d %d %ld\n", spec.channels, spec.format, spec.freq, sizeof(float));
+	// SDL_ResumeAudioStreamDevice(app->emu.audio_stream);
+	SDL_GetAudioStreamFormat(app->emu.audio_stream, &src_spec, &dst_spec);
+	printf("src:%d %d %d %ld\n", src_spec.channels, src_spec.format, src_spec.freq, sizeof(float));
+	printf("dst:%d %d %d %ld\n", dst_spec.channels, dst_spec.format, dst_spec.freq, sizeof(float));
 	return (OK);
 }

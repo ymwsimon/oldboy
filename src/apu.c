@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/17 22:10:16 by mayeung           #+#    #+#             */
-/*   Updated: 2025/01/17 16:23:10 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/01/18 23:18:43 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,7 +95,13 @@ void	apu_write(t_emu *emu, t_word addr, t_byte data)
 	if (addr == 0xFF25)
 		emu->apu.nr51_sound_pan = data;
 	if (addr == 0xFF26)
+	{
 		emu->apu.nr52_mas_ctrl = (emu->apu.nr52_mas_ctrl & 0x7F) | (data & 0x80);
+		if (data & 128)
+			SDL_ResumeAudioStreamDevice(emu->audio_stream);
+		else
+			SDL_PauseAudioStreamDevice(emu->audio_stream);
+	}
 	if (addr >= 0xFF30 && addr <= 0xFF3F)
 		emu->apu.wave_ram[addr - 0xFF30] = data;
 }
@@ -455,7 +461,7 @@ void apu_callback(void *userdata, SDL_AudioStream *stream,
 	{
 		i = 0;
 		data[n_sample * 2] = 0;
-		while (i < 25 && i + used_sample < emu->apu.audio_buff_len)
+		while (i < 16 && i + used_sample < emu->apu.audio_buff_len)
 		{
 			data[n_sample * 2] += emu->apu.audio_buff[(emu->apu.audio_buff_idx + used_sample + i) % AUDIO_BUFFER_SIZE];
 			++i;
@@ -517,7 +523,10 @@ void	apu_tick(t_emu *emu)
 	static t_ull	idx = 0;
 	float			data[2];
 	
-	
+	// if (SDL_GetAudioStreamAvailable(emu->audio_stream) < 4096 * 2 * 4 * 16)
+	// 	SDL_PauseAudioStreamDevice(emu->audio_stream);
+	// else
+	// 	SDL_ResumeAudioStreamDevice(emu->audio_stream);
 	if (!is_apu_enabled(emu))
 		return ;
 	if (!is_apu_ch1_dac_on(emu))
@@ -574,7 +583,7 @@ void	apu_tick(t_emu *emu)
 	// if (!(emu->clock_cycle % 95))
 	// if (emu->clock_cycle / 95.108934240362811 > idx)
 	// write_data_to_stream(emu);
-	if (!(emu->clock_cycle % 4))
+	if (!(emu->clock_cycle % 64))
 	{
 		// printf("%llu %llu\n", emu->clock_cycle, idx);
 		data[0] = 0;
@@ -600,13 +609,13 @@ void	apu_tick(t_emu *emu)
 		// printf("data%f\n", data);
 		// if (is_apu_ch1_on(emu) || is_apu_ch2_dac_on(emu))
 		data[1] = data[0];
-		// SDL_PutAudioStreamData(emu->audio_stream,
-		// 	&data, sizeof(float) * 2);
+		SDL_PutAudioStreamData(emu->audio_stream,
+			&data, sizeof(float) * 2);
 		// data = 0;
 		// SDL_PutAudioStreamData(emu->audio_stream,
 		// 	&data, 4);
 		++idx;
-		if (idx >= SAMPLING_RATE || emu->clock_cycle >= FREQUENCY)
+		if (idx >= SAMPLING_RATE)// || emu->clock_cycle >= FREQUENCY)
 		{
 			// printf("1s %f\n", emu->last_render_time);
 			idx = 0;

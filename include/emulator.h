@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2025/01/16 17:51:05 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/01/17 21:16:33 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,6 +60,7 @@ typedef unsigned char		t_byte;
 typedef unsigned short		t_word;
 typedef unsigned int		t_ui;
 typedef unsigned long long	t_ull;
+typedef SDL_AudioDeviceID	t_SDLAID;
 
 typedef struct s_cart_header
 {
@@ -266,6 +267,7 @@ typedef struct s_emu
 	SDL_Window		*window;
 	SDL_Renderer	*renderer;
 	SDL_AudioStream	*audio_stream;
+	t_SDLAID		audio_id;
 	struct timeval	last_tick;
 	t_byte			print_log;
 }	t_emu;

@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 15:45:49 by mayeung           #+#    #+#             */
-/*   Updated: 2025/01/17 14:44:00 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/01/18 23:19:55 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,9 +17,9 @@ int	update_frame(t_emu *emu, double delta_time)
 	t_ull	n_instr;
 	t_ull	num_clock_cycle;
 
-	num_clock_cycle = (FREQUENCY / 4) * delta_time * emu->clock_scale;
+	num_clock_cycle = ceil((FREQUENCY / 4) * delta_time * emu->clock_scale);
 	n_instr = 0;
-	while (n_instr <= num_clock_cycle)
+	while (n_instr < num_clock_cycle)
 		n_instr += cpu_step(emu);
 	// n_instr = n_instr - num_clock_cycle;
 	// printf("n_instr:%llu %llu\n", n_instr, n_instr - num_clock_cycle);
@@ -68,6 +68,6 @@ int	init_emu(t_emu *emu)
 	bzero(&emu->vram, 0x2000);
 	bzero(&emu->wram, 0x2000);
 	bzero(&emu->hram, 0x7F);
-	SDL_SetAudioStreamGetCallback(emu->audio_stream, apu_callback, emu);
+	// SDL_SetAudioStreamGetCallback(emu->audio_stream, apu_callback, emu);
 	return (OK);
 }
