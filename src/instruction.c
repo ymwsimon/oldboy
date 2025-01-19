@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:54:16 by mayeung           #+#    #+#             */
-/*   Updated: 2025/01/10 20:11:28 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/01/19 00:30:56 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -475,6 +475,7 @@ t_byte	ld_m(t_emu *emu, t_byte op_code)
 {
 	t_word	data;
 
+	data = 0;
 	if ((op_code & 0xF0) == 0xE0)
 		data = a_of(emu->cpu);
 	else if (op_code == 0xF0)

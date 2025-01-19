@@ -10,7 +10,7 @@ OBJ_DIR = obj
 
 INC_DIR = include
 
-FLAGS = -Wall -Werror -Wextra -g
+FLAGS = -Wall -Werror -Wextra -O3
 
 LIB = -lSDL3 -lm
 

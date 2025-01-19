@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 13:14:12 by mayeung           #+#    #+#             */
-/*   Updated: 2025/01/18 23:16:18 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/01/19 21:29:04 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -201,13 +201,12 @@ Uint64	timed_loop(void *userdata, SDL_TimerID timerID, Uint64 interval)
 	// printf("%f\n", interval / (SDL_NS_PER_SECOND * 1.0));
 	t_emu			*emu;
 	SDL_Event		event;
-	struct timeval	start_time;
+	// struct timeval	start_time;
 	float			factor;
-	double			render_time;
-	static t_ull	idx = 0;
-	static double	compensate = 0.0f;
+	// double			render_time;
+	// static t_ull	idx = 0;
 
-	gettimeofday(&start_time, NULL);
+	// gettimeofday(&start_time, NULL);
 	emu = (t_emu *)userdata;
 	(void)timerID;
 	if (emu->quit)
@@ -229,24 +228,24 @@ Uint64	timed_loop(void *userdata, SDL_TimerID timerID, Uint64 interval)
 
 		// printf("don't need \n");
 	update_frame(emu, interval / (SDL_NS_PER_SECOND * 1.0) * factor);
-	render_time = calculate_time_diff(start_time);
-	if (render_time >= 1.0 / FPS)
-	{
-		printf("too long %f %f %llu\n", render_time, compensate, ++idx);
-		compensate += render_time - 1.0 / FPS;
-		if (compensate / 10.0 < 1.0 / FPS / 5.0)
-		{
-			interval = (1.0 / FPS - compensate / 10.0) * SDL_NS_PER_SECOND;
-			compensate -= compensate / 10.0;
-		}
-		else
-		{
-			interval = (1.0 / FPS - 1.0 / FPS / 3.0) * SDL_NS_PER_SECOND;
-			compensate -= 1.0 / FPS / 5.0;
-		}
-	}
-	else
-		interval = 1.0 / FPS * SDL_NS_PER_SECOND;
+	// render_time = calculate_time_diff(start_time);
+	// if (render_time >= 1.0 / FPS)
+	// {
+	// 	printf("too long %f %f %llu\n", render_time, compensate, ++idx);
+	// 	compensate += render_time - 1.0 / FPS;
+	// 	if (compensate / 10.0 < 1.0 / FPS / 5.0)
+	// 	{
+	// 		interval = (1.0 / FPS - compensate / 10.0) * SDL_NS_PER_SECOND;
+	// 		compensate -= compensate / 10.0;
+	// 	}
+	// 	else
+	// 	{
+	// 		interval = (1.0 / FPS - 1.0 / FPS / 3.0) * SDL_NS_PER_SECOND;
+	// 		compensate -= 1.0 / FPS / 5.0;
+	// 	}
+	// }
+	// else
+	// 	interval = 1.0 / FPS * SDL_NS_PER_SECOND;
 	// update_frame(emu, 1.0 / 60.0);
 	// printf("%d\n",interval);
 	if (SDL_PollEvent(&event))
@@ -325,10 +324,10 @@ int	run_app(t_app *app)
 	(void)event;
 	(void)time_diff;
 	// SDL_AddTimer(1.0 / FPS * 1000, timed_loop_old, &app->emu);
-	SDL_AddTimerNS(1.0 / FPS * SDL_NS_PER_SECOND, timed_loop, &app->emu);
-	while (!app->emu.quit)
-		;
-	while (0 && OK)
+	// SDL_AddTimerNS(1.0 / 60.0 * SDL_NS_PER_SECOND, timed_loop, &app->emu);
+	// while (!app->emu.quit)
+	// 	;
+	while (OK)
 	{
 		// tick(app);
 		// printf("%lu\n", SDL_GetTicksNS());
@@ -341,6 +340,7 @@ int	run_app(t_app *app)
 		time_diff = calculate_time_diff(app->emu.last_tick);
 		if (time_diff > 1.0 / (FPS))
 		// if (time_diff + app->emu.last_render_time >= 1.0 / (FPS))
+		// if (SDL_GetAudioStreamAvailable(app->emu.audio_stream) < 6144)
 		{
 			factor = 1.0;
 			// if (SDL_GetAudioStreamAvailable(app->emu.audio_stream) < 6144)
@@ -352,7 +352,10 @@ int	run_app(t_app *app)
 			// gettimeofday(&new_time, NULL);
 			// update_frame(&app->emu, time_diff);
 			gettimeofday(&app->emu.last_tick, NULL);
-			update_frame(&app->emu, 1.0 / FPS * factor);
+			update_frame(&app->emu, time_diff);
+			// if (calculate_time_diff(app->emu.last_tick) > 1.0 / FPS)
+				// printf("too long %f\n", calculate_time_diff(app->emu.last_tick));
+			// printf("%f\n", calculate_time_diff(app->emu.last_tick));
 			// update_frame(&app->emu, time_diff * factor);
 			// update_frame(&app->emu, calculate_time_diff(app->emu.last_tick));
 			// app->emu.last_tick = new_time;
