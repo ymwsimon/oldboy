@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/17 22:10:16 by mayeung           #+#    #+#             */
-/*   Updated: 2025/01/18 23:18:43 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/01/23 19:45:15 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,10 +97,10 @@ void	apu_write(t_emu *emu, t_word addr, t_byte data)
 	if (addr == 0xFF26)
 	{
 		emu->apu.nr52_mas_ctrl = (emu->apu.nr52_mas_ctrl & 0x7F) | (data & 0x80);
-		if (data & 128)
-			SDL_ResumeAudioStreamDevice(emu->audio_stream);
-		else
-			SDL_PauseAudioStreamDevice(emu->audio_stream);
+		// if (data & 128)
+		// 	SDL_ResumeAudioStreamDevice(emu->audio_stream);
+		// else
+		// 	SDL_PauseAudioStreamDevice(emu->audio_stream);
 	}
 	if (addr >= 0xFF30 && addr <= 0xFF3F)
 		emu->apu.wave_ram[addr - 0xFF30] = data;
@@ -419,72 +419,89 @@ void apu_callback_old(void *userdata, SDL_AudioStream *stream,
 	// SDL_UnlockAudioStream(stream);
 }
 
-void apu_callback(void *userdata, SDL_AudioStream *stream,
-	int additional_amount, int total_amount)
-{
-	t_ull	i;
-	t_emu	*emu;
-	float	*data;
-	// t_word	buf_idx;
-	t_word	n_sample;
-	t_word	used_sample;
+// void apu_callback(void *userdata, SDL_AudioStream *stream,
+// 	int additional_amount, int total_amount)
+// {
+// 	t_ull	i;
+// 	t_emu	*emu;
+// 	float	*data;
+// 	// t_word	buf_idx;
+// 	t_word	n_sample;
+// 	t_word	used_sample;
 
-	i = 0;
-	emu = (t_emu *)userdata;
-	n_sample = 0;
-	used_sample = 0;
-	(void)n_sample;
-	(void)total_amount;
-	data = malloc(additional_amount);
-	if (!data)
-		return ;
-	// SDL_LockAudioStream(stream);
-	// printf("b4:%llu add:%d\n", emu->apu.audio_buff_len, additional_amount);
-	// while (i < additional_amount / sizeof(float))
-	// {
-	// 	data[i] = 0.0f;
-	// 	if (i / 2 < emu->apu.audio_buff_len)
-	// 	{
-	// 		data[i] = emu->apu.audio_buff[(emu->apu.audio_buff_idx + i / 2) % AUDIO_BUFFER_SIZE];
-	// 		++used_sample;
-	// 	}
-	// 	data[i + 1] = data[i];
-	// 	i += 2;
-	// }
-	// SDL_PutAudioStreamData(stream, data, additional_amount);
-	// emu->apu.audio_buff_idx = (emu->apu.audio_buff_idx + i / 2) % AUDIO_BUFFER_SIZE;
-	// if (emu->apu.audio_buff_len > i / 2)
-	// 	emu->apu.audio_buff_len -= i / 2;
-	// else
-	// 	emu->apu.audio_buff_len = 0;
-	while (n_sample < additional_amount / sizeof(float) / 2 && used_sample < emu->apu.audio_buff_len)
-	{
-		i = 0;
-		data[n_sample * 2] = 0;
-		while (i < 16 && i + used_sample < emu->apu.audio_buff_len)
-		{
-			data[n_sample * 2] += emu->apu.audio_buff[(emu->apu.audio_buff_idx + used_sample + i) % AUDIO_BUFFER_SIZE];
-			++i;
-		}
-		if (i)
-			data[n_sample * 2] /= i;
-		// printf("%f\n", data[n_sample * 2]);
-		used_sample += i;
-		data[n_sample * 2 + 1] = data[n_sample * 2];
-		++n_sample;
-	}
-	// printf("%d %d\n", n_sample, total_amount);
-	// SDL_PutAudioStreamData(stream, data, total_amount);
-	SDL_PutAudioStreamData(stream, data, n_sample * sizeof(float) * 2);
-	emu->apu.audio_buff_idx = (emu->apu.audio_buff_idx + used_sample) % AUDIO_BUFFER_SIZE;
-	if (emu->apu.audio_buff_len > used_sample)
-		emu->apu.audio_buff_len -= used_sample;
-	else
-		emu->apu.audio_buff_len = 0;
-	// printf("af:%llu\n", emu->apu.audio_buff_len);
-	free(data);
-	// SDL_UnlockAudioStream(stream);
-}
+// 	i = 0;
+// 	emu = (t_emu *)userdata;
+// 	n_sample = 0;
+// 	used_sample = 0;
+// 	(void)n_sample;
+// 	(void)total_amount;
+// 	data = malloc(additional_amount);
+// 	if (!data)
+// 		return ;
+// 	// SDL_LockAudioStream(stream);
+// 	// printf("b4:%llu add:%d\n", emu->apu.audio_buff_len, additional_amount);
+// 	// while (i < additional_amount / sizeof(float))
+// 	// {
+// 	// 	data[i] = 0.0f;
+// 	// 	if (i / 2 < emu->apu.audio_buff_len)
+// 	// 	{
+// 	// 		data[i] = emu->apu.audio_buff[(emu->apu.audio_buff_idx + i / 2) % AUDIO_BUFFER_SIZE];
+// 	// 		++used_sample;
+// 	// 	}
+// 	// 	data[i + 1] = data[i];
+// 	// 	i += 2;
+// 	// }
+// 	// SDL_PutAudioStreamData(stream, data, additional_amount);
+// 	// emu->apu.audio_buff_idx = (emu->apu.audio_buff_idx + i / 2) % AUDIO_BUFFER_SIZE;
+// 	// if (emu->apu.audio_buff_len > i / 2)
+// 	// 	emu->apu.audio_buff_len -= i / 2;
+// 	// else
+// 	// 	emu->apu.audio_buff_len = 0;
+// 	while (n_sample < additional_amount / sizeof(float) / 2 && used_sample < emu->apu.audio_buff_len)
+// 	{
+// 		i = 0;
+// 		data[n_sample * 2] = 0;
+// 		while (i < 16 && i + used_sample < emu->apu.audio_buff_len)
+// 		{
+// 			data[n_sample * 2] += emu->apu.audio_buff[(emu->apu.audio_buff_idx + used_sample + i) % AUDIO_BUFFER_SIZE];
+// 			++i;
+// 		}
+// 		if (i)
+// 			data[n_sample * 2] /= i;
+// 		// printf("%f\n", data[n_sample * 2]);
+// 		used_sample += i;
+// 		data[n_sample * 2 + 1] = data[n_sample * 2];
+// 		++n_sample;
+// 	}
+// 	// printf("%d %d\n", n_sample, total_amount);
+// 	// SDL_PutAudioStreamData(stream, data, total_amount);
+// 	SDL_PutAudioStreamData(stream, data, n_sample * sizeof(float) * 2);
+// 	emu->apu.audio_buff_idx = (emu->apu.audio_buff_idx + used_sample) % AUDIO_BUFFER_SIZE;
+// 	if (emu->apu.audio_buff_len > used_sample)
+// 		emu->apu.audio_buff_len -= used_sample;
+// 	else
+// 		emu->apu.audio_buff_len = 0;
+// 	// printf("af:%llu\n", emu->apu.audio_buff_len);
+// 	free(data);
+// 	// SDL_UnlockAudioStream(stream);
+// }
+
+// void apu_callback(void *userdata, SDL_AudioStream *stream,
+// 	int additional_amount, int total_amount)
+// {
+// 	t_emu	*emu;
+// 	int		i;
+// 	double	time;
+
+// 	(void)total_amount;
+// 	emu = (t_emu *)userdata;
+// 	i = 0;
+// 	while (i < additional_amount / sizeof(float) / 2)
+// 	{
+// 		++i;
+// 	}
+	
+// }
 
 void	write_data_to_stream(t_emu *emu)
 {
@@ -527,6 +544,48 @@ void	apu_tick(t_emu *emu)
 	// 	SDL_PauseAudioStreamDevice(emu->audio_stream);
 	// else
 	// 	SDL_ResumeAudioStreamDevice(emu->audio_stream);
+	if (!(emu->clock_cycle % 64))
+	{
+		// printf("%llu %llu\n", emu->clock_cycle, idx);
+		data[0] = 0;
+		// if (is_apu_ch2_on(emu))
+		if (is_apu_ch1_on(emu))
+		{
+			// printf("%f\n", apu_buf_avg(emu));
+			// data += apu_buf_avg(emu);
+			// printf("idx:%d\n", emu->apu.audio_buff_idx);
+			data[0] += emu->apu.ch1_value;
+			// emu->apu.audio_buff_idx = 0;
+		}
+		if (is_apu_ch2_on(emu))
+		{
+			data[0] += emu->apu.ch2_value;
+			// data += apu_buf_avg(emu);
+			// emu->apu.audio_buff_idx = (emu->apu.audio_buff_idx
+			// 		+ emu->apu.audio_buff_len) % AUDIO_BUFFER_SIZE;
+			// emu->apu.audio_buff_len = 0;
+		}
+		if (is_apu_ch1_on(emu) && is_apu_ch2_on(emu))
+			data[0] /= 2.0;
+		// printf("data%f\n", data);
+		// if (is_apu_ch1_on(emu) || is_apu_ch2_dac_on(emu))
+		data[1] = data[0];
+		SDL_LockMutex(emu->mod);
+		// emu->byte_written += sizeof(float) * 2;
+		emu->byte_available += sizeof(float) * 2;
+		SDL_UnlockMutex(emu->mod);
+		SDL_PutAudioStreamData(emu->audio_stream,
+			&data, sizeof(float) * 2);
+		// data = 0;
+		// SDL_PutAudioStreamData(emu->audio_stream,
+		// 	&data, 4);
+		++idx;
+		if (idx >= SAMPLING_RATE)// || emu->clock_cycle >= FREQUENCY)
+		{
+			// printf("1s %f\n", emu->last_render_time);
+			idx = 0;
+		}
+	}
 	if (!is_apu_enabled(emu))
 		return ;
 	if (!is_apu_ch1_dac_on(emu))
@@ -583,42 +642,5 @@ void	apu_tick(t_emu *emu)
 	// if (!(emu->clock_cycle % 95))
 	// if (emu->clock_cycle / 95.108934240362811 > idx)
 	// write_data_to_stream(emu);
-	if (!(emu->clock_cycle % 64))
-	{
-		// printf("%llu %llu\n", emu->clock_cycle, idx);
-		data[0] = 0;
-		// if (is_apu_ch2_on(emu))
-		if (is_apu_ch1_on(emu))
-		{
-			// printf("%f\n", apu_buf_avg(emu));
-			// data += apu_buf_avg(emu);
-			// printf("idx:%d\n", emu->apu.audio_buff_idx);
-			data[0] += emu->apu.ch1_value;
-			// emu->apu.audio_buff_idx = 0;
-		}
-		if (is_apu_ch2_on(emu))
-		{
-			data[0] += emu->apu.ch2_value;
-			// data += apu_buf_avg(emu);
-			// emu->apu.audio_buff_idx = (emu->apu.audio_buff_idx
-			// 		+ emu->apu.audio_buff_len) % AUDIO_BUFFER_SIZE;
-			// emu->apu.audio_buff_len = 0;
-		}
-		if (is_apu_ch1_on(emu) && is_apu_ch2_on(emu))
-			data[0] /= 2.0;
-		// printf("data%f\n", data);
-		// if (is_apu_ch1_on(emu) || is_apu_ch2_dac_on(emu))
-		data[1] = data[0];
-		SDL_PutAudioStreamData(emu->audio_stream,
-			&data, sizeof(float) * 2);
-		// data = 0;
-		// SDL_PutAudioStreamData(emu->audio_stream,
-		// 	&data, 4);
-		++idx;
-		if (idx >= SAMPLING_RATE)// || emu->clock_cycle >= FREQUENCY)
-		{
-			// printf("1s %f\n", emu->last_render_time);
-			idx = 0;
-		}
-	}
+	
 }

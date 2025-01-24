@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2025/01/17 21:16:33 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/01/24 12:23:42 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,8 @@
 # define FREQUENCY 4194304
 # define MS_PER_SECOND 1000000
 # define CLOCK_SCALE 20
-# define FPS 59.72750056960583
+// # define FPS 59.72750056960583
+# define FPS 150.0
 # define WINDOW_NAME "Old Boy"
 # define RES_SCALE 4
 # define SCR_H 144
@@ -54,6 +55,7 @@
 # include <fcntl.h>
 # include <stdbool.h>
 # include <math.h>
+# include <time.h>
 # include <sys/time.h>
 
 typedef unsigned char		t_byte;
@@ -269,6 +271,13 @@ typedef struct s_emu
 	SDL_AudioStream	*audio_stream;
 	t_SDLAID		audio_id;
 	struct timeval	last_tick;
+	struct timeval	zero_tick;
+	struct timeval	genesis_tick;
+	t_ull			sec_elapsed;
+	t_ull			byte_written;
+	t_ull			byte_read;
+	long long		byte_available;
+	SDL_Mutex		*mod;
 	t_byte			print_log;
 }	t_emu;
 
@@ -298,10 +307,13 @@ void	save_ram_save(t_emu *emu);
 int		init_sdl(t_app *app);
 int		run_app(t_app *app);
 void	print_vram_tile(t_app *app);
+double	calculate_time_diff(struct timeval old_time);
 //emu
 int		init_emu(t_emu *emu);
 int		update_frame(t_emu *emu, double delta_time);
 void	emu_tick(t_emu *emu, t_ull clock_cycle);
+void	get_data_callback(void *userdata, SDL_AudioStream *stream,
+			int additional_amount, int total_amount);
 //cpu
 t_word	af_of(t_cpu cpu);
 t_word	bc_of(t_cpu cpu);

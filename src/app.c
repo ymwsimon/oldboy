@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 13:14:12 by mayeung           #+#    #+#             */
-/*   Updated: 2025/01/19 21:29:04 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/01/24 15:21:40 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -251,7 +251,11 @@ Uint64	timed_loop(void *userdata, SDL_TimerID timerID, Uint64 interval)
 	if (SDL_PollEvent(&event))
 	{
 		if (event.type == SDL_EVENT_QUIT || (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_Q))
+		{
+			SDL_LockMutex(emu->mod);
 			emu->quit = TRUE;
+			SDL_UnlockMutex(emu->mod);
+		}
 		else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_P)
 			print_tile_map(emu);
 		else if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_M)
@@ -315,7 +319,8 @@ int	run_app(t_app *app)
 	struct timeval	new_time;
 	t_ull			last_time;
 	float			factor;
-
+	struct timespec	t;
+	
 	(void)new_time;
 	init_emu(&app->emu);
 	load_ram_sav(&app->emu);
@@ -323,10 +328,25 @@ int	run_app(t_app *app)
 	(void)last_time;
 	(void)event;
 	(void)time_diff;
+	(void)t;
 	// SDL_AddTimer(1.0 / FPS * 1000, timed_loop_old, &app->emu);
-	// SDL_AddTimerNS(1.0 / 60.0 * SDL_NS_PER_SECOND, timed_loop, &app->emu);
-	// while (!app->emu.quit)
-	// 	;
+	// SDL_AddTimerNS(1.0 / FPS * SDL_NS_PER_SECOND, timed_loop, &app->emu);
+	// // SDL_AddTimerNS(0.08 * SDL_NS_PER_SECOND, timed_loop, &app->emu);
+	// while (OK)
+	// {
+	// 	SDL_LockMutex(app->emu.mod);
+	// 	if (app->emu.quit)
+	// 	{
+	// 		SDL_UnlockMutex(app->emu.mod);
+	// 		break ;
+	// 	}
+	// 	SDL_UnlockMutex(app->emu.mod);
+	// }
+	t.tv_sec = 0;
+	t.tv_nsec = 1.0 / FPS * SDL_NS_PER_SECOND;
+	// printf("aaa\n");
+		// if (!emu->genesis_tick.tv_sec && !emu->genesis_tick.tv_usec)
+	gettimeofday(&app->emu.genesis_tick, NULL);
 	while (OK)
 	{
 		// tick(app);
@@ -339,6 +359,7 @@ int	run_app(t_app *app)
 		// }
 		time_diff = calculate_time_diff(app->emu.last_tick);
 		if (time_diff > 1.0 / (FPS))
+		// if (time_diff > 0.001 || time_diff > 0.0009)
 		// if (time_diff + app->emu.last_render_time >= 1.0 / (FPS))
 		// if (SDL_GetAudioStreamAvailable(app->emu.audio_stream) < 6144)
 		{
@@ -353,6 +374,7 @@ int	run_app(t_app *app)
 			// update_frame(&app->emu, time_diff);
 			gettimeofday(&app->emu.last_tick, NULL);
 			update_frame(&app->emu, time_diff);
+			// app->emu.last_render_time = 0;
 			// if (calculate_time_diff(app->emu.last_tick) > 1.0 / FPS)
 				// printf("too long %f\n", calculate_time_diff(app->emu.last_tick));
 			// printf("%f\n", calculate_time_diff(app->emu.last_tick));
@@ -380,7 +402,11 @@ int	run_app(t_app *app)
 			else if (event.type == SDL_EVENT_KEY_UP)
 				handle_input_up(&app->emu, event);
 		}
-		// usleep(100);
+		// usleep(1.0 / FPS * SDL_US_PER_SECOND);
+		// nanosleep(1.0 / FPS * SDL_NS_PER_SECOND);
+		// t.tv_nsec = (1.0 / FPS - calculate_time_diff(app->emu.last_tick)) * SDL_NS_PER_SECOND;
+		// nanosleep(&t, NULL);
+		// usleep(1.0 / (FPS * 2));
 	}
 	save_ram_save(&app->emu);
 	// if (app->emu.serial.idx_out_buf)
@@ -398,7 +424,7 @@ int	init_sdl(t_app *app)
 
 	dst_spec.channels = 2;
 	dst_spec.format = SDL_AUDIO_F32;
-	dst_spec.freq = SAMPLING_RATE;
+	dst_spec.freq = 65536;
 	src_spec.channels = 2;
 	src_spec.format = SDL_AUDIO_F32;
 	src_spec.freq = 65536;
@@ -427,9 +453,11 @@ int	init_sdl(t_app *app)
 	if (!SDL_BindAudioStream(app->emu.audio_id, app->emu.audio_stream))
 		return (fprintf(stderr, "Can't bind audio stream\n"), NOT_OK);
 	// SDL_SetAudioStreamFrequencyRatio(app->emu.audio_stream, 23.77723356);
-	// SDL_ResumeAudioStreamDevice(app->emu.audio_stream);
+	SDL_ResumeAudioStreamDevice(app->emu.audio_stream);
 	SDL_GetAudioStreamFormat(app->emu.audio_stream, &src_spec, &dst_spec);
 	printf("src:%d %d %d %ld\n", src_spec.channels, src_spec.format, src_spec.freq, sizeof(float));
 	printf("dst:%d %d %d %ld\n", dst_spec.channels, dst_spec.format, dst_spec.freq, sizeof(float));
+	// printf("freq:%f\n", SDL_GetAudioStreamFrequencyRatio(app->emu.audio_stream));
+	// SDL_SetAudioStreamFrequencyRatio(app->emu.audio_stream, 0.992);
 	return (OK);
 }
