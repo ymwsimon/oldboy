@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2025/01/24 12:23:42 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/01/28 12:15:29 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,12 +16,9 @@
 #  define PRINT_CPU_LOG 0
 # endif
 # define BUFFER_SIZE 10000
-# define AUDIO_BUFFER_SIZE 500000
 # define FREQUENCY 4194304
-# define MS_PER_SECOND 1000000
-# define CLOCK_SCALE 20
 // # define FPS 59.72750056960583
-# define FPS 150.0
+# define FPS 100.0
 # define WINDOW_NAME "Old Boy"
 # define RES_SCALE 4
 # define SCR_H 144
@@ -62,7 +59,7 @@ typedef unsigned char		t_byte;
 typedef unsigned short		t_word;
 typedef unsigned int		t_ui;
 typedef unsigned long long	t_ull;
-typedef SDL_AudioDeviceID	t_SDLAID;
+typedef SDL_AudioDeviceID	t_sdlaod;
 
 typedef struct s_cart_header
 {
@@ -220,18 +217,18 @@ typedef struct s_apu
 	t_word	ch1_period_counter;
 	t_byte	ch1_sample_idx;
 	t_byte	ch1_vol;
-	t_word	ch1_sweep_counter;
-	t_word	ch1_length_timer;
+	t_byte	ch1_vol_sweep_counter;
+	t_byte	ch1_freq_sweep_pace;
+	t_byte	ch1_freq_sweep_enabled;
+	// t_byte	ch1_freq_sweep_dir;
+	t_byte	ch1_length_timer;
 	float	ch1_value;
 	t_word	ch2_period_counter;
 	t_byte	ch2_sample_idx;
 	t_byte	ch2_vol;
-	t_word	ch2_sweep_counter;
-	t_word	ch2_length_timer;
+	t_byte	ch2_vol_sweep_counter;
+	t_byte	ch2_length_timer;
 	float	ch2_value;
-	float	audio_buff[AUDIO_BUFFER_SIZE];
-	t_ull	audio_buff_idx;
-	t_ull	audio_buff_len;
 }	t_apu;
 
 typedef struct s_joypad
@@ -269,15 +266,10 @@ typedef struct s_emu
 	SDL_Window		*window;
 	SDL_Renderer	*renderer;
 	SDL_AudioStream	*audio_stream;
-	t_SDLAID		audio_id;
+	t_sdlaod		audio_id;
 	struct timeval	last_tick;
-	struct timeval	zero_tick;
 	struct timeval	genesis_tick;
 	t_ull			sec_elapsed;
-	t_ull			byte_written;
-	t_ull			byte_read;
-	long long		byte_available;
-	SDL_Mutex		*mod;
 	t_byte			print_log;
 }	t_emu;
 
@@ -413,6 +405,4 @@ void	apu_disable_ch1(t_emu *emu);
 void	apu_disable_ch2(t_emu *emu);
 void	apu_disable_ch3(t_emu *emu);
 void	apu_disable_ch4(t_emu *emu);
-void	apu_callback(void *userdata, SDL_AudioStream *stream,
-			int additional_amount, int total_amount);
 #endif
