@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/17 22:10:16 by mayeung           #+#    #+#             */
-/*   Updated: 2025/01/27 19:22:04 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/02/06 01:16:42 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -207,11 +207,6 @@ t_byte	is_apu_ch2_length_timer_on(t_emu *emu)
 	return (emu->apu.nr24_c2_per_high_ctrl & 0x40);
 }
 
-t_byte	is_apu_ch1_freq_sweep_on(t_emu *emu)
-{
-	return ((emu->apu.nr10_c1_sweep & 7) || (emu->apu.nr10_c1_sweep & 0x70));
-}
-
 t_byte	apu_get_sq_wave_sample(t_byte idx, t_byte form_type)
 {
 	const t_byte	waveforms[4][8] = {
@@ -251,9 +246,44 @@ t_byte	apu_get_ch1_freq_sweep_dir(t_emu *emu)
 	return (emu->apu.nr10_c1_sweep & 8);
 }
 
+t_byte	apu_get_ch1_freq_sweep_is_add(t_emu *emu)
+{
+	return (!apu_get_ch1_freq_sweep_dir(emu));
+}
+
 t_byte	apu_get_ch1_freq_sweep_step(t_emu *emu)
 {
 	return (emu->apu.nr10_c1_sweep & 7);
+}
+
+t_byte	is_apu_ch1_freq_sweep_on(t_emu *emu)
+{
+	return (apu_get_ch1_freq_sweep_pace(emu)
+		|| apu_get_ch1_freq_sweep_step(emu));
+}
+
+void	apu_ch1_freq_sweep_perform(t_emu *emu, t_byte update_reg)
+{
+	t_word	new_period;
+
+	if (apu_get_ch1_freq_sweep_step(emu))
+	{
+		new_period = emu->apu.ch1_period_og >> apu_get_ch1_freq_sweep_step(emu);
+		if (apu_get_ch1_freq_sweep_is_add(emu))
+			new_period += emu->apu.ch1_period_og;
+		else
+			new_period = emu->apu.ch1_period_og - new_period;
+		if (new_period > 0x7FF)
+			apu_disable_ch1(emu);
+		else
+		{
+			if (update_reg)
+			{
+				emu->apu.ch1_period_og = new_period;
+				apu_update_ch1_period(emu, new_period);
+			}
+		}
+	}
 }
 
 void	apu_disable_ch1(t_emu *emu)
@@ -287,6 +317,11 @@ void	apu_enable_ch1(t_emu *emu)
 	emu->apu.ch1_value = 0;
 	emu->apu.ch1_vol_sweep_counter = 0;
 	emu->apu.ch1_vol = emu->apu.nr12_c1_vol_env >> 4;
+	emu->apu.ch1_freq_sweep_pace = apu_get_ch1_freq_sweep_pace(emu);
+	emu->apu.ch1_period_og = apu_get_ch1_period(emu);
+	emu->apu.ch1_freq_sweep_enabled = is_apu_ch1_freq_sweep_on(emu);
+	if (apu_get_ch1_freq_sweep_step(emu))
+		apu_ch1_freq_sweep_perform(emu, FALSE);
 }
 
 void	apu_enable_ch2(t_emu *emu)
@@ -303,6 +338,8 @@ void	apu_enable_ch2(t_emu *emu)
 void	apu_enable_ch3(t_emu *emu)
 {
 	emu->apu.nr52_mas_ctrl |= 4;
+	emu->apu.ch3_temp_data = 0;
+	emu->apu.ch3_sample_idx = 0;
 }
 
 void	apu_enable_ch4(t_emu *emu)
@@ -452,8 +489,16 @@ void	apu_tick(t_emu *emu)
 			}
 			if (!(emu->apu.apu_div % 4))
 			{
-				if (is_apu_ch1_on(emu) && is_apu_ch1_dac_on(emu))
-				{}
+				if (is_apu_ch1_on(emu) && emu->apu.ch1_freq_sweep_enabled
+					&& emu->apu.ch1_freq_sweep_pace)
+					--(emu->apu.ch1_freq_sweep_pace);
+				if (is_apu_ch1_on(emu) && emu->apu.ch1_freq_sweep_enabled
+					&& apu_get_ch1_freq_sweep_pace(emu)
+					&& !emu->apu.ch1_freq_sweep_pace)
+				{
+					apu_ch1_freq_sweep_perform(emu, TRUE);
+					emu->apu.ch1_freq_sweep_pace = apu_get_ch1_freq_sweep_pace(emu);
+				}
 			}
 		}
 		if (is_apu_ch1_on(emu))

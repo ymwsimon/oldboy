@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 15:45:49 by mayeung           #+#    #+#             */
-/*   Updated: 2025/01/28 12:14:39 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/01/29 19:10:02 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,10 +23,10 @@ int	update_frame(t_emu *emu, double delta_time)
 	// 	// || (1 - calculate_time_diff(emu->zero_tick) < 2.0 / FPS && calculate_time_diff(emu->zero_tick) < 1.0))// && (emu->clock_cycle % 2)))
 	if (emu->sec_elapsed + 1 - calculate_time_diff(emu->genesis_tick) < 1.0 / FPS)
 		num_clock_cycle = ceil((FREQUENCY - emu->clock_cycle) / 4.0);
-	if (SDL_GetAudioStreamQueued(emu->audio_stream) < 4000)
-		num_clock_cycle *= 1.1;
-	// if (SDL_GetAudioStreamQueued(emu->audio_stream) > 10000)
-	// 	num_clock_cycle *= 0.9;
+	// if (SDL_GetAudioStreamQueued(emu->audio_stream) < 8192 * 2)
+		// num_clock_cycle *= 1.1;
+	// if (SDL_GetAudioStreamQueued(emu->audio_stream) > 8192 * 4)
+		// num_clock_cycle /= 1.1;
 	// {
 	// 	num_clock_cycle = ((FREQUENCY - emu->clock_cycle) / 4.0);
 	// 	// num_clock_cycle += (FREQUENCY / 4) * emu->last_render_time;
