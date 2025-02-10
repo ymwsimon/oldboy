@@ -240,6 +240,10 @@ typedef struct s_apu
 	t_byte	ch4_length_timer;
 	t_word	lfsr;
 	float	ch4_value;
+	t_byte	play_ch1;
+	t_byte	play_ch2;
+	t_byte	play_ch3;
+	t_byte	play_ch4;
 }	t_apu;
 
 typedef struct s_joypad

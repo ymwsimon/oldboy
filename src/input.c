@@ -103,6 +103,21 @@ void	handle_input_down(t_emu *emu, SDL_Event event)
 		emu->joypad.select = TRUE;
 	if (event.key.key == SDLK_X)
 		emu->joypad.start = TRUE;
+	if (event.key.key == SDLK_1)
+		emu->apu.play_ch1 = !emu->apu.play_ch1;
+	if (event.key.key == SDLK_2)
+		emu->apu.play_ch2 = !emu->apu.play_ch2;
+	if (event.key.key == SDLK_3)
+		emu->apu.play_ch3 = !emu->apu.play_ch3;
+	if (event.key.key == SDLK_4)
+		emu->apu.play_ch4 = !emu->apu.play_ch4;
+	if (event.key.key == SDLK_5)
+	{
+		emu->apu.play_ch1 = !emu->apu.play_ch1;
+		emu->apu.play_ch2 = !emu->apu.play_ch2;
+		emu->apu.play_ch3 = !emu->apu.play_ch3;
+		emu->apu.play_ch4 = !emu->apu.play_ch4;
+	}
 }
 
 void	handle_input_up(t_emu *emu, SDL_Event event)

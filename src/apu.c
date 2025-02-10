@@ -38,6 +38,10 @@ void	init_apu(t_emu *emu)
 	emu->apu.apu_div = 0;
 	emu->apu.ch1_value = 0;
 	emu->apu.ch2_value = 0;
+	emu->apu.play_ch1 = TRUE;
+	emu->apu.play_ch2 = TRUE;
+	emu->apu.play_ch3 = TRUE;
+	emu->apu.play_ch4 = TRUE;
 	bzero(&emu->apu.wave_ram, 0xF);
 }
 
@@ -518,22 +522,22 @@ void	apu_tick(t_emu *emu)
 	if (!(emu->clock_cycle % 64))
 	{
 		data[0] = 0;
-		if (is_apu_ch1_on(emu))
+		if (is_apu_ch1_on(emu) && emu->apu.play_ch1)
 		{
 			data[0] += emu->apu.ch1_value;
 			++n_ch_on;
 		}
-		if (is_apu_ch2_on(emu))
+		if (is_apu_ch2_on(emu) && emu->apu.play_ch2)
 		{
 			data[0] += emu->apu.ch2_value;
 			++n_ch_on;
 		}
-		if (is_apu_ch3_on(emu))
+		if (is_apu_ch3_on(emu) && emu->apu.play_ch3)
 		{
 			data[0] += emu->apu.ch3_value;
 			++n_ch_on;
 		}
-		if (is_apu_ch4_on(emu))
+		if (is_apu_ch4_on(emu) && emu->apu.play_ch4)
 		{
 			data[0] += emu->apu.ch4_value;
 			++n_ch_on;
