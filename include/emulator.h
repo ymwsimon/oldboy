@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 12:20:23 by mayeung           #+#    #+#             */
-/*   Updated: 2025/02/06 01:16:34 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/02/09 16:49:40 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -229,8 +229,17 @@ typedef struct s_apu
 	t_byte	ch2_vol_sweep_counter;
 	t_byte	ch2_length_timer;
 	float	ch2_value;
+	t_word	ch3_period_counter;
 	t_byte	ch3_temp_data;
 	t_byte	ch3_sample_idx;
+	t_word	ch3_length_timer;
+	float	ch3_value;
+	t_word	ch4_period_counter;
+	t_byte	ch4_vol;
+	t_byte	ch4_vol_sweep_counter;
+	t_byte	ch4_length_timer;
+	t_word	lfsr;
+	float	ch4_value;
 }	t_apu;
 
 typedef struct s_joypad
