@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/17 22:10:16 by mayeung           #+#    #+#             */
-/*   Updated: 2025/02/10 12:13:05 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/02/10 22:51:39 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -501,9 +501,10 @@ void	apu_step_ch4(t_emu *emu)
 			// printf("%d\n", emu->apu.ch4_period_counter);
 		}
 		// emu->apu.ch4_value = apu_dac(apu_get_ch4_lfsr_range(emu), 1, -1, );
-		emu->apu.ch4_value = 0;
 		if (emu->apu.lfsr & 1)
 			emu->apu.ch4_value = ((float)emu->apu.ch4_vol / 15.0);
+		else
+			emu->apu.ch4_value = -((float)emu->apu.ch4_vol / 15.0);
 	}
 	// emu->apu.ch4_value = apu_dac(1, 1, -1,
 			// apu_get_sq_wave_sample(emu->apu.ch2_sample_idx,

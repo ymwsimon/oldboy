@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 13:14:12 by mayeung           #+#    #+#             */
-/*   Updated: 2025/01/27 13:48:46 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/02/10 23:34:39 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -189,7 +189,7 @@ t_byte	is_key_for_debug_info(SDL_Keycode code)
 t_byte	is_quit(SDL_Event event)
 {
 	return (event.type == SDL_EVENT_QUIT
-		|| (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_Q));
+		|| (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE));
 }
 
 void	app_loop(t_emu *emu)
