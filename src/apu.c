@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/17 22:10:16 by mayeung           #+#    #+#             */
-/*   Updated: 2025/02/10 22:51:39 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/02/15 00:46:38 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -142,7 +142,8 @@ void	apu_write_mas_reg(t_emu *emu, t_word addr, t_byte data)
 	if (addr == 0xFF25)
 		emu->apu.nr51_sound_pan = data;
 	if (addr == 0xFF26)
-		emu->apu.nr52_mas_ctrl = (emu->apu.nr52_mas_ctrl & 0x7F) | (data & 0x80);
+		emu->apu.nr52_mas_ctrl = (emu->apu.nr52_mas_ctrl & 0x7F)
+			| (data & 0x80);
 }
 
 void	apu_write(t_emu *emu, t_word addr, t_byte data)
@@ -697,7 +698,8 @@ void	apu_step_vol_env_ch1(t_emu *emu)
 	{
 		++(emu->apu.ch1_vol_sweep_counter);
 		if ((emu->apu.nr12_c1_vol_env & 7)
-			&& (emu->apu.ch1_vol_sweep_counter >= (emu->apu.nr12_c1_vol_env & 7)))
+			&& (emu->apu.ch1_vol_sweep_counter
+				>= (emu->apu.nr12_c1_vol_env & 7)))
 		{
 			if ((emu->apu.nr12_c1_vol_env & 8) && (emu->apu.ch1_vol < 0xF))
 				++(emu->apu.ch1_vol);
@@ -714,7 +716,8 @@ void	apu_step_vol_env_ch2(t_emu *emu)
 	{
 		++(emu->apu.ch2_vol_sweep_counter);
 		if ((emu->apu.nr22_c2_vol_env & 7)
-			&& (emu->apu.ch2_vol_sweep_counter >= (emu->apu.nr22_c2_vol_env & 7)))
+			&& (emu->apu.ch2_vol_sweep_counter
+				>= (emu->apu.nr22_c2_vol_env & 7)))
 		{
 			if ((emu->apu.nr22_c2_vol_env & 8) && (emu->apu.ch2_vol < 0xF))
 				++(emu->apu.ch2_vol);
@@ -731,7 +734,8 @@ void	apu_step_vol_env_ch4(t_emu *emu)
 	{
 		++(emu->apu.ch4_vol_sweep_counter);
 		if ((emu->apu.nr42_c4_vol_env & 7)
-			&& (emu->apu.ch4_vol_sweep_counter >= (emu->apu.nr42_c4_vol_env & 7)))
+			&& (emu->apu.ch4_vol_sweep_counter
+				>= (emu->apu.nr42_c4_vol_env & 7)))
 		{
 			if ((emu->apu.nr42_c4_vol_env & 8) && (emu->apu.ch4_vol < 0xF))
 				++(emu->apu.ch4_vol);
