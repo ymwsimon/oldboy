@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/15 13:19:30 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/17 21:56:43 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/02/19 14:17:32 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -282,20 +282,20 @@ Uint32	get_cart_ram_size(t_emu *emu)
 
 void	load_rtc_sav(t_emu *emu, int fd)
 {
-	read(fd, &emu->cart.rtc.s, 1);
-	read(fd, &emu->cart.rtc.m, 1);
-	read(fd, &emu->cart.rtc.h, 1);
-	read(fd, &emu->cart.rtc.dl, 1);
-	read(fd, &emu->cart.rtc.dh, 1);
+	if (read(fd, &emu->cart.rtc.s, 1) && read(fd, &emu->cart.rtc.m, 1)
+		&& read(fd, &emu->cart.rtc.h, 1) && read(fd, &emu->cart.rtc.dl, 1)
+		&& read(fd, &emu->cart.rtc.dh, 1))
+		return ;
+	return ;
 }
 
 void	save_rtc_sav(t_emu *emu, int fd)
 {
-	write(fd, &emu->cart.rtc.s, 1);
-	write(fd, &emu->cart.rtc.m, 1);
-	write(fd, &emu->cart.rtc.h, 1);
-	write(fd, &emu->cart.rtc.dl, 1);
-	write(fd, &emu->cart.rtc.dh, 1);
+	if (write(fd, &emu->cart.rtc.s, 1) && write(fd, &emu->cart.rtc.m, 1)
+		&& write(fd, &emu->cart.rtc.h, 1) && write(fd, &emu->cart.rtc.dl, 1)
+		&& write(fd, &emu->cart.rtc.dh, 1))
+		return ;
+	return ;
 }
 
 void	load_ram_sav(t_emu *emu)
@@ -314,8 +314,7 @@ void	load_ram_sav(t_emu *emu)
 		if (fd >= 0)
 		{
 			ram_size = get_cart_ram_size(emu);
-			read(fd, &emu->cart.ram, ram_size);
-			if (has_cart_timer(emu))
+			if (read(fd, &emu->cart.ram, ram_size) >= 0 && has_cart_timer(emu))
 				load_rtc_sav(emu, fd);
 			close(fd);
 		}
@@ -339,14 +338,13 @@ void	save_ram_save(t_emu *emu)
 		return ;
 	fd = -1;
 	if (access(sav_file_name, F_OK) == -1)
-		fd = open(sav_file_name, O_WRONLY | O_CREAT);
+		fd = open(sav_file_name, O_WRONLY | O_CREAT, 0755);
 	else if (access(sav_file_name, W_OK) == 0)
-		fd = open(sav_file_name, O_WRONLY | O_TRUNC);
+		fd = open(sav_file_name, O_WRONLY | O_TRUNC, 0755);
 	if (fd >= 0)
 	{
 		ram_size = get_cart_ram_size(emu);
-		write(fd, &emu->cart.ram, ram_size);
-		if (has_cart_timer(emu))
+		if (write(fd, &emu->cart.ram, ram_size) >= 0 && has_cart_timer(emu))
 			save_rtc_sav(emu, fd);
 		close(fd);
 	}

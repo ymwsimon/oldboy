@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 13:14:12 by mayeung           #+#    #+#             */
-/*   Updated: 2025/02/10 23:34:39 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/02/19 14:18:37 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,11 +29,9 @@ void	write_serial_buf_file(t_emu *emu)
 	int	fd;
 
 	fd = open("out_buf", O_WRONLY | O_CREAT | O_APPEND, 0755);
-	if (fd >= 0)
-	{
-		write(fd, emu->serial.serial_out_buf, emu->serial.idx_out_buf);
+	if (fd >= 0
+		&& write(fd, emu->serial.serial_out_buf, emu->serial.idx_out_buf))
 		close(fd);
-	}
 }
 
 unsigned int	get_colour_map(t_emu *emu, t_byte cid)

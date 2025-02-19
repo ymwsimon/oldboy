@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/28 23:02:06 by mayeung           #+#    #+#             */
-/*   Updated: 2024/12/17 21:53:56 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/02/19 14:21:39 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,11 +29,10 @@ void	serial_write_byte_file(t_emu *emu)
 	if (emu->serial.idx_out_buf == 1)
 		flag = O_WRONLY | O_CREAT | O_TRUNC;
 	fd = open("out_buf", flag, 0755);
-	if (fd >= 0)
-	{
-		write(fd, emu->serial.serial_out_buf + emu->serial.idx_out_buf - 1, 1);
+	if (fd >= 0
+		&& write(fd, emu->serial.serial_out_buf
+			+ emu->serial.idx_out_buf - 1, 1))
 		close(fd);
-	}
 }
 
 void	serial_write(t_emu *emu, t_word addr, t_byte data)
