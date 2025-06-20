@@ -6,13 +6,13 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:54:16 by mayeung           #+#    #+#             */
-/*   Updated: 2025/02/19 14:20:08 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/06/20 17:02:31 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/emulator.h"
 
-t_setw	*g_setw_fptr[256] = {
+t_setw			*g_setw_fptr[256] = {
 	NULL, set_bc, NULL, set_bc, set_b, set_b, set_b, NULL,
 	NULL, set_hl, set_a, set_bc, set_c, set_c, set_c, NULL,
 	NULL, set_de, NULL, set_de, set_d, set_d, set_d, NULL,
@@ -47,7 +47,7 @@ t_setw	*g_setw_fptr[256] = {
 	set_hl, set_sp, NULL, NULL, NULL, NULL, set_id, NULL
 };
 
-t_getw	*g_getw_fptr[256] = {
+t_getw			*g_getw_fptr[256] = {
 	NULL, NULL, a_of, bc_of, b_of, b_of, NULL, NULL,
 	sp_of, bc_of, bc_of, bc_of, c_of, c_of, NULL, NULL,
 	NULL, NULL, a_of, de_of, d_of, d_of, NULL, NULL,
@@ -82,7 +82,7 @@ t_getw	*g_getw_fptr[256] = {
 	sp_of, hl_of, NULL, NULL, NULL, NULL, NULL, pc_of
 };
 
-const t_byte	n_instr[256] = {
+const t_byte	g_n_instr[256] = {
 	1, 3, 2, 2, 1, 1, 2, 1, 5, 2, 2, 2, 1, 1, 2, 1,
 	1, 3, 2, 2, 1, 1, 2, 1, 3, 2, 2, 2, 1, 1, 2, 1,
 	2, 3, 2, 2, 1, 1, 2, 1, 2, 2, 2, 2, 1, 1, 2, 1,
@@ -101,7 +101,7 @@ const t_byte	n_instr[256] = {
 	3, 3, 2, 1, 0, 4, 2, 4, 3, 2, 4, 1, 0, 0, 2, 4
 };
 
-const t_byte	n_instr_cb[256] = {
+const t_byte	g_n_instr_cb[256] = {
 	2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2,
 	2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2,
 	2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2,
@@ -163,7 +163,7 @@ void	write_word(t_emu *emu, t_word addr, t_word data)
 t_byte	nop(t_emu *emu, t_byte op_code)
 {
 	(void)emu;
-	return (n_instr[op_code]);
+	return (g_n_instr[op_code]);
 }
 
 t_byte	stop(t_emu *emu, t_byte op_code)
@@ -171,13 +171,13 @@ t_byte	stop(t_emu *emu, t_byte op_code)
 	++(emu->cpu.pc);
 	emu->timer.div = 0;
 	emu->paused = TRUE;
-	return (n_instr[op_code]);
+	return (g_n_instr[op_code]);
 }
 
 t_byte	halt(t_emu *emu, t_byte op_code)
 {
 	emu->cpu.halted = TRUE;
-	return (n_instr[op_code]);
+	return (g_n_instr[op_code]);
 }
 
 void	set_flag_0xe8_0xf8(t_cpu *cpu, t_word sp, char offset)
@@ -214,7 +214,7 @@ t_byte	ld_16(t_emu *emu, t_byte op_code)
 		emu_tick(emu, 4);
 	if (op_code == 0xF8)
 		set_flag_0xe8_0xf8(&emu->cpu, sp_of(emu->cpu), offset);
-	return (n_instr[op_code]);
+	return (g_n_instr[op_code]);
 }
 
 void	inc_dec_rr(t_emu *emu, t_byte op_code, int value)
@@ -231,13 +231,13 @@ void	inc_dec_rr(t_emu *emu, t_byte op_code, int value)
 t_byte	inc_rr(t_emu *emu, t_byte op_code)
 {
 	inc_dec_rr(emu, op_code, 1);
-	return (n_instr[op_code]);
+	return (g_n_instr[op_code]);
 }
 
 t_byte	dec_rr(t_emu *emu, t_byte op_code)
 {
 	inc_dec_rr(emu, op_code, -1);
-	return (n_instr[op_code]);
+	return (g_n_instr[op_code]);
 }
 
 t_word	read_mrr_idhl_tick(t_emu *emu, t_byte op_code)
@@ -305,13 +305,13 @@ void	inc_dec_r(t_emu *emu, t_byte op_code, int value)
 t_byte	inc_r(t_emu *emu, t_byte op_code)
 {
 	inc_dec_r(emu, op_code, 1);
-	return (n_instr[op_code]);
+	return (g_n_instr[op_code]);
 }
 
 t_byte	dec_r(t_emu *emu, t_byte op_code)
 {
 	inc_dec_r(emu, op_code, -1);
-	return (n_instr[op_code]);
+	return (g_n_instr[op_code]);
 }
 
 t_byte	ld_r_r(t_emu *emu, t_byte op_code)
@@ -335,7 +335,7 @@ t_byte	ld_r_r(t_emu *emu, t_byte op_code)
 		write_mrr_idhl_tick(emu, op_code, res);
 	else
 		setw(&emu->cpu, res);
-	return (n_instr[op_code]);
+	return (g_n_instr[op_code]);
 }
 
 t_byte	add_addc(t_cpu *cpu, t_byte op_code, t_byte v)
@@ -423,7 +423,7 @@ t_byte	bit_op(t_emu *emu, t_byte op_code)
 		res = getw(emu->cpu);
 	res = op_fptr[idx](&emu->cpu, op_code, res);
 	setw(&emu->cpu, res);
-	return (n_instr[op_code]);
+	return (g_n_instr[op_code]);
 }
 
 t_byte	jp(t_emu *emu, t_byte op_code)
@@ -455,21 +455,21 @@ t_byte	jp(t_emu *emu, t_byte op_code)
 		emu_tick(emu, 4);
 		true_cond = TRUE;
 	}
-	return (n_instr[op_code] + true_cond);
+	return (g_n_instr[op_code] + true_cond);
 }
 
 t_byte	di(t_emu *emu, t_byte op_code)
 {
 	emu->cpu.ime = FALSE;
 	emu->cpu.ime_countdown = 0;
-	return (n_instr[op_code]);
+	return (g_n_instr[op_code]);
 }
 
 t_byte	ei(t_emu *emu, t_byte op_code)
 {
 	if (emu->cpu.ime_countdown == 0)
 		emu->cpu.ime_countdown = 2;
-	return (n_instr[op_code]);
+	return (g_n_instr[op_code]);
 }
 
 t_byte	ld_m(t_emu *emu, t_byte op_code)
@@ -497,7 +497,7 @@ t_byte	ld_m(t_emu *emu, t_byte op_code)
 		bus_write(emu, read_pc_word_tick(emu), data);
 	if ((op_code & 0xF0) != 0xF0)
 		emu_tick(emu, 4);
-	return (n_instr[op_code]);
+	return (g_n_instr[op_code]);
 }
 
 void	push_word(t_emu *emu, t_word data)
@@ -517,7 +517,7 @@ t_byte	push(t_emu *emu, t_byte op_code)
 	data = g_getw_fptr[op_code](emu->cpu);
 	emu_tick(emu, 4);
 	push_word(emu, data);
-	return (n_instr[op_code]);
+	return (g_n_instr[op_code]);
 }
 
 t_byte	pop(t_emu *emu, t_byte op_code)
@@ -531,7 +531,7 @@ t_byte	pop(t_emu *emu, t_byte op_code)
 	++(emu->cpu.sp);
 	emu_tick(emu, 4);
 	g_setw_fptr[op_code](&emu->cpu, data);
-	return (n_instr[op_code]);
+	return (g_n_instr[op_code]);
 }
 
 t_byte	rst(t_emu *emu, t_byte op_code)
@@ -542,7 +542,7 @@ t_byte	rst(t_emu *emu, t_byte op_code)
 	idx = ((op_code - 0xC0) / 8) % 8;
 	push(emu, op_code);
 	emu->cpu.pc = addr[idx];
-	return (n_instr[op_code]);
+	return (g_n_instr[op_code]);
 }
 
 t_byte	ret_reti(t_emu *emu, t_byte op_code)
@@ -564,7 +564,7 @@ t_byte	ret_reti(t_emu *emu, t_byte op_code)
 	emu_tick(emu, 4);
 	if (op_code == 0xD9)
 		emu->cpu.ime = TRUE;
-	return (n_instr[op_code] + true_cond * 3);
+	return (g_n_instr[op_code] + true_cond * 3);
 }
 
 t_byte	call(t_emu *emu, t_byte op_code)
@@ -585,7 +585,7 @@ t_byte	call(t_emu *emu, t_byte op_code)
 		emu->cpu.pc = addr;
 		true_cond = TRUE;
 	}
-	return (n_instr[op_code] + true_cond * 3);
+	return (g_n_instr[op_code] + true_cond * 3);
 }
 
 t_byte	add_16(t_emu *emu, t_byte op_code)
@@ -615,7 +615,7 @@ t_byte	add_16(t_emu *emu, t_byte op_code)
 		set_flag_h(&emu->cpu, 1);
 	if (op_code == 0xE8)
 		set_flag_0xe8_0xf8(&emu->cpu, old_data, offset);
-	return (n_instr[op_code]);
+	return (g_n_instr[op_code]);
 }
 
 t_byte	daa(t_emu *emu, t_byte op_code)
@@ -643,7 +643,7 @@ t_byte	daa(t_emu *emu, t_byte op_code)
 	set_a(&emu->cpu, a);
 	set_flag_z(&emu->cpu, !a_of(emu->cpu));
 	set_flag_h(&emu->cpu, 0);
-	return (n_instr[op_code]);
+	return (g_n_instr[op_code]);
 }
 
 t_byte	cpl(t_emu *emu, t_byte op_code)
@@ -651,7 +651,7 @@ t_byte	cpl(t_emu *emu, t_byte op_code)
 	emu->cpu.a = ~emu->cpu.a;
 	set_flag_n(&emu->cpu, 1);
 	set_flag_h(&emu->cpu, 1);
-	return (n_instr[op_code]);
+	return (g_n_instr[op_code]);
 }
 
 t_byte	scf(t_emu *emu, t_byte op_code)
@@ -659,7 +659,7 @@ t_byte	scf(t_emu *emu, t_byte op_code)
 	set_flag_n(&emu->cpu, 0);
 	set_flag_h(&emu->cpu, 0);
 	set_flag_c(&emu->cpu, 1);
-	return (n_instr[op_code]);
+	return (g_n_instr[op_code]);
 }
 
 t_byte	ccf(t_emu *emu, t_byte op_code)
@@ -667,7 +667,7 @@ t_byte	ccf(t_emu *emu, t_byte op_code)
 	set_flag_n(&emu->cpu, 0);
 	set_flag_h(&emu->cpu, 0);
 	set_flag_c(&emu->cpu, ~get_flag_c(emu->cpu) & 0x1);
-	return (n_instr[op_code]);
+	return (g_n_instr[op_code]);
 }
 
 t_byte	rlc(t_emu *emu, t_byte data)
@@ -746,11 +746,11 @@ t_byte	bit_res_set(t_byte op_code, t_byte data)
 	return (data);
 }
 
-t_getw	*g_rotate_getw_fptr[8] = {
+t_getw			*g_rotate_getw_fptr[8] = {
 	b_of, c_of, d_of, e_of, h_of, l_of, hl_of, a_of
 };
 
-t_setw	*g_rotate_setw_fptr[8] = {
+t_setw			*g_rotate_setw_fptr[8] = {
 	set_b, set_c, set_d, set_e, set_h, set_l, NULL, set_a
 };
 t_byte (*g_rotate_fptr[8])(t_emu *, t_byte) = {
@@ -789,17 +789,17 @@ t_byte	prefix_cb(t_emu *emu, t_byte op_code)
 	}
 	else if (op_code < 0x40 || op_code > 0x7F)
 		g_rotate_setw_fptr[op_code % 8](&emu->cpu, data);
-	return (n_instr_cb[op_code]);
+	return (g_n_instr_cb[op_code]);
 }
 
 t_byte	rotate_a(t_emu *emu, t_byte op_code)
 {
 	prefix_cb(emu, op_code);
 	set_flag_z(&emu->cpu, 0);
-	return (n_instr[op_code]);
+	return (g_n_instr[op_code]);
 }
 
-t_inst	*g_op_map[256] = {
+t_inst			*g_op_map[256] = {
 	nop, ld_16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, rotate_a,
 	ld_16, add_16, ld_r_r, dec_rr, inc_r, dec_r, ld_r_r, rotate_a,
 	stop, ld_16, ld_r_r, inc_rr, inc_r, dec_r, ld_r_r, rotate_a,

@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/17 22:10:16 by mayeung           #+#    #+#             */
-/*   Updated: 2025/02/15 00:46:38 by mayeung          ###   ########.fr       */
+/*   Updated: 2025/06/20 17:03:41 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -302,7 +302,6 @@ t_byte	is_apu_ch3_dac_on(t_emu *emu)
 	return (emu->apu.nr30_c3_dac & 0x80);
 }
 
-
 t_byte	is_apu_ch1_length_timer_on(t_emu *emu)
 {
 	return (emu->apu.nr14_c1_per_high_ctrl & 0x40);
@@ -374,6 +373,7 @@ t_word	apu_get_ch4_lfsr_range(t_emu *emu)
 float	apu_get_ch3_vol(t_emu *emu)
 {
 	const float	vols[] = {0, 1, 0.5, 0.25};
+
 	return (vols[(emu->apu.nr32_c3_out_lvl & 0x60) >> 5]);
 }
 
