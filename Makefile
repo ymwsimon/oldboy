@@ -1,4 +1,4 @@
-NAME = emu
+NAME = oldboy
 
 SRC = main cartridge app cpu bus emu instruction interrupt timer serial ppu input apu
 
