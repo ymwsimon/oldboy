@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 13:14:12 by mayeung           #+#    #+#             */
-/*   Updated: 2025/02/19 14:18:37 by mayeung          ###   ########.fr       */
+/*   Updated: 2026/03/30 12:07:27 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -273,8 +273,8 @@ int	init_sdl(t_app *app)
 	// SDL_SetAudioStreamFrequencyRatio(app->emu.audio_stream, 23.77723356);
 	SDL_ResumeAudioStreamDevice(app->emu.audio_stream);
 	SDL_GetAudioStreamFormat(app->emu.audio_stream, &src_spec, &dst_spec);
-	printf("src:%d %d %d %ld\n", src_spec.channels, src_spec.format, src_spec.freq, sizeof(float));
-	printf("dst:%d %d %d %ld\n", dst_spec.channels, dst_spec.format, dst_spec.freq, sizeof(float));
+	// printf("src:%d %d %d %ld\n", src_spec.channels, src_spec.format, src_spec.freq, sizeof(float));
+	// printf("dst:%d %d %d %ld\n", dst_spec.channels, dst_spec.format, dst_spec.freq, sizeof(float));
 	// printf("freq:%f\n", SDL_GetAudioStreamFrequencyRatio(app->emu.audio_stream));
 	// SDL_SetAudioStreamFrequencyRatio(app->emu.audio_stream, 0.992);
 	return (OK);

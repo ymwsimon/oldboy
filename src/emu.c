@@ -6,7 +6,7 @@
 /*   By: mayeung <mayeung@student.42london.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 15:45:49 by mayeung           #+#    #+#             */
-/*   Updated: 2025/02/07 21:57:21 by mayeung          ###   ########.fr       */
+/*   Updated: 2026/03/30 12:06:48 by mayeung          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,7 @@ void	emu_tick(t_emu *emu, t_ull clock_cycle)
 		if (emu->clock_cycle + 1 == FREQUENCY)
 		{
 			++(emu->sec_elapsed);
-			printf("%f %llu\n", calculate_time_diff(emu->genesis_tick), emu->sec_elapsed);
+			// printf("%f %llu\n", calculate_time_diff(emu->genesis_tick), emu->sec_elapsed);
 			emu->clock_cycle = 0;
 		}
 		++i;
