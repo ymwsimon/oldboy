@@ -1,0 +1,3 @@
+[submodule "oldboy-testcases"]
+	path = oldboy-testcases
+	url = https://github.com/ymwsimon/oldboy-testcases.git
